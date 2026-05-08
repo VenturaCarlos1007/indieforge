@@ -208,9 +208,13 @@ export default function AssetsPage() {
                       {isImage ? (
                         <div className="w-full h-28 rounded-xl mb-3 overflow-hidden relative"
                           style={{ background: `linear-gradient(135deg, ${cfg.bg}, rgba(0,0,0,0.3))`, border: `1px solid ${cfg.border}` }}>
-                          <div className="w-full h-full flex items-center justify-center">
-                            <AssetIcon size={32} style={{ color: cfg.color, opacity: 0.4 }} />
-                          </div>
+                          {a.active_storage_url ? (
+                            <img src={a.active_storage_url} alt={a.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <AssetIcon size={32} style={{ color: cfg.color, opacity: 0.4 }} />
+                            </div>
+                          )}
                           <div className="absolute top-2 right-2">
                             <span className="badge" style={{ background: cfg.bg, color: cfg.color, fontSize: '9px' }}>{cfg.label}</span>
                           </div>

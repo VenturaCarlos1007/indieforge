@@ -11,7 +11,7 @@ router.get('/', async (req, res, next) => {
     const { project_id, folder_id, search } = req.query;
     if (!project_id) return res.status(400).json({ error: 'project_id es requerido.' });
 
-    let sql = `SELECT a.*, u.name AS uploader_name FROM assets a JOIN users u ON u.id = a.uploaded_by WHERE a.project_id = $1`;
+    let sql = `SELECT a.*, u.name AS uploader_name, av.storage_url AS active_storage_url FROM assets a JOIN users u ON u.id = a.uploaded_by LEFT JOIN asset_versions av ON av.asset_id = a.id AND av.is_active = TRUE WHERE a.project_id = $1`;
     const params = [project_id];
     let idx = 2;
 
@@ -183,9 +183,9 @@ router.post('/:id/comments', async (req, res, next) => {
       VALUES ($1, $2, $3)
       RETURNING *
     `, [req.params.id, req.user.id, content]);
-    
+
     const comment = rows[0];
-    
+
     // Add user details for frontend
     const userRes = await query('SELECT name, avatar_url FROM users WHERE id = $1', [req.user.id]);
     comment.user_name = userRes.rows[0].name;
