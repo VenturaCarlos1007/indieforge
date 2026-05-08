@@ -50,12 +50,27 @@ export default function AssetsPage() {
   const loadContent = useCallback(async () => {
     setLoading(true);
     try {
-      const folderId = currentFolderId || 'root';
-      const [fRes, aRes] = await Promise.all([
-        api.get(`/folders?project_id=${projectId}${currentFolderId ? `&parent_id=${currentFolderId}` : ''}`),
-        api.get(`/assets?project_id=${projectId}&folder_id=${folderId}${search ? `&search=${search}` : ''}`),
-      ]);
-      setFolders(search ? [] : fRes.data.folders);
+      const q = encodeURIComponent(search);
+      let folderPromise, assetPromise;
+
+      if (search) {
+        if (currentFolderId) {
+          // Searching inside a folder: assets within this folder only, no folders
+          folderPromise = Promise.resolve({ data: { folders: [] } });
+          assetPromise = api.get(`/assets?project_id=${projectId}&folder_id=${currentFolderId}&search=${q}`);
+        } else {
+          // Searching from root: project-wide assets + all matching folders
+          folderPromise = api.get(`/folders?project_id=${projectId}&search=${q}`);
+          assetPromise = api.get(`/assets?project_id=${projectId}&search=${q}`);
+        }
+      } else {
+        // Normal browsing: show current directory contents
+        folderPromise = api.get(`/folders?project_id=${projectId}${currentFolderId ? `&parent_id=${currentFolderId}` : ''}`);
+        assetPromise = api.get(`/assets?project_id=${projectId}&folder_id=${currentFolderId || 'root'}`);
+      }
+
+      const [fRes, aRes] = await Promise.all([folderPromise, assetPromise]);
+      setFolders(fRes.data.folders);
       setAssets(aRes.data.assets);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }

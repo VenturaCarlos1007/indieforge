@@ -5,16 +5,23 @@ const { authenticate } = require('../middleware/auth');
 const router = Router();
 router.use(authenticate);
 
-// GET /api/folders?project_id=xxx&parent_id=xxx
+// GET /api/folders?project_id=xxx&parent_id=xxx&search=xxx
 router.get('/', async (req, res, next) => {
   try {
-    const { project_id, parent_id } = req.query;
+    const { project_id, parent_id, search } = req.query;
     if (!project_id) return res.status(400).json({ error: 'project_id es requerido.' });
 
-    const sql = parent_id
-      ? 'SELECT * FROM folders WHERE project_id = $1 AND parent_id = $2 ORDER BY name'
-      : 'SELECT * FROM folders WHERE project_id = $1 AND parent_id IS NULL ORDER BY name';
-    const params = parent_id ? [project_id, parent_id] : [project_id];
+    let sql, params;
+    if (search) {
+      sql = 'SELECT * FROM folders WHERE project_id = $1 AND name ILIKE $2 ORDER BY name';
+      params = [project_id, `%${search}%`];
+    } else if (parent_id) {
+      sql = 'SELECT * FROM folders WHERE project_id = $1 AND parent_id = $2 ORDER BY name';
+      params = [project_id, parent_id];
+    } else {
+      sql = 'SELECT * FROM folders WHERE project_id = $1 AND parent_id IS NULL ORDER BY name';
+      params = [project_id];
+    }
 
     const { rows } = await query(sql, params);
     res.json({ folders: rows });
