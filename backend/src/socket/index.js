@@ -5,7 +5,11 @@ function initSocket(httpServer) {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+      origin: [
+        'https://indieforge-beryl.vercel.app',
+        'https://indieforge-production.up.railway.app', 
+        'http://localhost:5173'
+      ],
       methods: ['GET', 'POST'],
     },
   });

@@ -28,7 +28,14 @@ const app = express();
 const server = http.createServer(app);
 
 // ── Middlewares
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }));
+app.use(cors({
+  origin: [
+    'https://indieforge-beryl.vercel.app',
+    'https://indieforge-production.up.railway.app', 
+    'http://localhost:5173'
+  ],
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
