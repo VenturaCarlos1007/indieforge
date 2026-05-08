@@ -18,7 +18,7 @@ export default function Sidebar() {
         style={{ background: 'linear-gradient(90deg, #7C3AED, #06B6D4, #7C3AED)' }} />
 
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <Link to="/dashboard" className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <div className="relative">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
@@ -36,7 +36,7 @@ export default function Sidebar() {
             <Sparkles size={8} /> Game Studio
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-5 space-y-1">

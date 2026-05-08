@@ -40,6 +40,7 @@ export default function AssetsPage() {
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [dragging, setDragging] = useState(false);
+  const [creatingFolder, setCreatingFolder] = useState(false);
 
   const currentFolderId = path.length > 0 ? path[path.length - 1].id : null;
 
@@ -61,11 +62,16 @@ export default function AssetsPage() {
 
   const createFolder = async (e) => {
     e.preventDefault();
-    if (!newFolderName.trim()) return;
-    await api.post('/folders', { project_id: projectId, parent_id: currentFolderId, name: newFolderName.trim() });
-    setNewFolderName('');
-    setShowNewFolder(false);
-    loadContent();
+    if (!newFolderName.trim() || creatingFolder) return;
+    setCreatingFolder(true);
+    try {
+      await api.post('/folders', { project_id: projectId, parent_id: currentFolderId, name: newFolderName.trim() });
+      setNewFolderName('');
+      setShowNewFolder(false);
+      loadContent();
+    } finally {
+      setCreatingFolder(false);
+    }
   };
 
   const openFolder = (folder) => { setPath([...path, folder]); setSearch(''); };
@@ -249,7 +255,9 @@ export default function AssetsPage() {
             placeholder="Nombre de la carpeta" className="input-field" autoFocus required />
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setShowNewFolder(false)} className="btn-secondary">Cancelar</button>
-            <button type="submit" className="btn-primary">Crear</button>
+            <button type="submit" className="btn-primary" disabled={creatingFolder}>
+              {creatingFolder ? 'Creando…' : 'Crear'}
+            </button>
           </div>
         </form>
       </Modal>
