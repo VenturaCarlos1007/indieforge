@@ -24,7 +24,10 @@ export default function RegisterPage() {
     if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres.'); return; }
     setLoading(true);
     try { await register(name, email, password); }
-    catch (err) { setError(err.response?.data?.error || 'Error al registrarse.'); }
+    catch (err) { 
+      const msg = err.response?.data?.error;
+      setError(typeof msg === 'string' ? msg : 'Error al registrarse. Verifica tus datos.');
+    }
     finally { setLoading(false); }
   };
 
@@ -156,7 +159,7 @@ export default function RegisterPage() {
           </div>
         </motion.div>
 
-        <p className="text-xs text-surface-500 text-right">© 2024 IndieForge. Para desarrolladores indie.</p>
+        <p className="text-xs text-surface-500 text-right">© 2026 IndieForge. Para desarrolladores indie.</p>
       </div>
     </div>
   );

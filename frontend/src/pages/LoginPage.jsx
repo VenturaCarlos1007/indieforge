@@ -22,7 +22,10 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try { await login(email, password); }
-    catch (err) { setError(err.response?.data?.error || 'Error al iniciar sesión.'); }
+    catch (err) { 
+      const msg = err.response?.data?.error;
+      setError(typeof msg === 'string' ? msg : 'Error al iniciar sesión.');
+    }
     finally { setLoading(false); }
   };
 
