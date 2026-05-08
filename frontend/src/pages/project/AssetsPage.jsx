@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
 import api from '../../services/api';
@@ -31,6 +32,8 @@ function fileTypeFromName(name) {
 
 export default function AssetsPage() {
   const { projectId } = useProject();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [folders, setFolders] = useState([]);
   const [assets, setAssets] = useState([]);
   const [path, setPath] = useState([]);
@@ -77,6 +80,17 @@ export default function AssetsPage() {
   }, [projectId, currentFolderId, search]);
 
   useEffect(() => { loadContent(); }, [loadContent]);
+
+  // Open a specific asset when navigating here from a notification
+  useEffect(() => {
+    const assetId = location.state?.openAssetId;
+    if (!assetId) return;
+    api.get(`/assets/${assetId}`)
+      .then(({ data }) => setSelectedAsset(data.asset))
+      .catch(console.error);
+    // Clear state so navigating back here later doesn't re-open the modal
+    navigate(location.pathname, { replace: true, state: null });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createFolder = async (e) => {
     e.preventDefault();

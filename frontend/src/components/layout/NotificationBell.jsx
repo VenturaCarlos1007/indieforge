@@ -98,6 +98,28 @@ export default function NotificationBell() {
     }
   };
 
+  const handleNotifClick = (notif) => {
+    if (notif.type === 'project_invitation') return;
+    if (!notif.read) markAsRead(notif.id);
+    setIsOpen(false);
+    const projectId = notif.project_id;
+    const data = notif.data || {};
+    switch (notif.type) {
+      case 'task_assigned':
+      case 'task_due':
+        navigate(`/project/${projectId}/kanban`);
+        break;
+      case 'asset_comment':
+        navigate(`/project/${projectId}/assets`, { state: { openAssetId: data.assetId } });
+        break;
+      case 'asset_uploaded':
+        navigate(`/project/${projectId}/assets`);
+        break;
+      default:
+        if (projectId) navigate(`/project/${projectId}`);
+    }
+  };
+
   const getIcon = (type) => {
     switch (type) {
       case 'project_invitation': return <UserPlus className="w-5 h-5 text-purple-400" />;
@@ -157,10 +179,10 @@ export default function NotificationBell() {
                   return (
                     <div
                       key={notif.id}
-                      onClick={() => !isInvitation && !notif.read && markAsRead(notif.id)}
+                      onClick={() => !isInvitation && handleNotifClick(notif)}
                       className={`p-3 rounded-xl transition-all flex items-start gap-3 ${
                         notif.read ? 'opacity-60' : 'bg-white/10'
-                      } ${!isInvitation && !notif.read ? 'cursor-pointer hover:bg-white/15' : ''}`}
+                      } ${!isInvitation ? 'cursor-pointer hover:bg-white/15' : ''}`}
                     >
                       <div className="mt-0.5 flex-shrink-0">{getIcon(notif.type)}</div>
 
