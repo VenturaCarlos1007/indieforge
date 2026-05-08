@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { timeAgo } from '../../utils/helpers';
-import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X } from 'lucide-react';
+import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X, Loader2 } from 'lucide-react';
 
 function formatBytes(bytes) {
   const n = Number(bytes);
@@ -15,6 +15,8 @@ function formatBytes(bytes) {
 export default function AssetDetail({ asset, onUpdate }) {
   const [tab, setTab] = useState('versions');
   const [lightbox, setLightbox] = useState(false);
+  const [sendingComment, setSendingComment] = useState(false);
+  const [restoringId, setRestoringId] = useState(null);
   const [versions, setVersions] = useState([]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -38,20 +40,27 @@ export default function AssetDetail({ asset, onUpdate }) {
   }, [asset.id]);
 
   const restore = async (versionId) => {
-    await api.post(`/assets/${asset.id}/restore/${versionId}`);
-    const vRes = await api.get(`/assets/${asset.id}/versions`);
-    setVersions(vRes.data.versions);
-    onUpdate?.();
+    if (restoringId) return;
+    setRestoringId(versionId);
+    try {
+      await api.post(`/assets/${asset.id}/restore/${versionId}`);
+      const vRes = await api.get(`/assets/${asset.id}/versions`);
+      setVersions(vRes.data.versions);
+      onUpdate?.();
+    } finally { setRestoringId(null); }
   };
 
   const sendComment = async (e) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
-    await api.post('/comments', { asset_id: asset.id, content: newComment, parent_id: replyTo });
-    const cRes = await api.get(`/comments?asset_id=${asset.id}`);
-    setComments(cRes.data.comments);
-    setNewComment('');
-    setReplyTo(null);
+    if (!newComment.trim() || sendingComment) return;
+    setSendingComment(true);
+    try {
+      await api.post('/comments', { asset_id: asset.id, content: newComment, parent_id: replyTo });
+      const cRes = await api.get(`/comments?asset_id=${asset.id}`);
+      setComments(cRes.data.comments);
+      setNewComment('');
+      setReplyTo(null);
+    } finally { setSendingComment(false); }
   };
 
   const resolveComment = async (id) => {
@@ -176,8 +185,15 @@ export default function AssetDetail({ asset, onUpdate }) {
                 {v.is_active ? (
                   <span className="badge badge-green"><Check size={12} /> Activa</span>
                 ) : (
-                  <button onClick={() => restore(v.id)} className="btn-ghost flex items-center gap-1 text-xs">
-                    <RotateCcw size={13} /> Restaurar
+                  <button
+                    onClick={() => restore(v.id)}
+                    disabled={!!restoringId}
+                    className="btn-ghost flex items-center gap-1 text-xs disabled:opacity-50"
+                  >
+                    {restoringId === v.id
+                      ? <><Loader2 size={13} className="animate-spin" /> Restaurando…</>
+                      : <><RotateCcw size={13} /> Restaurar</>
+                    }
                   </button>
                 )}
               </div>
@@ -208,7 +224,9 @@ export default function AssetDetail({ asset, onUpdate }) {
               <input value={newComment} onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Escribe un comentario…" className="input-sm" />
             </div>
-            <button type="submit" className="btn-primary px-3 self-end"><Send size={16} /></button>
+            <button type="submit" className="btn-primary px-3 self-end disabled:opacity-50" disabled={sendingComment}>
+              {sendingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            </button>
           </form>
         </div>
       )}

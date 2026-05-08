@@ -285,6 +285,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
   const [priority, setPriority] = useState('medium');
   const [dueDate, setDueDate] = useState('');
   const [assignees, setAssignees] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (task) { 
@@ -304,7 +305,13 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
 
   const toggleAssignee = (id) => setAssignees((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const handleSubmit = (e) => { e.preventDefault(); if (!title.trim()) return; onSubmit({ title, description, priority, due_date: dueDate || null, assignee_ids: assignees }); };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim() || submitting) return;
+    setSubmitting(true);
+    try { await onSubmit({ title, description, priority, due_date: dueDate || null, assignee_ids: assignees }); }
+    finally { setSubmitting(false); }
+  };
 
   return (
     <Modal open={open} onClose={onClose} title={modalTitle}>
@@ -358,7 +365,12 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-          <button type="submit" className="btn-primary">{task ? 'Guardar' : 'Crear'}</button>
+          <button type="submit" className="btn-primary disabled:opacity-50" disabled={submitting}>
+            {submitting
+              ? <span className="flex items-center gap-1.5"><Loader2 size={14} className="animate-spin" />{task ? 'Guardando…' : 'Creando…'}</span>
+              : (task ? 'Guardar' : 'Crear')
+            }
+          </button>
         </div>
       </form>
     </Modal>

@@ -131,6 +131,7 @@ export default function DashboardPage() {
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [creatingProject, setCreatingProject] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -147,13 +148,15 @@ export default function DashboardPage() {
 
   const createProject = async (e) => {
     e.preventDefault();
-    if (!newName.trim()) return;
+    if (!newName.trim() || creatingProject) return;
+    setCreatingProject(true);
     try {
       const { data } = await api.post('/projects', { name: newName, description: newDesc });
       setProjects((p) => [data.project, ...p]);
       setNewName(''); setNewDesc('');
       setShowNew(false);
     } catch { /* ignore */ }
+    finally { setCreatingProject(false); }
   };
 
   return (
@@ -309,7 +312,9 @@ export default function DashboardPage() {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setShowNew(false)} className="btn-secondary">Cancelar</button>
-              <button type="submit" className="btn-primary">Crear proyecto</button>
+              <button type="submit" className="btn-primary disabled:opacity-50" disabled={creatingProject}>
+                {creatingProject ? 'Creando…' : 'Crear proyecto'}
+              </button>
             </div>
           </form>
         </Modal>
