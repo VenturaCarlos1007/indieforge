@@ -41,6 +41,9 @@ export default function AssetsPage() {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [creatingFolder, setCreatingFolder] = useState(false);
+  const [folderNameError, setFolderNameError] = useState('');
+  const [conflictQueue, setConflictQueue] = useState([]);
+  const [uploadingVersion, setUploadingVersion] = useState(false);
 
   const currentFolderId = path.length > 0 ? path[path.length - 1].id : null;
 
@@ -63,10 +66,16 @@ export default function AssetsPage() {
   const createFolder = async (e) => {
     e.preventDefault();
     if (!newFolderName.trim() || creatingFolder) return;
+    const trimmedName = newFolderName.trim();
+    if (folders.some(f => f.name.toLowerCase() === trimmedName.toLowerCase())) {
+      setFolderNameError('Ya existe una carpeta con ese nombre aquí');
+      return;
+    }
     setCreatingFolder(true);
     try {
-      await api.post('/folders', { project_id: projectId, parent_id: currentFolderId, name: newFolderName.trim() });
+      await api.post('/folders', { project_id: projectId, parent_id: currentFolderId, name: trimmedName });
       setNewFolderName('');
+      setFolderNameError('');
       setShowNewFolder(false);
       loadContent();
     } finally {
@@ -78,21 +87,54 @@ export default function AssetsPage() {
   const goToPath = (index) => { setPath(path.slice(0, index + 1)); setSearch(''); };
   const goHome = () => { setPath([]); setSearch(''); };
 
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    for (const file of files) {
-      const reader = new FileReader();
-      reader.onload = async () => {
+  const uploadFile = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
         await api.post('/assets', {
           project_id: projectId, folder_id: currentFolderId,
           name: file.name, type: fileTypeFromName(file.name), storage_url: reader.result,
         });
-        loadContent();
-      };
-      reader.readAsDataURL(file);
+        resolve();
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const handleVersionConfirm = async () => {
+    if (uploadingVersion) return;
+    setUploadingVersion(true);
+    const [file, ...rest] = conflictQueue;
+    try {
+      await uploadFile(file);
+      loadContent();
+      setConflictQueue(rest);
+    } finally {
+      setUploadingVersion(false);
     }
+  };
+
+  const handleVersionCancel = () => setConflictQueue(prev => prev.slice(1));
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    const conflicts = [];
+    const direct = [];
+    for (const file of files) {
+      if (assets.some(a => a.name.toLowerCase() === file.name.toLowerCase())) {
+        conflicts.push(file);
+      } else {
+        direct.push(file);
+      }
+    }
+    for (const file of direct) {
+      await uploadFile(file);
+    }
+    if (direct.length > 0) loadContent();
+    if (conflicts.length > 0) setConflictQueue(conflicts);
   };
 
   const handleUploadClick = () => {
@@ -249,12 +291,20 @@ export default function AssetsPage() {
         )}
       </div>
 
-      <Modal open={showNewFolder} onClose={() => setShowNewFolder(false)} title="Nueva carpeta">
+      <Modal open={showNewFolder} onClose={() => { setShowNewFolder(false); setFolderNameError(''); }} title="Nueva carpeta">
         <form onSubmit={createFolder} className="space-y-4">
-          <input value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)}
-            placeholder="Nombre de la carpeta" className="input-field" autoFocus required />
+          <div>
+            <input
+              value={newFolderName}
+              onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(''); }}
+              placeholder="Nombre de la carpeta"
+              className="input-field"
+              autoFocus required
+            />
+            {folderNameError && <p className="text-xs text-red-400 mt-1">{folderNameError}</p>}
+          </div>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => setShowNewFolder(false)} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={() => { setShowNewFolder(false); setFolderNameError(''); }} className="btn-secondary">Cancelar</button>
             <button type="submit" className="btn-primary" disabled={creatingFolder}>
               {creatingFolder ? 'Creando…' : 'Crear'}
             </button>
@@ -264,6 +314,27 @@ export default function AssetsPage() {
 
       <Modal open={!!selectedAsset} onClose={() => setSelectedAsset(null)} title={selectedAsset?.name} wide>
         {selectedAsset && <AssetDetail asset={selectedAsset} onUpdate={loadContent} />}
+      </Modal>
+
+      <Modal open={conflictQueue.length > 0} onClose={handleVersionCancel} title="Asset duplicado">
+        <div className="space-y-4">
+          <p className="text-sm text-surface-300">
+            Ya existe un asset con el nombre{' '}
+            <span className="font-semibold text-white">"{conflictQueue[0]?.name}"</span>.
+            ¿Deseas subir una nueva versión?
+          </p>
+          {conflictQueue.length > 1 && (
+            <p className="text-xs text-surface-500">
+              {conflictQueue.length - 1} archivo{conflictQueue.length - 1 > 1 ? 's' : ''} más en cola.
+            </p>
+          )}
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={handleVersionCancel} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={handleVersionConfirm} disabled={uploadingVersion} className="btn-primary disabled:opacity-50">
+              {uploadingVersion ? 'Subiendo…' : 'Subir como nueva versión'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

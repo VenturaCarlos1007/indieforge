@@ -132,6 +132,7 @@ export default function DashboardPage() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [creatingProject, setCreatingProject] = useState(false);
+  const [projectNameError, setProjectNameError] = useState('');
 
   useEffect(() => {
     Promise.all([
@@ -149,11 +150,17 @@ export default function DashboardPage() {
   const createProject = async (e) => {
     e.preventDefault();
     if (!newName.trim() || creatingProject) return;
+    const trimmedName = newName.trim();
+    if (projects.some(p => p.name.toLowerCase() === trimmedName.toLowerCase())) {
+      setProjectNameError('Ya tienes un proyecto con ese nombre');
+      return;
+    }
     setCreatingProject(true);
     try {
-      const { data } = await api.post('/projects', { name: newName, description: newDesc });
+      const { data } = await api.post('/projects', { name: trimmedName, description: newDesc });
       setProjects((p) => [data.project, ...p]);
       setNewName(''); setNewDesc('');
+      setProjectNameError('');
       setShowNew(false);
     } catch { /* ignore */ }
     finally { setCreatingProject(false); }
@@ -300,18 +307,25 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* Create modal */}
-        <Modal open={showNew} onClose={() => setShowNew(false)} title="Nuevo proyecto">
+        <Modal open={showNew} onClose={() => { setShowNew(false); setProjectNameError(''); }} title="Nuevo proyecto">
           <form onSubmit={createProject} className="space-y-4">
             <div>
               <label className="text-xs font-medium text-surface-400 mb-1.5 block">Nombre del proyecto</label>
-              <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Mi Juego Increíble" className="input-field" autoFocus required />
+              <input
+                value={newName}
+                onChange={(e) => { setNewName(e.target.value); setProjectNameError(''); }}
+                placeholder="Mi Juego Increíble"
+                className="input-field"
+                autoFocus required
+              />
+              {projectNameError && <p className="text-xs text-red-400 mt-1">{projectNameError}</p>}
             </div>
             <div>
               <label className="text-xs font-medium text-surface-400 mb-1.5 block">Descripción</label>
               <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Un RPG 2D con pixel art..." rows={3} className="input-field resize-none" />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowNew(false)} className="btn-secondary">Cancelar</button>
+              <button type="button" onClick={() => { setShowNew(false); setProjectNameError(''); }} className="btn-secondary">Cancelar</button>
               <button type="submit" className="btn-primary disabled:opacity-50" disabled={creatingProject}>
                 {creatingProject ? 'Creando…' : 'Crear proyecto'}
               </button>
