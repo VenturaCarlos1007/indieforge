@@ -115,6 +115,50 @@ router.get('/:id/versions', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /api/assets/:id/versions — upload a new version regardless of file name
+router.post('/:id/versions', async (req, res, next) => {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    const { storage_url, size_bytes } = req.body;
+    if (!storage_url) return res.status(400).json({ error: 'storage_url es requerido.' });
+
+    const assetRes = await client.query('SELECT * FROM assets WHERE id = $1', [req.params.id]);
+    if (!assetRes.rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
+    const asset = assetRes.rows[0];
+
+    const newVerNum = asset.current_version + 1;
+
+    await client.query('UPDATE asset_versions SET is_active = FALSE WHERE asset_id = $1', [req.params.id]);
+
+    const verRes = await client.query(
+      `INSERT INTO asset_versions (asset_id, uploaded_by, version_number, storage_url, size_bytes, is_active)
+       VALUES ($1,$2,$3,$4,$5,TRUE) RETURNING *`,
+      [req.params.id, req.user.id, newVerNum, storage_url, size_bytes || 0]
+    );
+
+    await client.query('UPDATE assets SET current_version = $1 WHERE id = $2', [newVerNum, req.params.id]);
+
+    await client.query(
+      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id)
+       VALUES ($1,$2,'uploaded','asset',$3)`,
+      [asset.project_id, req.user.id, req.params.id]
+    );
+
+    await client.query('COMMIT');
+
+    const userRes = await query('SELECT name FROM users WHERE id = $1', [req.user.id]);
+    const version = { ...verRes.rows[0], uploader_name: userRes.rows[0].name };
+
+    res.status(201).json({ version, current_version: newVerNum });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 // POST /api/assets/:id/restore/:versionId
 router.post('/:id/restore/:versionId', async (req, res, next) => {
   const client = await getClient();

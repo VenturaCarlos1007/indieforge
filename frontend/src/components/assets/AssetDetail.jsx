@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { timeAgo } from '../../utils/helpers';
-import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X, Loader2 } from 'lucide-react';
+import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X, Loader2, Upload } from 'lucide-react';
 
 function formatBytes(bytes) {
   const n = Number(bytes);
@@ -17,6 +17,7 @@ export default function AssetDetail({ asset, onUpdate }) {
   const [lightbox, setLightbox] = useState(false);
   const [sendingComment, setSendingComment] = useState(false);
   const [restoringId, setRestoringId] = useState(null);
+  const [uploadingNewVersion, setUploadingNewVersion] = useState(false);
   const [versions, setVersions] = useState([]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -48,6 +49,38 @@ export default function AssetDetail({ asset, onUpdate }) {
       setVersions(vRes.data.versions);
       onUpdate?.();
     } finally { setRestoringId(null); }
+  };
+
+  const handleUploadNewVersion = () => {
+    if (uploadingNewVersion) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setUploadingNewVersion(true);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const { data } = await api.post(`/assets/${asset.id}/versions`, {
+            storage_url: reader.result,
+            size_bytes: file.size,
+          });
+          setVersions(prev => [
+            data.version,
+            ...prev.map(v => ({ ...v, is_active: false })),
+          ]);
+          onUpdate?.();
+        } catch (err) {
+          console.error('Error uploading new version:', err);
+        } finally {
+          setUploadingNewVersion(false);
+        }
+      };
+      reader.onerror = () => setUploadingNewVersion(false);
+      reader.readAsDataURL(file);
+    };
+    input.click();
   };
 
   const sendComment = async (e) => {
@@ -127,10 +160,27 @@ export default function AssetDetail({ asset, onUpdate }) {
           </div>
         )}
 
-        <div className="flex-1">
-          <p className="text-sm text-surface-300">Tipo: <span className="text-white font-medium">{asset.type}</span></p>
-          <p className="text-sm text-surface-300">Versión actual: <span className="text-brand-400 font-semibold">v{asset.current_version}</span></p>
-          <p className="text-sm text-surface-300">Subido por: <span className="text-white">{asset.uploader_name}</span></p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 space-y-0.5">
+            <p className="text-sm text-surface-300">Tipo: <span className="text-white font-medium">{asset.type}</span></p>
+            <p className="text-sm text-surface-300">
+              Versión actual:{' '}
+              <span className="text-brand-400 font-semibold">
+                v{versions.find(v => v.is_active)?.version_number ?? asset.current_version}
+              </span>
+            </p>
+            <p className="text-sm text-surface-300">Subido por: <span className="text-white">{asset.uploader_name}</span></p>
+          </div>
+          <button
+            onClick={handleUploadNewVersion}
+            disabled={uploadingNewVersion}
+            className="btn-secondary flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+          >
+            {uploadingNewVersion
+              ? <><Loader2 size={14} className="animate-spin" /> Subiendo…</>
+              : <><Upload size={14} /> Nueva versión</>
+            }
+          </button>
         </div>
       </div>
 
