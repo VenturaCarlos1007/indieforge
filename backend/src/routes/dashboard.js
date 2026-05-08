@@ -21,36 +21,34 @@ router.get('/summary', async (req, res, next) => {
       LIMIT 5
     `, [userId]);
 
-    // 2. Assets recientes en mis proyectos (últimos 4)
+    // 2. Assets recientes en mis proyectos activos (últimos 4)
     const recentAssetsRes = await query(`
       SELECT a.id, a.name, a.type, a.current_version, p.id as project_id, p.name as project_name, u.name as uploader_name
       FROM assets a
       JOIN projects p ON p.id = a.project_id
-      LEFT JOIN project_members pm ON pm.project_id = p.id
+      JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = 'active'
       JOIN users u ON u.id = a.uploaded_by
-      WHERE (p.owner_id = $1 OR pm.user_id = $1)
       GROUP BY a.id, p.id, u.name
       ORDER BY a.created_at DESC
       LIMIT 4
     `, [userId]);
 
-    // 3. Activity grid (últimos 365 días)
+    // 3. Activity grid (últimos 365 días, solo proyectos activos)
     const activityGridRes = await query(`
       SELECT TO_CHAR(date_trunc('day', af.created_at), 'YYYY-MM-DD') AS date, count(*)::int as count
       FROM activity_feed af
-      JOIN projects p ON p.id = af.project_id
-      LEFT JOIN project_members pm ON pm.project_id = p.id
-      WHERE (p.owner_id = $1 OR pm.user_id = $1) AND af.created_at >= NOW() - INTERVAL '365 days'
+      JOIN project_members pm ON pm.project_id = af.project_id AND pm.user_id = $1 AND pm.status = 'active'
+      WHERE af.created_at >= NOW() - INTERVAL '365 days'
       GROUP BY date_trunc('day', af.created_at)
       ORDER BY date_trunc('day', af.created_at) ASC
     `, [userId]);
 
     // 4. Totals for animated counters
     const totalsRes = await query(`
-      SELECT 
-        (SELECT count(DISTINCT p.id) FROM projects p LEFT JOIN project_members pm ON pm.project_id = p.id WHERE p.owner_id = $1 OR pm.user_id = $1) as total_projects,
+      SELECT
+        (SELECT count(DISTINCT p.id) FROM projects p JOIN project_members pm ON pm.project_id = p.id WHERE pm.user_id = $1 AND pm.status = 'active') as total_projects,
         (SELECT count(t.id) FROM tasks t JOIN task_assignments ta ON ta.task_id = t.id WHERE ta.user_id = $1) as total_tasks,
-        (SELECT count(a.id) FROM assets a JOIN projects p ON p.id = a.project_id LEFT JOIN project_members pm ON pm.project_id = p.id WHERE p.owner_id = $1 OR pm.user_id = $1) as total_assets
+        (SELECT count(a.id) FROM assets a JOIN project_members pm ON pm.project_id = a.project_id WHERE pm.user_id = $1 AND pm.status = 'active') as total_assets
     `, [userId]);
 
     res.json({

@@ -77,10 +77,25 @@ app.set('io', io);
 // ── Cron Jobs
 initCronJobs(io);
 
+// ── Migrations (idempotent, run at startup)
+async function runMigrations() {
+  try {
+    await pool.query(`
+      ALTER TABLE project_members
+      ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active'
+    `);
+    console.log('✅ Migrations OK');
+  } catch (err) {
+    console.error('❌ Migration error:', err.message);
+  }
+}
+
 // ── Start
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`\n🚀 IndieForge API running on http://localhost:${PORT}`);
-  console.log(`📡 WebSocket server ready`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+runMigrations().then(() => {
+  server.listen(PORT, () => {
+    console.log(`\n🚀 IndieForge API running on http://localhost:${PORT}`);
+    console.log(`📡 WebSocket server ready`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+  });
 });

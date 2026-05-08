@@ -16,7 +16,7 @@ router.get('/', async (req, res, next) => {
        FROM projects p
        JOIN users u ON u.id = p.owner_id
        JOIN project_members pm ON pm.project_id = p.id
-       WHERE pm.user_id = $1
+       WHERE pm.user_id = $1 AND pm.status = 'active'
        ORDER BY p.created_at DESC`,
       [req.user.id]
     );
@@ -82,9 +82,9 @@ router.get('/:id', async (req, res, next) => {
       return res.status(404).json({ error: 'Proyecto no encontrado.' });
     }
 
-    // Check membership
+    // Check active membership
     const membership = await query(
-      'SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2',
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
       [id, req.user.id]
     );
 
@@ -103,9 +103,9 @@ router.get('/:id/stats', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Verify membership
+    // Verify active membership
     const membership = await query(
-      'SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2',
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
       [id, req.user.id]
     );
     if (membership.rows.length === 0) {

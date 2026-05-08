@@ -32,11 +32,10 @@ export default function MembersPage() {
     setError('');
     setLoading(true);
     try {
-      const { data } = await api.post('/members/invite', { project_id: projectId, email, role: inviteRole });
-      setMembers((p) => [...p, data.member]);
+      await api.post('/members/invite', { project_id: projectId, email, role: inviteRole });
       setEmail('');
       setShowInvite(false);
-      getSocket()?.emit('member_added', { projectId, member: data.member });
+      // Member is pending until they accept — not shown in active members list
     } catch (err) {
       setError(err.response?.data?.error || 'Error al invitar.');
     } finally { setLoading(false); }
