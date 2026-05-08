@@ -78,13 +78,14 @@ export default function AssetDetail({ asset, onUpdate }) {
           return (
             <>
               <div
-                className="w-full bg-black/40 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center min-h-[300px] cursor-zoom-in relative group"
+                className="w-full bg-black/40 rounded-xl overflow-hidden border border-white/10 cursor-zoom-in relative group"
+                style={{ height: '320px' }}
                 onClick={() => setLightbox(true)}
               >
-                <img src={url} alt={asset.name} className="max-w-full max-h-[480px] object-contain rounded-lg" />
+                <img src={url} alt={asset.name} className="w-full h-full object-contain" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <div className="bg-black/50 rounded-full p-2">
-                    <ZoomIn size={20} className="text-white" />
+                  <div className="bg-black/60 rounded-full p-2.5">
+                    <ZoomIn size={22} className="text-white" />
                   </div>
                 </div>
               </div>

@@ -31,47 +31,93 @@ function AnimatedCounter({ value }) {
   return <>{count}</>;
 }
 
+const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+function activityColor(count, isFuture) {
+  if (isFuture) return 'transparent';
+  if (count === 0) return 'rgba(255,255,255,0.07)';
+  if (count < 3)  return 'rgba(168,85,247,0.35)';
+  if (count < 6)  return 'rgba(168,85,247,0.68)';
+  return 'rgb(168,85,247)';
+}
+
 function GithubActivityGrid({ data }) {
-  const [weeks, setWeeks] = useState([]);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const map = new Map(data.map(d => [d.date.split('T')[0], d.count]));
 
-  useEffect(() => {
-    const today = new Date();
-    const map = new Map(data.map(d => [d.date.split('T')[0], d.count]));
+  // Align start to the Monday on or before 29 days ago
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - 29);
+  const dow = start.getDay();
+  start.setDate(start.getDate() + (dow === 0 ? -6 : 1 - dow));
 
-    // Last 30 days (~1 month)
-    const days = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      days.push({ date: dateStr, count: map.get(dateStr) || 0 });
+  // Build rows (one per week, Mon→Sun)
+  const weeks = [];
+  const cur = new Date(start);
+  while (cur <= today) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const ds = cur.toISOString().split('T')[0];
+      week.push({ date: ds, count: map.get(ds) || 0, isToday: ds === todayStr, isFuture: new Date(cur) > today });
+      cur.setDate(cur.getDate() + 1);
     }
-
-    const weeksArr = [];
-    for (let i = 0; i < days.length; i += 7) {
-      weeksArr.push(days.slice(i, i + 7));
-    }
-    setWeeks(weeksArr);
-  }, [data]);
+    weeks.push(week);
+  }
 
   return (
-    <div className="flex gap-1 flex-wrap">
-      {weeks.map((week, i) => (
-        <div key={i} className="flex flex-col gap-1">
-          {week.map(d => (
-            <div
-              key={d.date}
-              title={`${d.count} actividades el ${d.date}`}
-              className={`w-3 h-3 rounded-sm transition-colors duration-300 ${
-                d.count === 0 ? 'bg-white/5' :
-                d.count < 3 ? 'bg-purple-500/40' :
-                d.count < 6 ? 'bg-purple-500/70' :
-                'bg-purple-400'
-              }`}
-            />
-          ))}
-        </div>
-      ))}
+    <div className="w-full select-none">
+      {/* Header: day-of-week labels */}
+      <div className="grid gap-1.5 mb-2" style={{ gridTemplateColumns: '36px repeat(7, 1fr)' }}>
+        <div />
+        {DAY_LABELS.map(l => (
+          <div key={l} className="text-[11px] font-medium text-surface-400 text-center">{l}</div>
+        ))}
+      </div>
+
+      {/* Rows: one per week */}
+      <div className="flex flex-col gap-1.5">
+        {weeks.map((week, wi) => {
+          const label = new Date(week[0].date + 'T12:00:00');
+          return (
+            <div key={wi} className="grid gap-1.5 items-center" style={{ gridTemplateColumns: '36px repeat(7, 1fr)' }}>
+              {/* Week-start date label */}
+              <div className="text-[10px] text-surface-500 text-right pr-1.5 whitespace-nowrap">
+                {label.getDate()}/{label.getMonth() + 1}
+              </div>
+              {/* Day cells */}
+              {week.map(d => (
+                <div
+                  key={d.date}
+                  title={!d.isFuture ? `${d.count} actividad${d.count !== 1 ? 'es' : ''} — ${d.date}` : undefined}
+                  style={{
+                    height: '20px',
+                    background: activityColor(d.count, d.isFuture),
+                    border: d.isToday
+                      ? '2px solid rgb(192,132,252)'
+                      : '1px solid rgba(255,255,255,0.06)',
+                    opacity: d.isFuture ? 0 : 1,
+                  }}
+                  className="rounded-sm transition-all duration-200 hover:brightness-125 cursor-default"
+                />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-2 mt-3 justify-end">
+        <span className="text-[10px] text-surface-500">Menos</span>
+        {[0, 2, 4, 7].map((count, i) => (
+          <div
+            key={i}
+            style={{ width: '14px', height: '14px', background: activityColor(count, false) }}
+            className="rounded-sm border border-white/[0.06]"
+          />
+        ))}
+        <span className="text-[10px] text-surface-500">Más</span>
+      </div>
     </div>
   );
 }
