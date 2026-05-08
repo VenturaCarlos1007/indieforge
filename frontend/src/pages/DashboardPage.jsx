@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, animate } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -33,15 +33,14 @@ function AnimatedCounter({ value }) {
 
 function GithubActivityGrid({ data }) {
   const [weeks, setWeeks] = useState([]);
-  const scrollRef = useRef(null);
 
   useEffect(() => {
     const today = new Date();
     const map = new Map(data.map(d => [d.date.split('T')[0], d.count]));
 
-    // Last 91 days (~3 months)
+    // Last 30 days (~1 month)
     const days = [];
-    for (let i = 90; i >= 0; i--) {
+    for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
@@ -55,14 +54,8 @@ function GithubActivityGrid({ data }) {
     setWeeks(weeksArr);
   }, [data]);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-    }
-  }, [weeks]);
-
   return (
-    <div ref={scrollRef} className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
+    <div className="flex gap-1 flex-wrap">
       {weeks.map((week, i) => (
         <div key={i} className="flex flex-col gap-1">
           {week.map(d => (
@@ -184,7 +177,7 @@ export default function DashboardPage() {
               <motion.div className="lg:col-span-2 glass p-6 rounded-2xl" variants={item}>
                 <div className="flex items-center gap-2 mb-6">
                   <Activity size={18} className="text-brand-400" />
-                  <h2 className="text-sm font-semibold text-white">Mapa de Actividad (Últimos 3 meses)</h2>
+                  <h2 className="text-sm font-semibold text-white">Mapa de Actividad (Último mes)</h2>
                 </div>
                 <GithubActivityGrid data={summary.activityGrid} />
               </motion.div>

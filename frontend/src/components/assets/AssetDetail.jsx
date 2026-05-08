@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { timeAgo } from '../../utils/helpers';
-import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X } from 'lucide-react';
 
 function formatBytes(bytes) {
   const n = Number(bytes);
@@ -14,6 +14,7 @@ function formatBytes(bytes) {
 
 export default function AssetDetail({ asset, onUpdate }) {
   const [tab, setTab] = useState('versions');
+  const [lightbox, setLightbox] = useState(false);
   const [versions, setVersions] = useState([]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -72,11 +73,44 @@ export default function AssetDetail({ asset, onUpdate }) {
       {/* Asset info & Preview */}
       <div className="flex flex-col gap-4 pb-4 border-b border-white/[0.06]">
         {/* Preview */}
-        {asset.type === 'image' && versions.find(v => v.is_active)?.storage_url && (
-          <div className="w-full bg-black/40 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center p-2 min-h-[150px] max-h-[300px]">
-            <img src={versions.find(v => v.is_active).storage_url} alt={asset.name} className="max-w-full max-h-full object-contain rounded-lg" />
-          </div>
-        )}
+        {asset.type === 'image' && versions.find(v => v.is_active)?.storage_url && (() => {
+          const url = versions.find(v => v.is_active).storage_url;
+          return (
+            <>
+              <div
+                className="w-full bg-black/40 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center min-h-[300px] cursor-zoom-in relative group"
+                onClick={() => setLightbox(true)}
+              >
+                <img src={url} alt={asset.name} className="max-w-full max-h-[480px] object-contain rounded-lg" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <div className="bg-black/50 rounded-full p-2">
+                    <ZoomIn size={20} className="text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {lightbox && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+                  onClick={() => setLightbox(false)}
+                >
+                  <button
+                    className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                    onClick={() => setLightbox(false)}
+                  >
+                    <X size={22} className="text-white" />
+                  </button>
+                  <img
+                    src={url}
+                    alt={asset.name}
+                    className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
+            </>
+          );
+        })()}
         {asset.type === 'audio' && versions.find(v => v.is_active)?.storage_url && (
           <div className="w-full bg-black/40 rounded-xl border border-white/10 p-4">
             <audio controls className="w-full h-10" src={versions.find(v => v.is_active).storage_url} />
