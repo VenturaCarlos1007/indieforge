@@ -112,13 +112,22 @@ router.get('/:id/stats', async (req, res, next) => {
       return res.status(403).json({ error: 'No tienes acceso a este proyecto.' });
     }
 
-    // 1. tasksCompletedByWeek
+    // 1. tasksCompletedByWeek — last 6 weeks, dense (zeros for empty weeks)
     const tasksCompletedByWeekResult = await query(`
-      SELECT TO_CHAR(date_trunc('week', created_at), 'DD Mon') AS name, count(*)::int as Completadas 
-      FROM tasks 
-      WHERE project_id = $1 AND status = 'done' 
-      GROUP BY date_trunc('week', created_at) 
-      ORDER BY date_trunc('week', created_at) ASC LIMIT 6
+      SELECT
+        TO_CHAR(w.week_start, 'DD Mon') AS name,
+        COALESCE(COUNT(t.id), 0)::int AS "Completadas"
+      FROM generate_series(
+        date_trunc('week', NOW() - INTERVAL '5 weeks'),
+        date_trunc('week', NOW()),
+        '1 week'::interval
+      ) AS w(week_start)
+      LEFT JOIN tasks t
+        ON date_trunc('week', t.created_at) = w.week_start
+        AND t.project_id = $1
+        AND t.status = 'done'
+      GROUP BY w.week_start
+      ORDER BY w.week_start ASC
     `, [id]);
 
     // 2. tasksByStatus
@@ -136,13 +145,21 @@ router.get('/:id/stats', async (req, res, next) => {
       value: r.value
     }));
 
-    // 3. activityByDay
+    // 3. activityByDay — last 30 days, dense (zeros for empty days)
     const activityByDayResult = await query(`
-      SELECT TO_CHAR(date_trunc('day', created_at), 'DD/MM') AS name, count(*)::int as Actividad 
-      FROM activity_feed 
-      WHERE project_id = $1 AND created_at >= NOW() - INTERVAL '30 days' 
-      GROUP BY date_trunc('day', created_at) 
-      ORDER BY date_trunc('day', created_at) ASC
+      SELECT
+        TO_CHAR(d.day, 'DD/MM') AS name,
+        COALESCE(COUNT(af.id), 0)::int AS "Actividad"
+      FROM generate_series(
+        date_trunc('day', NOW() - INTERVAL '29 days'),
+        date_trunc('day', NOW()),
+        '1 day'::interval
+      ) AS d(day)
+      LEFT JOIN activity_feed af
+        ON date_trunc('day', af.created_at) = d.day
+        AND af.project_id = $1
+      GROUP BY d.day
+      ORDER BY d.day ASC
     `, [id]);
 
     // 4. Metrics
