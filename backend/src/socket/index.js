@@ -26,19 +26,44 @@ function initSocket(httpServer) {
     }
   });
 
+  // projectId -> Map<userId, refCount>
+  const onlineUsers = new Map();
+
+  function emitOnlineUpdate(projectId) {
+    const users = onlineUsers.get(projectId);
+    const ids = users ? Array.from(users.keys()) : [];
+    io.to(`project:${projectId}`).emit('online_users_update', { projectId, onlineUserIds: ids });
+  }
+
   io.on('connection', (socket) => {
     console.log(`🔌 User ${socket.userId} connected`);
 
     // ── Personal room
     socket.join(`user:${socket.userId}`);
 
+    socket.projectRooms = new Set();
+
     // ── Project rooms
     socket.on('join_project', (projectId) => {
       socket.join(`project:${projectId}`);
+      socket.projectRooms.add(projectId);
+
+      if (!onlineUsers.has(projectId)) onlineUsers.set(projectId, new Map());
+      const map = onlineUsers.get(projectId);
+      map.set(socket.userId, (map.get(socket.userId) || 0) + 1);
+      emitOnlineUpdate(projectId);
     });
 
     socket.on('leave_project', (projectId) => {
       socket.leave(`project:${projectId}`);
+      socket.projectRooms.delete(projectId);
+
+      const map = onlineUsers.get(projectId);
+      if (map) {
+        const count = (map.get(socket.userId) || 1) - 1;
+        if (count <= 0) map.delete(socket.userId); else map.set(socket.userId, count);
+        emitOnlineUpdate(projectId);
+      }
     });
 
     // ── Activity feed
@@ -85,6 +110,14 @@ function initSocket(httpServer) {
 
     socket.on('disconnect', () => {
       console.log(`🔌 User ${socket.userId} disconnected`);
+      socket.projectRooms.forEach((projectId) => {
+        const map = onlineUsers.get(projectId);
+        if (map) {
+          const count = (map.get(socket.userId) || 1) - 1;
+          if (count <= 0) map.delete(socket.userId); else map.set(socket.userId, count);
+          emitOnlineUpdate(projectId);
+        }
+      });
     });
   });
 

@@ -59,11 +59,21 @@ router.put('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// DELETE /api/folders/:id
+// DELETE /api/folders/:id — solo owner o admin
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { rows } = await query('DELETE FROM folders WHERE id = $1 RETURNING *', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: 'Carpeta no encontrada.' });
+    const folderRes = await query('SELECT project_id FROM folders WHERE id = $1', [req.params.id]);
+    if (!folderRes.rows.length) return res.status(404).json({ error: 'Carpeta no encontrada.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [folderRes.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || !['owner', 'admin'].includes(perm[0].role)) {
+      return res.status(403).json({ error: 'Solo el propietario o admin puede eliminar carpetas.' });
+    }
+
+    await query('DELETE FROM folders WHERE id = $1', [req.params.id]);
     res.json({ message: 'Carpeta eliminada.' });
   } catch (err) { next(err); }
 });

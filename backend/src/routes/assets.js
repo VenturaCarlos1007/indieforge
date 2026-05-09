@@ -216,15 +216,19 @@ router.post('/:id/restore/:versionId', async (req, res, next) => {
 // DELETE /api/assets/:id
 router.delete('/:id', async (req, res, next) => {
   try {
-    const assetRes = await query('SELECT project_id FROM assets WHERE id = $1', [req.params.id]);
+    const assetRes = await query('SELECT project_id, uploaded_by FROM assets WHERE id = $1', [req.params.id]);
     if (!assetRes.rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
 
     const { rows: perm } = await query(
       `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
       [assetRes.rows[0].project_id, req.user.id]
     );
-    if (!perm.length || perm[0].role === 'viewer') {
-      return res.status(403).json({ error: 'No tienes permiso para eliminar assets.' });
+    if (!perm.length) return res.status(403).json({ error: 'No tienes acceso a este proyecto.' });
+
+    const isOwnerOrAdmin = ['owner', 'admin'].includes(perm[0].role);
+    const isUploader = assetRes.rows[0].uploaded_by === req.user.id;
+    if (!isOwnerOrAdmin && !isUploader) {
+      return res.status(403).json({ error: 'Solo el propietario, admin o quien subió el asset puede eliminarlo.' });
     }
 
     await query('DELETE FROM assets WHERE id = $1', [req.params.id]);

@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2 } from 'lucide-react';
+import { useProject } from './ProjectLayout';
+import { getSocket } from '../../services/socket';
 
 const navItems = [
   { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#a855f7', end: true },
@@ -12,7 +15,17 @@ const navItems = [
 
 export default function ProjectSidebar({ project }) {
   const { projectId } = useParams();
+  const { members } = useProject();
   const base = `/project/${projectId}`;
+  const [onlineIds, setOnlineIds] = useState(new Set());
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    const handler = ({ onlineUserIds }) => setOnlineIds(new Set(onlineUserIds));
+    socket.on('online_users_update', handler);
+    return () => socket.off('online_users_update', handler);
+  }, []);
 
   return (
     <aside className="hidden lg:flex flex-col w-56 glass-sidebar-project shrink-0 relative">
@@ -35,6 +48,32 @@ export default function ProjectSidebar({ project }) {
           <h2 className="font-semibold text-sm truncate">{project.name}</h2>
         </div>
       </div>
+
+      {/* Online members */}
+      {members.length > 0 && (
+        <div className="px-4 py-3 border-b border-white/[0.05]">
+          <p className="text-[10px] font-medium text-surface-500 uppercase tracking-wider mb-2">En línea</p>
+          <div className="flex flex-wrap gap-1.5">
+            {members.map((m) => {
+              const isOnline = onlineIds.has(m.user_id);
+              return (
+                <div key={m.id} className="relative group/avatar" title={m.name}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-opacity ${isOnline ? 'opacity-100' : 'opacity-40'}`}
+                    style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
+                    {m.name[0].toUpperCase()}
+                  </div>
+                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-green-400' : 'bg-surface-500'}`} />
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-0.5 rounded-lg text-[10px] text-white whitespace-nowrap pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity z-50"
+                    style={{ background: 'rgba(15,15,20,0.95)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    {m.name}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 px-2.5 py-4 space-y-1">

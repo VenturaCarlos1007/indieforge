@@ -205,6 +205,30 @@ router.get('/:id/stats', async (req, res, next) => {
   }
 });
 
+// PUT /api/projects/:id — owner o admin pueden editar
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    if (!name) return res.status(400).json({ error: 'El nombre es requerido.' });
+
+    const mem = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [id, req.user.id]
+    );
+    if (!mem.rows.length || !['owner', 'admin'].includes(mem.rows[0].role)) {
+      return res.status(403).json({ error: 'Solo el propietario o admin puede editar el proyecto.' });
+    }
+
+    const { rows } = await query(
+      'UPDATE projects SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      [name, description ?? null, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Proyecto no encontrado.' });
+    res.json({ project: rows[0] });
+  } catch (err) { next(err); }
+});
+
 // DELETE /api/projects/:id — solo el owner puede eliminar
 router.delete('/:id', async (req, res, next) => {
   try {

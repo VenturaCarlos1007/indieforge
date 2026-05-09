@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
 import { SkeletonCard } from '../../components/common/Skeleton';
 import AssetDetail from '../../components/assets/AssetDetail';
 import {
   FolderPlus, Upload, Search, Folder, Image, Music, FileText, File, Film, Code2,
-  ChevronRight, Home, X, CloudUpload
+  ChevronRight, Home, X, CloudUpload, Trash2, AlertTriangle
 } from 'lucide-react';
 
 const TYPE_CONFIG = {
@@ -32,7 +33,9 @@ function fileTypeFromName(name) {
 
 export default function AssetsPage() {
   const { projectId, role } = useProject();
+  const { user } = useAuth();
   const isViewer = role === 'viewer';
+  const isOwnerOrAdmin = role === 'owner' || role === 'admin';
   const location = useLocation();
   const navigate = useNavigate();
   const [folders, setFolders] = useState([]);
@@ -48,6 +51,9 @@ export default function AssetsPage() {
   const [folderNameError, setFolderNameError] = useState('');
   const [conflictQueue, setConflictQueue] = useState([]);
   const [uploadingVersion, setUploadingVersion] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState(null);
+  const [assetToDelete, setAssetToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const currentFolderId = path.length > 0 ? path[path.length - 1].id : null;
 
@@ -167,6 +173,28 @@ export default function AssetsPage() {
     if (conflicts.length > 0) setConflictQueue(conflicts);
   };
 
+  const deleteFolder = async () => {
+    if (!folderToDelete || deleting) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/folders/${folderToDelete.id}`);
+      setFolders((p) => p.filter((f) => f.id !== folderToDelete.id));
+      setFolderToDelete(null);
+    } catch (e) { console.error(e); }
+    finally { setDeleting(false); }
+  };
+
+  const deleteAsset = async () => {
+    if (!assetToDelete || deleting) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/assets/${assetToDelete.id}`);
+      setAssets((p) => p.filter((a) => a.id !== assetToDelete.id));
+      setAssetToDelete(null);
+    } catch (e) { console.error(e); }
+    finally { setDeleting(false); }
+  };
+
   const handleUploadClick = () => {
     const input = document.createElement('input');
     input.type = 'file'; input.multiple = true;
@@ -264,16 +292,25 @@ export default function AssetsPage() {
               <AnimatePresence>
                 {/* Folders */}
                 {folders.map((f) => (
-                  <motion.button key={`f-${f.id}`} onClick={() => openFolder(f)}
-                    className="glass-sm p-4 text-left group" whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(251,191,36,0.08)' }}
+                  <motion.div key={`f-${f.id}`} className="glass-sm p-4 text-left group relative cursor-pointer"
+                    onClick={() => openFolder(f)}
+                    whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(251,191,36,0.08)' }}
                     initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+                    {isOwnerOrAdmin && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setFolderToDelete(f); }}
+                        className="absolute top-2 right-2 p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all z-10"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
                     <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
                       style={{ background: 'rgba(251,191,36,0.1)', boxShadow: '0 0 15px rgba(251,191,36,0.06)' }}>
                       <Folder size={22} style={{ color: '#fbbf24' }} />
                     </div>
                     <p className="text-sm font-medium truncate group-hover:text-amber-300 transition-colors">{f.name}</p>
                     <p className="text-[10px] text-surface-500 mt-0.5">Carpeta</p>
-                  </motion.button>
+                  </motion.div>
                 ))}
 
                 {/* Assets */}
@@ -281,11 +318,20 @@ export default function AssetsPage() {
                   const cfg = TYPE_CONFIG[a.type] || TYPE_CONFIG.other;
                   const AssetIcon = cfg.icon;
                   const isImage = a.type === 'image';
+                  const canDelete = isOwnerOrAdmin || a.uploaded_by === user?.id;
                   return (
-                    <motion.button key={`a-${a.id}`} onClick={() => setSelectedAsset(a)}
-                      className="glass-sm p-4 text-left group overflow-hidden"
+                    <motion.div key={`a-${a.id}`} onClick={() => setSelectedAsset(a)}
+                      className="glass-sm p-4 text-left group overflow-hidden relative cursor-pointer"
                       whileHover={{ y: -3, boxShadow: `0 8px 30px ${cfg.color}10` }}
                       initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+                      {canDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setAssetToDelete(a); }}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all z-10"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                       {/* Image preview or icon */}
                       {isImage ? (
                         <div className="w-full h-28 rounded-xl mb-3 overflow-hidden relative"
@@ -316,7 +362,7 @@ export default function AssetsPage() {
                           style={{ background: 'rgba(124,58,237,0.1)', color: '#c084fc' }}>v{a.current_version}</span>
                         <span className="text-[10px] text-surface-500 truncate">{a.uploader_name}</span>
                       </div>
-                    </motion.button>
+                    </motion.div>
                   );
                 })}
               </AnimatePresence>
@@ -366,6 +412,41 @@ export default function AssetsPage() {
             <button type="button" onClick={handleVersionCancel} className="btn-secondary">Cancelar</button>
             <button type="button" onClick={handleVersionConfirm} disabled={uploadingVersion} className="btn-primary disabled:opacity-50">
               {uploadingVersion ? 'Subiendo…' : 'Subir como nueva versión'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete folder confirmation */}
+      <Modal open={!!folderToDelete} onClose={() => setFolderToDelete(null)} title="Eliminar carpeta">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <AlertTriangle size={15} className="text-amber-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-amber-300">
+              Se eliminarán todos los assets dentro de <strong>"{folderToDelete?.name}"</strong>. Esta acción no se puede deshacer.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setFolderToDelete(null)} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={deleteFolder} disabled={deleting}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-all">
+              <Trash2 size={14} /> {deleting ? 'Eliminando…' : 'Eliminar'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete asset confirmation */}
+      <Modal open={!!assetToDelete} onClose={() => setAssetToDelete(null)} title="Eliminar asset">
+        <div className="space-y-4">
+          <p className="text-sm text-surface-300">
+            ¿Eliminar <span className="font-semibold text-white">"{assetToDelete?.name}"</span> y todo su historial de versiones?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setAssetToDelete(null)} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={deleteAsset} disabled={deleting}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-all">
+              <Trash2 size={14} /> {deleting ? 'Eliminando…' : 'Eliminar'}
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { getSocket } from '../../services/socket';
 import api from '../../services/api';
 import { timeAgo, activityLabel } from '../../utils/helpers';
 import { SkeletonStat, SkeletonList } from '../../components/common/Skeleton';
+import Modal from '../../components/common/Modal';
 import {
   Package, CheckCircle2, Clock, Users, Activity, TrendingUp,
   Upload, MessageSquare, PlusCircle, UserPlus, Folder, Pencil
@@ -31,10 +32,16 @@ const STAT_CONFIGS = [
 ];
 
 export default function ProjectDashboard() {
-  const { projectId } = useProject();
+  const { projectId, project, setProject, role } = useProject();
+  const canEdit = role === 'owner' || role === 'admin';
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -58,6 +65,27 @@ export default function ProjectDashboard() {
     }
   }, [projectId]);
 
+  const openEdit = () => {
+    setEditName(project?.name || '');
+    setEditDesc(project?.description || '');
+    setEditError('');
+    setShowEdit(true);
+  };
+
+  const saveEdit = async (e) => {
+    e.preventDefault();
+    if (!editName.trim() || editSaving) return;
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const { data } = await api.put(`/projects/${projectId}`, { name: editName.trim(), description: editDesc });
+      setProject(data.project);
+      setShowEdit(false);
+    } catch (err) {
+      setEditError(err.response?.data?.error || 'Error al guardar.');
+    } finally { setEditSaving(false); }
+  };
+
   if (loading) return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -79,6 +107,16 @@ export default function ProjectDashboard() {
 
   return (
     <motion.div className="max-w-5xl mx-auto space-y-6" variants={stagger} initial="hidden" animate="show">
+      {/* Header with edit button */}
+      {canEdit && (
+        <motion.div className="flex justify-end" variants={item}>
+          <button onClick={openEdit}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-surface-300 hover:text-white border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] transition-all">
+            <Pencil size={13} /> Editar proyecto
+          </button>
+        </motion.div>
+      )}
+
       {/* Stat cards */}
       <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-4" variants={item}>
         {STAT_CONFIGS.map((cfg) => (
@@ -171,6 +209,27 @@ export default function ProjectDashboard() {
           </div>
         )}
       </motion.div>
+      <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Editar proyecto">
+        <form onSubmit={saveEdit} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-surface-400 mb-1.5 block">Nombre</label>
+            <input value={editName} onChange={(e) => setEditName(e.target.value)}
+              className="input-field" autoFocus required />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-surface-400 mb-1.5 block">Descripción</label>
+            <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)}
+              rows={3} className="input-field resize-none" />
+          </div>
+          {editError && <p className="text-xs text-red-400">{editError}</p>}
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={() => setShowEdit(false)} className="btn-secondary">Cancelar</button>
+            <button type="submit" disabled={editSaving} className="btn-primary disabled:opacity-50">
+              {editSaving ? 'Guardando…' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </motion.div>
   );
 }

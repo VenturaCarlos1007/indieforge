@@ -57,7 +57,7 @@ export default function ProjectLayout() {
   }
 
   return (
-    <ProjectContext.Provider value={{ project, role, members, setMembers, projectId }}>
+    <ProjectContext.Provider value={{ project, setProject, role, members, setMembers, projectId }}>
       <div className="flex h-full">
         <ProjectSidebar project={project} />
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
