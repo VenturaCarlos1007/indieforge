@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Save, User, Briefcase, CheckSquare, Loader2 } from 'lucide-react';
+import { Camera, Save, User, Briefcase, CheckSquare, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,6 +13,15 @@ export default function ProfilePage() {
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [message, setMessage] = useState('');
   const fileInputRef = useRef(null);
+
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMessage, setPwMessage] = useState({ text: '', ok: true });
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -64,6 +73,30 @@ export default function ProfilePage() {
       setMessage('Error al actualizar el perfil');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPwMessage({ text: '', ok: true });
+    if (pwNew !== pwConfirm) {
+      setPwMessage({ text: 'Las contraseñas no coinciden.', ok: false });
+      return;
+    }
+    if (pwNew.length < 6) {
+      setPwMessage({ text: 'La nueva contraseña debe tener al menos 6 caracteres.', ok: false });
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await api.put('/profile/password', { current_password: pwCurrent, new_password: pwNew });
+      setPwMessage({ text: 'Contraseña actualizada correctamente.', ok: true });
+      setPwCurrent(''); setPwNew(''); setPwConfirm('');
+      setTimeout(() => setPwMessage({ text: '', ok: true }), 4000);
+    } catch (err) {
+      setPwMessage({ text: err.response?.data?.error || 'Error al cambiar la contraseña.', ok: false });
+    } finally {
+      setPwSaving(false);
     }
   };
 
@@ -220,6 +253,94 @@ export default function ProfilePage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Password change section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -ml-32 -mt-32 pointer-events-none" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-1.5 bg-purple-500/20 rounded-lg">
+              <Lock className="w-4 h-4 text-purple-400" />
+            </div>
+            <h2 className="text-base font-semibold text-white">Cambiar contraseña</h2>
+          </div>
+
+          <form onSubmit={handlePasswordChange} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Contraseña actual</label>
+              <div className="relative">
+                <input
+                  type={showCurrent ? 'text' : 'password'}
+                  value={pwCurrent}
+                  onChange={(e) => setPwCurrent(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                />
+                <button type="button" onClick={() => setShowCurrent((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors">
+                  {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Nueva contraseña</label>
+              <div className="relative">
+                <input
+                  type={showNew ? 'text' : 'password'}
+                  value={pwNew}
+                  onChange={(e) => setPwNew(e.target.value)}
+                  placeholder="Mín. 6 caracteres"
+                  required
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                />
+                <button type="button" onClick={() => setShowNew((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors">
+                  {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Confirmar nueva contraseña</label>
+              <div className="relative">
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  value={pwConfirm}
+                  onChange={(e) => setPwConfirm(e.target.value)}
+                  placeholder="Repite la contraseña"
+                  required
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                />
+                <button type="button" onClick={() => setShowConfirm((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors">
+                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="sm:col-span-3 flex items-center justify-between pt-2">
+              <span className={`text-sm ${pwMessage.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                {pwMessage.text}
+              </span>
+              <button
+                type="submit"
+                disabled={pwSaving}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-white rounded-xl font-medium shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {pwSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                Cambiar contraseña
+              </button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
     </div>
   );
 }

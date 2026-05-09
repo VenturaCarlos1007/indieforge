@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
+const bcrypt = require('bcrypt');
 
 const router = Router();
 router.use(authenticate);
@@ -56,6 +57,33 @@ router.put('/', async (req, res, next) => {
     );
 
     res.json({ user: rows[0], message: 'Perfil actualizado exitosamente.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/profile/password
+router.put('/password', async (req, res, next) => {
+  try {
+    const { current_password, new_password } = req.body;
+
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos.' });
+    }
+    if (new_password.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    const { rows } = await query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
+    const valid = await bcrypt.compare(current_password, rows[0].password_hash);
+    if (!valid) return res.status(400).json({ error: 'La contraseña actual es incorrecta.' });
+
+    const hash = await bcrypt.hash(new_password, 10);
+    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.user.id]);
+
+    res.json({ message: 'Contraseña actualizada correctamente.' });
   } catch (err) {
     next(err);
   }
