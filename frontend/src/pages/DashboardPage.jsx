@@ -292,10 +292,26 @@ export default function DashboardPage() {
                         </div>
                         <h3 className="font-semibold text-white text-base mb-1">{p.name}</h3>
                         {p.description && <p className="text-xs text-surface-400 line-clamp-2 leading-relaxed">{p.description}</p>}
-                        <div className="flex items-center gap-3 mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
                           <div className="flex items-center gap-1.5 text-[11px] text-surface-500">
                             <Clock size={11} /> {new Date(p.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
                           </div>
+                          {p.members_preview && p.members_preview.length > 0 && (
+                            <div className="flex items-center">
+                              <div className="flex -space-x-2">
+                                {p.members_preview.map((m, mi) => (
+                                  <div key={mi} title={m.name}
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border border-surface-900 ring-1 ring-surface-800"
+                                    style={{ background: `linear-gradient(135deg, ${grad.from}, ${grad.to})` }}>
+                                    {m.name[0].toUpperCase()}
+                                  </div>
+                                ))}
+                              </div>
+                              {p.member_count > 3 && (
+                                <span className="ml-1.5 text-[10px] text-surface-400 font-medium">+{p.member_count - 3}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.button>
