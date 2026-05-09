@@ -37,6 +37,14 @@ router.post('/', async (req, res, next) => {
     const { project_id, title, description, status, priority, due_date, assignee_ids } = req.body;
     if (!project_id || !title) return res.status(400).json({ error: 'project_id y title son requeridos.' });
 
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para crear tareas.' });
+    }
+
     const { rows } = await query(
       'INSERT INTO tasks (project_id, title, description, status, priority, due_date, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
       [project_id, title, description || null, status || 'pending', priority || 'medium', due_date || null, req.user.id]
@@ -97,6 +105,15 @@ router.put('/:id', async (req, res, next) => {
     if (!existing.rows.length) return res.status(404).json({ error: 'Tarea no encontrada.' });
 
     const t = existing.rows[0];
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [t.project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para editar tareas.' });
+    }
+
     await query(
       'UPDATE tasks SET title = $1, description = $2, status = $3, priority = $4, due_date = $5 WHERE id = $6',
       [title || t.title, description !== undefined ? description : t.description, status || t.status, priority || t.priority, due_date !== undefined ? due_date : t.due_date, req.params.id]
@@ -153,8 +170,19 @@ router.patch('/:id/status', async (req, res, next) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: `Estado inválido. Usa: ${validStatuses.join(', ')}` });
     }
+
+    const taskRes = await query('SELECT project_id FROM tasks WHERE id = $1', [req.params.id]);
+    if (!taskRes.rows.length) return res.status(404).json({ error: 'Tarea no encontrada.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [taskRes.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para mover tareas.' });
+    }
+
     const { rows } = await query('UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *', [status, req.params.id]);
-    if (!rows.length) return res.status(404).json({ error: 'Tarea no encontrada.' });
     res.json({ task: rows[0] });
   } catch (err) { next(err); }
 });
@@ -162,8 +190,18 @@ router.patch('/:id/status', async (req, res, next) => {
 // DELETE /api/tasks/:id
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { rows } = await query('DELETE FROM tasks WHERE id = $1 RETURNING *', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ error: 'Tarea no encontrada.' });
+    const taskRes = await query('SELECT project_id FROM tasks WHERE id = $1', [req.params.id]);
+    if (!taskRes.rows.length) return res.status(404).json({ error: 'Tarea no encontrada.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [taskRes.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para eliminar tareas.' });
+    }
+
+    await query('DELETE FROM tasks WHERE id = $1', [req.params.id]);
     res.json({ message: 'Tarea eliminada.' });
   } catch (err) { next(err); }
 });

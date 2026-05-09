@@ -31,7 +31,8 @@ function fileTypeFromName(name) {
 }
 
 export default function AssetsPage() {
-  const { projectId } = useProject();
+  const { projectId, role } = useProject();
+  const isViewer = role === 'viewer';
   const location = useLocation();
   const navigate = useNavigate();
   const [folders, setFolders] = useState([]);
@@ -191,12 +192,16 @@ export default function AssetsPage() {
               <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-surface-400 hover:text-white"><X size={14} /></button>
             )}
           </div>
-          <button onClick={() => setShowNewFolder(true)} className="btn-secondary flex items-center gap-1.5">
-            <FolderPlus size={15} /> Carpeta
-          </button>
-          <button onClick={handleUploadClick} className="btn-primary flex items-center gap-1.5">
-            <Upload size={15} /> Subir
-          </button>
+          {!isViewer && (
+            <>
+              <button onClick={() => setShowNewFolder(true)} className="btn-secondary flex items-center gap-1.5">
+                <FolderPlus size={15} /> Carpeta
+              </button>
+              <button onClick={handleUploadClick} className="btn-primary flex items-center gap-1.5">
+                <Upload size={15} /> Subir
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -220,9 +225,9 @@ export default function AssetsPage() {
           border: dragging ? undefined : '2px dashed transparent',
           background: dragging ? 'rgba(124,58,237,0.03)' : 'transparent',
         }}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
+        onDragOver={isViewer ? undefined : (e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={isViewer ? undefined : () => setDragging(false)}
+        onDrop={isViewer ? undefined : handleDrop}
       >
         {/* Drag overlay */}
         <AnimatePresence>

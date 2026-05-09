@@ -40,6 +40,17 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'asset_id y content son requeridos.' });
     }
 
+    const assetCheck = await query('SELECT project_id FROM assets WHERE id = $1', [asset_id]);
+    if (!assetCheck.rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [assetCheck.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'Los visualizadores no pueden comentar.' });
+    }
+
     const { rows } = await query(
       `INSERT INTO comments (asset_id, user_id, parent_id, content)
        VALUES ($1, $2, $3, $4)
@@ -84,15 +95,25 @@ router.post('/', async (req, res, next) => {
 // ── PATCH /api/comments/:id/resolve ──────────────────────────────
 router.patch('/:id/resolve', async (req, res, next) => {
   try {
+    const commentCheck = await query(
+      'SELECT c.asset_id, a.project_id FROM comments c JOIN assets a ON a.id = c.asset_id WHERE c.id = $1',
+      [req.params.id]
+    );
+    if (!commentCheck.rows.length) return res.status(404).json({ error: 'Comentario no encontrado.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [commentCheck.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para resolver comentarios.' });
+    }
+
     const { resolved } = req.body;
     const { rows } = await query(
       'UPDATE comments SET resolved = $1 WHERE id = $2 RETURNING *',
       [resolved !== undefined ? resolved : true, req.params.id]
     );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Comentario no encontrado.' });
-    }
 
     res.json({ comment: rows[0] });
   } catch (err) {

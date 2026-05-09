@@ -57,6 +57,14 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Campos requeridos: project_id, name, type, storage_url.' });
     }
 
+    const { rows: perm } = await client.query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para subir assets.' });
+    }
+
     // Check if asset with same name exists in same folder
     const existing = await client.query(
       'SELECT id, current_version FROM assets WHERE project_id = $1 AND name = $2 AND (folder_id = $3 OR ($3 IS NULL AND folder_id IS NULL))',
@@ -127,6 +135,14 @@ router.post('/:id/versions', async (req, res, next) => {
     if (!assetRes.rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
     const asset = assetRes.rows[0];
 
+    const { rows: perm } = await client.query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [asset.project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para subir versiones.' });
+    }
+
     const newVerNum = asset.current_version + 1;
 
     await client.query('UPDATE asset_versions SET is_active = FALSE WHERE asset_id = $1', [req.params.id]);
@@ -169,7 +185,15 @@ router.post('/:id/restore/:versionId', async (req, res, next) => {
     const ver = await client.query('SELECT * FROM asset_versions WHERE id = $1 AND asset_id = $2', [versionId, id]);
     if (!ver.rows.length) return res.status(404).json({ error: 'Versión no encontrada.' });
 
-    const asset = await client.query('SELECT current_version FROM assets WHERE id = $1', [id]);
+    const asset = await client.query('SELECT current_version, project_id FROM assets WHERE id = $1', [id]);
+
+    const { rows: perm } = await client.query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [asset.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para restaurar versiones.' });
+    }
     const newVerNum = asset.rows[0].current_version + 1;
 
     await client.query('UPDATE asset_versions SET is_active = FALSE WHERE asset_id = $1', [id]);
@@ -192,8 +216,18 @@ router.post('/:id/restore/:versionId', async (req, res, next) => {
 // DELETE /api/assets/:id
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { rows } = await query('DELETE FROM assets WHERE id = $1 RETURNING project_id', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
+    const assetRes = await query('SELECT project_id FROM assets WHERE id = $1', [req.params.id]);
+    if (!assetRes.rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [assetRes.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'No tienes permiso para eliminar assets.' });
+    }
+
+    await query('DELETE FROM assets WHERE id = $1', [req.params.id]);
     res.json({ message: 'Asset eliminado.' });
   } catch (err) { next(err); }
 });

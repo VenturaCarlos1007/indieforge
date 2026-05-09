@@ -205,4 +205,24 @@ router.get('/:id/stats', async (req, res, next) => {
   }
 });
 
+// DELETE /api/projects/:id — solo el owner puede eliminar
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const mem = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [id, req.user.id]
+    );
+    if (!mem.rows.length || mem.rows[0].role !== 'owner') {
+      return res.status(403).json({ error: 'Solo el propietario puede eliminar el proyecto.' });
+    }
+
+    const { rows } = await query('DELETE FROM projects WHERE id = $1 RETURNING id', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'Proyecto no encontrado.' });
+
+    res.json({ message: 'Proyecto eliminado correctamente.' });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

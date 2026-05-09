@@ -37,7 +37,8 @@ const PRIORITIES = {
 };
 
 export default function KanbanPage() {
-  const { projectId, members } = useProject();
+  const { projectId, members, role } = useProject();
+  const isViewer = role === 'viewer';
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(null);
@@ -156,9 +157,9 @@ export default function KanbanPage() {
                 background: isOver ? `${col.accent}08` : 'transparent',
                 ringColor: isOver ? `${col.accent}40` : 'transparent',
               }}
-              onDragOver={(e) => handleDragOver(e, col.status)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, col.status)}
+              onDragOver={isViewer ? undefined : (e) => handleDragOver(e, col.status)}
+              onDragLeave={isViewer ? undefined : handleDragLeave}
+              onDrop={isViewer ? undefined : (e) => handleDrop(e, col.status)}
             >
               {/* Column header */}
               <div className="flex items-center justify-between px-4 py-3 rounded-xl mb-3"
@@ -171,15 +172,17 @@ export default function KanbanPage() {
                   <span className="text-sm font-semibold">{col.label}</span>
                   <span className={`badge ${col.badge}`}>{columnTasks.length}</span>
                 </div>
-                <motion.button
-                  onClick={() => setShowCreate(col.status)}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
-                  style={{ background: col.accentLight }}
-                  whileHover={{ scale: 1.15 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Plus size={14} style={{ color: col.accent }} />
-                </motion.button>
+                {!isViewer && (
+                  <motion.button
+                    onClick={() => setShowCreate(col.status)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
+                    style={{ background: col.accentLight }}
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Plus size={14} style={{ color: col.accent }} />
+                  </motion.button>
+                )}
               </div>
 
               {/* Cards */}
@@ -215,9 +218,9 @@ export default function KanbanPage() {
                         key={task.id}
                         className="kanban-card group relative"
                         style={{ borderLeft: `3px solid ${col.accent}60` }}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, task.id)}
-                        onDragEnd={handleDragEnd}
+                        draggable={!isViewer}
+                        onDragStart={isViewer ? undefined : (e) => handleDragStart(e, task.id)}
+                        onDragEnd={isViewer ? undefined : handleDragEnd}
                         layout
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -244,10 +247,12 @@ export default function KanbanPage() {
                               <p className="text-xs text-surface-400 mt-1.5 line-clamp-2 leading-relaxed">{task.description}</p>
                             )}
                           </div>
+                          {!isViewer && (
                           <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => setEditTask(task)} className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-all"><Pencil size={12} /></button>
                             <button onClick={() => deleteTask(task.id)} className="p-1.5 rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-all"><Trash2 size={12} /></button>
                           </div>
+                        )}
                         </div>
                         {task.assignees && task.assignees.length > 0 && (
                           <div className="flex items-center gap-0.5 mt-3 pt-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>

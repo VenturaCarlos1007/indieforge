@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useProject } from '../../components/layout/ProjectLayout';
 import api from '../../services/api';
 import { getSocket } from '../../services/socket';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import {
-  UserPlus, Shield, ShieldCheck, Eye, Crown, Trash2, ChevronDown, Mail
+  UserPlus, Shield, ShieldCheck, Eye, Crown, Trash2, Mail, AlertTriangle
 } from 'lucide-react';
 
 const ROLE_CONFIG = {
@@ -17,8 +18,9 @@ const ROLE_CONFIG = {
 };
 
 export default function MembersPage() {
-  const { projectId, members, setMembers, role } = useProject();
+  const { projectId, project, members, setMembers, role } = useProject();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('member');
@@ -26,6 +28,17 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(false);
   const isOwner = role === 'owner';
   const isAdmin = role === 'owner' || role === 'admin';
+
+  // Delete member modal state
+  const [memberToDelete, setMemberToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  // Delete project modal state
+  const [showDeleteProject, setShowDeleteProject] = useState(false);
+  const [deleteProjectName, setDeleteProjectName] = useState('');
+  const [deletingProject, setDeletingProject] = useState(false);
+  const [deleteProjectError, setDeleteProjectError] = useState('');
 
   const invite = async (e) => {
     e.preventDefault();
@@ -41,23 +54,42 @@ export default function MembersPage() {
     } finally { setLoading(false); }
   };
 
+  const [roleError, setRoleError] = useState('');
+
   const changeRole = async (memberId, newRole) => {
+    setRoleError('');
     try {
       await api.patch(`/members/${memberId}/role`, { role: newRole });
       setMembers((p) => p.map((m) => m.id === memberId ? { ...m, role: newRole } : m));
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al cambiar rol.');
+      setRoleError(err.response?.data?.error || 'Error al cambiar rol.');
     }
   };
 
-  const remove = async (memberId) => {
-    if (!confirm('¿Eliminar este miembro del proyecto?')) return;
+  const remove = async () => {
+    if (!memberToDelete || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
     try {
-      await api.delete(`/members/${memberId}`);
-      setMembers((p) => p.filter((m) => m.id !== memberId));
-      getSocket()?.emit('member_removed', { projectId, memberId });
+      await api.delete(`/members/${memberToDelete.id}`);
+      setMembers((p) => p.filter((m) => m.id !== memberToDelete.id));
+      getSocket()?.emit('member_removed', { projectId, memberId: memberToDelete.id });
+      setMemberToDelete(null);
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar.');
+      setDeleteError(err.response?.data?.error || 'Error al eliminar.');
+    } finally { setDeleting(false); }
+  };
+
+  const deleteProject = async () => {
+    if (deletingProject) return;
+    setDeletingProject(true);
+    setDeleteProjectError('');
+    try {
+      await api.delete(`/projects/${projectId}`);
+      navigate('/dashboard');
+    } catch (err) {
+      setDeleteProjectError(err.response?.data?.error || 'Error al eliminar el proyecto.');
+      setDeletingProject(false);
     }
   };
 
@@ -72,6 +104,12 @@ export default function MembersPage() {
           </button>
         )}
       </div>
+
+      {roleError && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-xl">
+          {roleError}
+        </div>
+      )}
 
       {/* Members list */}
       <div className="space-y-2">
@@ -119,7 +157,7 @@ export default function MembersPage() {
                       <option value="member">Miembro</option>
                       <option value="viewer">Visor</option>
                     </select>
-                    <button onClick={() => remove(m.id)} className="text-surface-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all">
+                    <button onClick={() => setMemberToDelete(m)} className="text-surface-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -129,6 +167,96 @@ export default function MembersPage() {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Danger zone — solo para owner */}
+      {isOwner && (
+        <div className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle size={15} className="text-red-400" />
+            <h2 className="text-sm font-semibold text-red-400">Zona de peligro</h2>
+          </div>
+          <p className="text-xs text-surface-400 mb-4">
+            Eliminar el proyecto borrará permanentemente todos sus assets, tareas, comentarios y miembros. Esta acción no se puede deshacer.
+          </p>
+          <button
+            onClick={() => { setShowDeleteProject(true); setDeleteProjectName(''); setDeleteProjectError(''); }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-red-400 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 transition-all"
+          >
+            <Trash2 size={14} /> Eliminar proyecto
+          </button>
+        </div>
+      )}
+
+      {/* Delete member modal */}
+      <Modal open={!!memberToDelete} onClose={() => { setMemberToDelete(null); setDeleteError(''); }} title="Eliminar miembro">
+        <div className="space-y-4">
+          <p className="text-sm text-surface-300">
+            ¿Seguro que quieres eliminar a{' '}
+            <span className="font-semibold text-white">{memberToDelete?.name}</span>{' '}
+            del proyecto?
+          </p>
+          {deleteError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-xl">
+              {deleteError}
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={() => { setMemberToDelete(null); setDeleteError(''); }} className="btn-secondary">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              disabled={deleting}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              <Trash2 size={14} /> {deleting ? 'Eliminando…' : 'Eliminar'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete project modal — estilo GitHub */}
+      <Modal open={showDeleteProject} onClose={() => setShowDeleteProject(false)} title="Eliminar proyecto">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+            <AlertTriangle size={16} className="text-red-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-300">
+              Esta acción es <strong>permanente e irreversible</strong>. Se eliminarán todos los assets, tareas, comentarios y miembros del proyecto.
+            </p>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-surface-300 mb-1.5 block">
+              Escribe <span className="font-mono text-white">{project?.name}</span> para confirmar:
+            </label>
+            <input
+              value={deleteProjectName}
+              onChange={(e) => { setDeleteProjectName(e.target.value); setDeleteProjectError(''); }}
+              placeholder={project?.name}
+              className="input-field font-mono"
+              autoFocus
+            />
+          </div>
+          {deleteProjectError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-xl">
+              {deleteProjectError}
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={() => setShowDeleteProject(false)} className="btn-secondary">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={deleteProject}
+              disabled={deleteProjectName !== project?.name || deletingProject}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <Trash2 size={14} /> {deletingProject ? 'Eliminando…' : 'Eliminar proyecto'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Invite modal */}
       <Modal open={showInvite} onClose={() => { setShowInvite(false); setError(''); }} title="Invitar miembro">

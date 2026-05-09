@@ -22,11 +22,14 @@ export default function NotificationBell() {
     const handleClickOutside = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) setIsOpen(false);
     };
+    const handleKeyDown = (e) => { if (e.key === 'Escape') setIsOpen(false); };
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       if (socket) socket.off('notification', handleNewNotification);
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { timeAgo } from '../../utils/helpers';
+import { useProject } from '../layout/ProjectLayout';
 import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X, Loader2, Upload } from 'lucide-react';
 
 function formatBytes(bytes) {
@@ -13,6 +14,8 @@ function formatBytes(bytes) {
 }
 
 export default function AssetDetail({ asset, onUpdate }) {
+  const { role } = useProject();
+  const isViewer = role === 'viewer';
   const [tab, setTab] = useState('versions');
   const [lightbox, setLightbox] = useState(false);
   const [sendingComment, setSendingComment] = useState(false);
@@ -23,6 +26,13 @@ export default function AssetDetail({ asset, onUpdate }) {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const handler = (e) => { if (e.key === 'Escape') setLightbox(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [lightbox]);
 
   useEffect(() => {
     const load = async () => {
@@ -171,16 +181,18 @@ export default function AssetDetail({ asset, onUpdate }) {
             </p>
             <p className="text-sm text-surface-300">Subido por: <span className="text-white">{asset.uploader_name}</span></p>
           </div>
-          <button
-            onClick={handleUploadNewVersion}
-            disabled={uploadingNewVersion}
-            className="btn-secondary flex items-center gap-1.5 shrink-0 disabled:opacity-50"
-          >
-            {uploadingNewVersion
-              ? <><Loader2 size={14} className="animate-spin" /> Subiendo…</>
-              : <><Upload size={14} /> Nueva versión</>
-            }
-          </button>
+          {!isViewer && (
+            <button
+              onClick={handleUploadNewVersion}
+              disabled={uploadingNewVersion}
+              className="btn-secondary flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+            >
+              {uploadingNewVersion
+                ? <><Loader2 size={14} className="animate-spin" /> Subiendo…</>
+                : <><Upload size={14} /> Nueva versión</>
+              }
+            </button>
+          )}
         </div>
       </div>
 
@@ -259,32 +271,34 @@ export default function AssetDetail({ asset, onUpdate }) {
 
           {rootComments.map((c) => (
             <CommentNode key={c.id} comment={c} replies={getReplies(c.id)} allComments={comments}
-              onReply={(id) => setReplyTo(id)} onResolve={resolveComment} />
+              onReply={(id) => setReplyTo(id)} onResolve={resolveComment} isViewer={isViewer} />
           ))}
 
-          {/* New comment form */}
-          <form onSubmit={sendComment} className="flex gap-2 pt-2 border-t border-white/[0.06]">
-            <div className="flex-1">
-              {replyTo && (
-                <div className="flex items-center gap-2 text-xs text-surface-300 mb-1.5">
-                  <Reply size={12} /> Respondiendo a un comentario
-                  <button type="button" onClick={() => setReplyTo(null)} className="text-red-400 hover:text-red-300">✕</button>
-                </div>
-              )}
-              <input value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Escribe un comentario…" className="input-sm" />
-            </div>
-            <button type="submit" className="btn-primary px-3 self-end disabled:opacity-50" disabled={sendingComment}>
-              {sendingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-            </button>
-          </form>
+          {/* New comment form — hidden for viewer */}
+          {!isViewer && (
+            <form onSubmit={sendComment} className="flex gap-2 pt-2 border-t border-white/[0.06]">
+              <div className="flex-1">
+                {replyTo && (
+                  <div className="flex items-center gap-2 text-xs text-surface-300 mb-1.5">
+                    <Reply size={12} /> Respondiendo a un comentario
+                    <button type="button" onClick={() => setReplyTo(null)} className="text-red-400 hover:text-red-300">✕</button>
+                  </div>
+                )}
+                <input value={newComment} onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Escribe un comentario…" className="input-sm" />
+              </div>
+              <button type="submit" className="btn-primary px-3 self-end disabled:opacity-50" disabled={sendingComment}>
+                {sendingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              </button>
+            </form>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function CommentNode({ comment: c, replies, allComments, onReply, onResolve }) {
+function CommentNode({ comment: c, replies, allComments, onReply, onResolve, isViewer }) {
   const [expanded, setExpanded] = useState(true);
   const nestedReplies = (id) => allComments.filter((x) => x.parent_id === id);
 
@@ -305,7 +319,7 @@ function CommentNode({ comment: c, replies, allComments, onReply, onResolve }) {
             <button onClick={() => onReply(c.id)} className="text-xs text-surface-300 hover:text-brand-400 flex items-center gap-1">
               <Reply size={12} /> Responder
             </button>
-            {!c.resolved && !c.parent_id && (
+            {!c.resolved && !c.parent_id && !isViewer && (
               <button onClick={() => onResolve(c.id)} className="text-xs text-surface-300 hover:text-emerald-400 flex items-center gap-1">
                 <Check size={12} /> Resolver
               </button>
@@ -319,7 +333,7 @@ function CommentNode({ comment: c, replies, allComments, onReply, onResolve }) {
         <div className="ml-10 mt-2 space-y-2 border-l border-white/[0.06] pl-4">
           {expanded && replies.map((r) => (
             <CommentNode key={r.id} comment={r} replies={nestedReplies(r.id)} allComments={allComments}
-              onReply={onReply} onResolve={onResolve} />
+              onReply={onReply} onResolve={onResolve} isViewer={isViewer} />
           ))}
           {replies.length > 0 && (
             <button onClick={() => setExpanded(!expanded)} className="text-xs text-surface-400 hover:text-white flex items-center gap-1">
