@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
+const { logActivity } = require('../utils/activity');
 
 const router = Router();
 router.use(authenticate);
@@ -39,11 +40,7 @@ router.post('/', async (req, res, next) => {
       [project_id, parent_id || null, name]
     );
 
-    await query(
-      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id)
-       VALUES ($1, $2, 'created', 'folder', $3)`,
-      [project_id, req.user.id, rows[0].id]
-    );
+    await logActivity(req, project_id, req.user.id, 'created', 'folder', rows[0].id);
 
     res.status(201).json({ folder: rows[0] });
   } catch (err) { next(err); }

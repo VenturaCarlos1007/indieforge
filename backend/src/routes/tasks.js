@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
+const { logActivity } = require('../utils/activity');
 
 const router = Router();
 router.use(authenticate);
@@ -71,10 +72,7 @@ router.post('/', async (req, res, next) => {
       }
     }
 
-    await query(
-      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id) VALUES ($1,$2,'created','task',$3)`,
-      [project_id, req.user.id, task.id]
-    );
+    await logActivity(req, project_id, req.user.id, 'created', 'task', task.id);
 
     // Re-fetch with assignees
     const full = await query(

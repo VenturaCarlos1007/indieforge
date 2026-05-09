@@ -3,6 +3,7 @@ const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
+const { logActivity } = require('../utils/activity');
 
 const router = Router();
 router.use(authenticate);
@@ -62,11 +63,7 @@ router.post('/', async (req, res, next) => {
     const assetResult = await query('SELECT project_id, uploaded_by, name FROM assets WHERE id = $1', [asset_id]);
     if (assetResult.rows.length > 0) {
       const asset = assetResult.rows[0];
-      await query(
-        `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id)
-         VALUES ($1, $2, 'commented', 'comment', $3)`,
-        [asset.project_id, req.user.id, rows[0].id]
-      );
+      await logActivity(req, asset.project_id, req.user.id, 'commented', 'comment', rows[0].id);
       
       // Notify asset owner if it's someone else
       if (asset.uploaded_by && asset.uploaded_by !== req.user.id) {

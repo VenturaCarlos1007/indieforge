@@ -2,6 +2,7 @@
 const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
+const { logActivity } = require('../utils/activity');
 
 const router = Router();
 
@@ -12,7 +13,15 @@ router.use(authenticate);
 router.get('/', async (req, res, next) => {
   try {
     const { rows } = await query(
-      `SELECT p.*, u.name AS owner_name
+      `SELECT p.*, u.name AS owner_name,
+        (SELECT COUNT(*)::int FROM project_members WHERE project_id = p.id AND status = 'active') AS member_count,
+        (SELECT json_agg(sub ORDER BY sub.joined_at ASC) FROM (
+          SELECT u2.name, u2.avatar_url, pm2.joined_at
+          FROM project_members pm2
+          JOIN users u2 ON u2.id = pm2.user_id
+          WHERE pm2.project_id = p.id AND pm2.status = 'active'
+          ORDER BY pm2.joined_at ASC LIMIT 3
+        ) sub) AS members_preview
        FROM projects p
        JOIN users u ON u.id = p.owner_id
        JOIN project_members pm ON pm.project_id = p.id
@@ -52,12 +61,7 @@ router.post('/', async (req, res, next) => {
       [project.id, req.user.id]
     );
 
-    // Log activity
-    await query(
-      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id)
-       VALUES ($1, $2, 'created', 'project', $3)`,
-      [project.id, req.user.id, project.id]
-    );
+    await logActivity(req, project.id, req.user.id, 'created', 'project', project.id);
 
     res.status(201).json({ project });
   } catch (err) {

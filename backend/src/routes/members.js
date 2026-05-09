@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
+const { logActivity } = require('../utils/activity');
 
 const router = Router();
 router.use(authenticate);
@@ -114,11 +115,7 @@ router.patch('/:id/accept', async (req, res, next) => {
       [req.params.id]
     );
 
-    await query(
-      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id)
-       VALUES ($1, $2, 'added_member', 'project', $1)`,
-      [mem.rows[0].project_id, req.user.id]
-    );
+    await logActivity(req, mem.rows[0].project_id, req.user.id, 'added_member', 'project', mem.rows[0].project_id);
 
     res.json({ member: rows[0] });
   } catch (err) { next(err); }

@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { query, getClient } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
+const { logActivity } = require('../utils/activity');
 
 const router = Router();
 router.use(authenticate);
@@ -97,12 +98,8 @@ router.post('/', async (req, res, next) => {
       );
     }
 
-    await client.query(
-      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id) VALUES ($1,$2,'uploaded','asset',$3)`,
-      [project_id, req.user.id, asset.id]
-    );
-
     await client.query('COMMIT');
+    await logActivity(req, project_id, req.user.id, 'uploaded', 'asset', asset.id);
     res.status(201).json({ asset });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -155,17 +152,12 @@ router.post('/:id/versions', async (req, res, next) => {
 
     await client.query('UPDATE assets SET current_version = $1 WHERE id = $2', [newVerNum, req.params.id]);
 
-    await client.query(
-      `INSERT INTO activity_feed (project_id, user_id, action, resource_type, resource_id)
-       VALUES ($1,$2,'uploaded','asset',$3)`,
-      [asset.project_id, req.user.id, req.params.id]
-    );
-
     await client.query('COMMIT');
 
     const userRes = await query('SELECT name FROM users WHERE id = $1', [req.user.id]);
     const version = { ...verRes.rows[0], uploader_name: userRes.rows[0].name };
 
+    await logActivity(req, asset.rows[0].project_id, req.user.id, 'uploaded', 'asset', req.params.id);
     res.status(201).json({ version, current_version: newVerNum });
   } catch (err) {
     await client.query('ROLLBACK');
