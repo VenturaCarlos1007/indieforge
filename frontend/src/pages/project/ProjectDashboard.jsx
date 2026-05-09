@@ -95,6 +95,12 @@ export default function ProjectDashboard() {
     </div>
   );
 
+  if (!stats) return (
+    <div className="flex items-center justify-center h-40 text-surface-400 text-sm">
+      No se pudieron cargar las estadísticas.
+    </div>
+  );
+
   const taskTotal = stats.total_tasks || 1;
   const donePercent = Math.round((stats.tasks.done / taskTotal) * 100);
 

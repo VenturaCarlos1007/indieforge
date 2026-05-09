@@ -45,6 +45,7 @@ export default function KanbanPage() {
   const [editTask, setEditTask] = useState(null);
   const [dragOverCol, setDragOverCol] = useState(null);
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [kanbanError, setKanbanError] = useState('');
   const dragItem = useRef(null);
 
   const loadTasks = async () => {
@@ -65,22 +66,30 @@ export default function KanbanPage() {
     }
   }, [projectId]);
 
+  const showError = (msg) => { setKanbanError(msg); setTimeout(() => setKanbanError(''), 4000); };
+
   const createTask = async ({ title, description, status, priority, due_date, assignee_ids }) => {
-    const { data } = await api.post('/tasks', { project_id: projectId, title, description, status, priority, due_date, assignee_ids });
-    setTasks((p) => [data.task, ...p]);
-    setShowCreate(null);
-    getSocket()?.emit('task_created', { projectId, task: data.task });
+    try {
+      const { data } = await api.post('/tasks', { project_id: projectId, title, description, status, priority, due_date, assignee_ids });
+      setTasks((p) => [data.task, ...p]);
+      setShowCreate(null);
+      getSocket()?.emit('task_created', { projectId, task: data.task });
+    } catch (e) { showError(e.response?.data?.error || 'Error al crear la tarea.'); }
   };
   const updateTask = async (id, updates) => {
-    const { data } = await api.put(`/tasks/${id}`, updates);
-    setTasks((p) => p.map((t) => t.id === id ? data.task : t));
-    setEditTask(null);
-    getSocket()?.emit('task_updated', { projectId, task: data.task });
+    try {
+      const { data } = await api.put(`/tasks/${id}`, updates);
+      setTasks((p) => p.map((t) => t.id === id ? data.task : t));
+      setEditTask(null);
+      getSocket()?.emit('task_updated', { projectId, task: data.task });
+    } catch (e) { showError(e.response?.data?.error || 'Error al actualizar la tarea.'); }
   };
   const deleteTask = async (id) => {
-    await api.delete(`/tasks/${id}`);
-    setTasks((p) => p.filter((t) => t.id !== id));
-    getSocket()?.emit('task_deleted', { projectId, taskId: id });
+    try {
+      await api.delete(`/tasks/${id}`);
+      setTasks((p) => p.filter((t) => t.id !== id));
+      getSocket()?.emit('task_deleted', { projectId, taskId: id });
+    } catch (e) { showError(e.response?.data?.error || 'Error al eliminar la tarea.'); }
   };
   const moveTask = async (taskId, newStatus) => {
     await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
@@ -109,6 +118,12 @@ export default function KanbanPage() {
 
   return (
     <div className="space-y-5">
+      {kanbanError && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-xl flex items-center justify-between">
+          <span>{kanbanError}</span>
+          <button onClick={() => setKanbanError('')} className="ml-3 text-red-400 hover:text-red-300 text-lg leading-none">✕</button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold">Kanban</h1>
