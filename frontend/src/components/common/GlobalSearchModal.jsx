@@ -14,11 +14,14 @@ export default function GlobalSearchModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
+      const handler = (e) => { if (e.key === 'Escape') onClose(); };
+      document.addEventListener('keydown', handler);
+      return () => document.removeEventListener('keydown', handler);
     } else {
       setQuery('');
       setResults([]);
     }
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (query.length < 2) {

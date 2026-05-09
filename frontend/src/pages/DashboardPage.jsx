@@ -12,6 +12,8 @@ import { timeAgo } from '../utils/helpers';
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 const stagger = { show: { transition: { staggerChildren: 0.06 } } };
 
+const initial = (name) => name?.[0]?.toUpperCase() || '?';
+
 const CARD_GRADIENTS = [
   { from: '#7C3AED', to: '#a855f7' },
   { from: '#06B6D4', to: '#22d3ee' },
@@ -309,7 +311,7 @@ export default function DashboardPage() {
                                   <div key={mi} title={m.name}
                                     className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border border-surface-900 ring-1 ring-surface-800"
                                     style={{ background: `linear-gradient(135deg, ${grad.from}, ${grad.to})` }}>
-                                    {m.name[0].toUpperCase()}
+                                    {initial(m.name)}
                                   </div>
                                 ))}
                               </div>

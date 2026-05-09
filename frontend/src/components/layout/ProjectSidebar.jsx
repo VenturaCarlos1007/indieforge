@@ -5,6 +5,8 @@ import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarC
 import { useProject } from './ProjectLayout';
 import { getSocket } from '../../services/socket';
 
+const initial = (name) => name?.[0]?.toUpperCase() || '?';
+
 const navItems = [
   { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#a855f7', end: true },
   { path: 'assets',  label: 'Assets',     icon: FolderOpen,      accent: '#22d3ee' },
@@ -60,7 +62,7 @@ export default function ProjectSidebar({ project }) {
                 <div key={m.id} className="relative group/avatar" title={m.name}>
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-opacity ${isOnline ? 'opacity-100' : 'opacity-40'}`}
                     style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                    {m.name[0].toUpperCase()}
+                    {initial(m.name)}
                   </div>
                   <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-green-400' : 'bg-surface-500'}`} />
                   {/* Tooltip */}

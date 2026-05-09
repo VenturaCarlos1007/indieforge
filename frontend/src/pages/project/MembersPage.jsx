@@ -146,7 +146,7 @@ export default function MembersPage() {
                 </span>
 
                 {/* Actions */}
-                {isOwner && m.role !== 'owner' && (
+                {isOwner && m.role !== 'owner' && m.user_id !== user?.id && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <select
                       value={m.role}

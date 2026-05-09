@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getSocket } from '../../services/socket';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
@@ -88,6 +89,14 @@ export default function AssetsPage() {
 
   useEffect(() => { loadContent(); }, [loadContent]);
 
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    const handler = () => loadContent();
+    socket.on('asset_uploaded', handler);
+    return () => socket.off('asset_uploaded', handler);
+  }, [loadContent]);
+
   // Open a specific asset when navigating here from a notification
   useEffect(() => {
     const assetId = location.state?.openAssetId;
@@ -131,6 +140,7 @@ export default function AssetsPage() {
           project_id: projectId, folder_id: currentFolderId,
           name: file.name, type: fileTypeFromName(file.name), storage_url: reader.result,
         });
+        getSocket()?.emit('asset_uploaded', { projectId });
         resolve();
       } catch (err) { reject(err); }
     };

@@ -9,6 +9,8 @@ import {
   Plus, GripVertical, Pencil, Trash2, Clock, CheckCircle2, Loader2, Users, AlertTriangle, AlertCircle, ArrowDownCircle, Calendar
 } from 'lucide-react';
 
+const initial = (name) => name?.[0]?.toUpperCase() || '?';
+
 const COLUMNS = [
   {
     status: 'pending', label: 'Por Hacer', icon: Clock,
@@ -281,7 +283,7 @@ export default function KanbanPage() {
                               <div key={a.id} className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold ring-1 ring-surface-800"
                                 style={{ background: `linear-gradient(135deg, ${col.accent}60, ${col.accent}30)` }}
                                 title={a.name}>
-                                {a.name[0].toUpperCase()}
+                                {initial(a.name)}
                               </div>
                             ))}
                             {task.assignees.length > 4 && (
@@ -382,7 +384,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
                 }}>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold"
                   style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                  {m.name[0].toUpperCase()}
+                  {initial(m.name)}
                 </div>
                 {m.name}
               </button>
