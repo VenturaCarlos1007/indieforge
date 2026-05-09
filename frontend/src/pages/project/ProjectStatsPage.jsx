@@ -4,6 +4,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { useProject } from '../../components/layout/ProjectLayout';
 import { Activity, CheckCircle, Target, TrendingUp } from 'lucide-react';
 import api from '../../services/api';
+import { SkeletonStats } from '../../components/common/Skeleton';
 
 const stagger = { show: { transition: { staggerChildren: 0.1 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -29,13 +30,7 @@ export default function ProjectStatsPage() {
     fetchStats();
   }, [projectId]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonStats />;
 
   if (!stats) return null;
 
