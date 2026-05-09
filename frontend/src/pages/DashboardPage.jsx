@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import Modal from '../components/common/Modal';
 import { SkeletonCard } from '../components/common/Skeleton';
-import { Plus, FolderKanban, Clock, Gamepad2, ArrowUpRight, CheckCircle2, FileUp, Activity } from 'lucide-react';
+import { Plus, FolderKanban, Clock, Gamepad2, ArrowUpRight, CheckCircle2, FileUp, Activity, Rocket } from 'lucide-react';
+import { EmptyState } from '../components/common/Skeleton';
 import { timeAgo } from '../utils/helpers';
 
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
@@ -264,8 +265,13 @@ export default function DashboardPage() {
         <motion.div variants={item}>
           <h2 className="text-xl font-bold text-white mb-4">Tus Proyectos</h2>
           {projects.length === 0 && !loading ? (
-            <div className="glass-strong p-10 text-center rounded-2xl">
-              <p className="text-surface-400">Crea tu primer proyecto para empezar.</p>
+            <div className="glass-strong rounded-2xl">
+              <EmptyState
+                icon={Rocket}
+                iconColor="#a855f7"
+                title="Aún no tienes proyectos"
+                subtitle="Crea tu primer proyecto y empieza a construir algo increíble"
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

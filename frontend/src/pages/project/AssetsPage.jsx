@@ -5,7 +5,7 @@ import { useProject } from '../../components/layout/ProjectLayout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
-import { SkeletonCard } from '../../components/common/Skeleton';
+import { SkeletonCard, EmptyState } from '../../components/common/Skeleton';
 import AssetDetail from '../../components/assets/AssetDetail';
 import {
   FolderPlus, Upload, Search, Folder, Image, Music, FileText, File, Film, Code2,
@@ -278,14 +278,12 @@ export default function AssetsPage() {
         ) : (
           <>
             {folders.length === 0 && assets.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-surface-400">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-                  style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.12)' }}>
-                  <CloudUpload size={28} className="text-brand-500" />
-                </div>
-                <p className="text-sm font-medium text-surface-300">Esta carpeta está vacía</p>
-                <p className="text-xs mt-1">Arrastra archivos aquí o usa el botón Subir</p>
-              </div>
+              <EmptyState
+                icon={search ? Search : Folder}
+                iconColor="#fbbf24"
+                title={search ? 'Sin resultados' : 'Sube tu primer asset para comenzar'}
+                subtitle={search ? `No se encontró "${search}"` : 'Arrastra archivos aquí o usa el botón Subir'}
+              />
             )}
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">

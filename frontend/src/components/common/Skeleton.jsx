@@ -1,3 +1,17 @@
+export function EmptyState({ icon: Icon, title, subtitle, iconColor = '#a855f7', iconBg }) {
+  const bg = iconBg || `${iconColor}12`;
+  return (
+    <div className="flex flex-col items-center justify-center py-14 text-center px-4">
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: bg, border: `1px solid ${iconColor}22` }}>
+        <Icon size={28} style={{ color: iconColor }} />
+      </div>
+      <p className="text-sm font-semibold text-surface-200 mb-1.5">{title}</p>
+      {subtitle && <p className="text-xs text-surface-500 max-w-[200px] leading-relaxed">{subtitle}</p>}
+    </div>
+  );
+}
+
 export function SkeletonLine({ className = '' }) {
   return <div className={`skeleton h-4 ${className}`} />;
 }

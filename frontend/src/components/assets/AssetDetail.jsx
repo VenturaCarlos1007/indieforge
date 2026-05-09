@@ -266,7 +266,14 @@ export default function AssetDetail({ asset, onUpdate }) {
         /* Comments */
         <div className="space-y-4">
           {rootComments.length === 0 && (
-            <p className="text-sm text-surface-400 text-center py-6">No hay comentarios todavía.</p>
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
+                style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
+                <MessageSquare size={20} style={{ color: '#fbbf24' }} />
+              </div>
+              <p className="text-sm font-semibold text-surface-200 mb-1">Sé el primero en comentar</p>
+              <p className="text-xs text-surface-500">Los comentarios ayudan al equipo a dar feedback</p>
+            </div>
           )}
 
           {rootComments.map((c) => (

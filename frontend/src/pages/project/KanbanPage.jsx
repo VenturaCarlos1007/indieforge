@@ -4,7 +4,7 @@ import { useProject } from '../../components/layout/ProjectLayout';
 import { getSocket } from '../../services/socket';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
-import { SkeletonCard } from '../../components/common/Skeleton';
+import { SkeletonCard, EmptyState } from '../../components/common/Skeleton';
 import {
   Plus, GripVertical, Pencil, Trash2, Clock, CheckCircle2, Loader2, Users, AlertTriangle, AlertCircle, ArrowDownCircle, Calendar
 } from 'lucide-react';
@@ -187,6 +187,12 @@ export default function KanbanPage() {
 
               {/* Cards */}
               <div className="space-y-2.5 px-1 pb-2 min-h-[200px]">
+                {columnTasks.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <col.icon size={22} style={{ color: `${col.accent}50` }} className="mb-2" />
+                    <p className="text-xs text-surface-500">Sin tareas aquí</p>
+                  </div>
+                )}
                 <AnimatePresence>
                   {columnTasks.map((task) => {
                     const priorityData = PRIORITIES[task.priority || 'medium'];

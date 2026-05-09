@@ -190,9 +190,13 @@ export default function NotificationBell() {
             {/* List */}
             <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-white/10">
               {notifications.length === 0 ? (
-                <div className="p-6 text-center text-white/40">
-                  <Bell className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                  <p className="text-sm">No tienes notificaciones</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
+                    style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}>
+                    <Bell className="w-6 h-6" style={{ color: '#a855f7' }} />
+                  </div>
+                  <p className="text-sm font-semibold text-white/70 mb-1">Todo tranquilo por aquí</p>
+                  <p className="text-xs text-white/30 leading-relaxed max-w-[170px]">No tienes notificaciones pendientes</p>
                 </div>
               ) : (
                 notifications.map((notif) => {
