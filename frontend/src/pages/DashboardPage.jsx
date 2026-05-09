@@ -173,7 +173,7 @@ export default function DashboardPage() {
 
       <motion.div className="max-w-6xl mx-auto relative z-10" variants={stagger} initial="hidden" animate="show">
         {/* Header */}
-        <motion.div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4" variants={item}>
+        <motion.div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 pt-2" variants={item}>
           <div>
             <h1 className="text-3xl font-bold mb-1">
               Hola, <span style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>

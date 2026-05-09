@@ -23,35 +23,35 @@ export default function Layout() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto relative">
-        {/* Subtle ambient glow */}
-        <div className="pointer-events-none fixed top-0 right-0 w-[600px] h-[600px] opacity-[0.03]"
-          style={{ background: 'radial-gradient(circle, #7C3AED, transparent 70%)' }} />
-        <div className="pointer-events-none fixed bottom-0 left-1/3 w-[500px] h-[500px] opacity-[0.02]"
-          style={{ background: 'radial-gradient(circle, #06B6D4, transparent 70%)' }} />
-
-        {/* Global Header for Notification Bell */}
-        <header className="absolute top-0 right-0 p-4 md:p-6 w-full flex justify-end items-center pointer-events-none z-50">
-          <div className="pointer-events-auto">
-            <NotificationBell />
-          </div>
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* Notification bar — parte del flujo, no overlay */}
+        <header className="flex justify-end items-center px-4 md:px-6 py-3 shrink-0 z-50">
+          <NotificationBell />
         </header>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname.split('/').slice(0, 3).join('/')}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="p-6 lg:p-8 min-h-full"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
-        
-        <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-      </main>
+        <main className="flex-1 overflow-y-auto relative">
+          {/* Subtle ambient glow */}
+          <div className="pointer-events-none fixed top-0 right-0 w-[600px] h-[600px] opacity-[0.03]"
+            style={{ background: 'radial-gradient(circle, #7C3AED, transparent 70%)' }} />
+          <div className="pointer-events-none fixed bottom-0 left-1/3 w-[500px] h-[500px] opacity-[0.02]"
+            style={{ background: 'radial-gradient(circle, #06B6D4, transparent 70%)' }} />
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname.split('/').slice(0, 3).join('/')}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="px-6 lg:px-8 pb-6 lg:pb-8 min-h-full"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+
+          <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+        </main>
+      </div>
     </div>
   );
 }
