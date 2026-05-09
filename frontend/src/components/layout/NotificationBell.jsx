@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, Info, AlertTriangle, AlertCircle, Clock, UserPlus, Loader2, X } from 'lucide-react';
+import { Bell, Check, Info, AlertTriangle, AlertCircle, Clock, UserPlus, Loader2, X, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import { getSocket } from '../../services/socket';
 
@@ -58,6 +58,16 @@ export default function NotificationBell() {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Error marking as read:', err);
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      await api.delete('/notifications/all');
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Error clearing notifications:', err);
     }
   };
 
@@ -157,14 +167,24 @@ export default function NotificationBell() {
             {/* Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
               <h3 className="font-semibold text-white">Notificaciones</h3>
-              {unreadCount > 0 && (
-                <button
-                  onClick={markAllAsRead}
-                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
-                >
-                  <Check className="w-3 h-3" /> Marcar todas leídas
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+                  >
+                    <Check className="w-3 h-3" /> Marcar leídas
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    onClick={clearAll}
+                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" /> Limpiar todo
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* List */}
