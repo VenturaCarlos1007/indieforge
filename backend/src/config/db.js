@@ -34,7 +34,7 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle PostgreSQL client', err);
-  process.exit(-1);
+  // Pool handles reconnection automatically; crashing the process is too aggressive
 });
 
 /**

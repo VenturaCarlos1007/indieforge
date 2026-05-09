@@ -36,7 +36,7 @@ router.get('/stats', async (req, res, next) => {
         `SELECT status, COUNT(*) as count FROM tasks WHERE project_id = $1 GROUP BY status`,
         [project_id]
       ),
-      query('SELECT COUNT(*) as count FROM project_members WHERE project_id = $1', [project_id]),
+      query('SELECT COUNT(*) as count FROM project_members WHERE project_id = $1 AND status = \'active\'', [project_id]),
     ]);
 
     const taskStats = { pending: 0, in_progress: 0, review: 0, done: 0 };

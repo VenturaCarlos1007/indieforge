@@ -23,7 +23,7 @@ router.get('/', async (req, res, next) => {
     // Stats: projects count, tasks assigned count
     const statsQuery = await query(
       `SELECT
-        (SELECT COUNT(*) FROM project_members WHERE user_id = $1) AS projects_count,
+        (SELECT COUNT(*) FROM project_members WHERE user_id = $1 AND status = 'active') AS projects_count,
         (SELECT COUNT(*) FROM task_assignments WHERE user_id = $1) AS tasks_assigned_count`,
       [req.user.id]
     );
