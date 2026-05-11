@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('theme');
+          var dark = s !== null ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="IndieForge — Plataforma colaborativa para desarrollo de videojuegos indie." />
