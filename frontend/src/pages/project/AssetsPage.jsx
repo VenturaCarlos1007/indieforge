@@ -6,6 +6,7 @@ import { useProject } from '../../components/layout/ProjectLayout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
+import Tooltip from '../../components/common/Tooltip';
 import { SkeletonCard, EmptyState } from '../../components/common/Skeleton';
 import AssetDetail from '../../components/assets/AssetDetail';
 import {
@@ -274,7 +275,9 @@ export default function AssetsPage() {
       {/* Breadcrumb */}
       {!search && (
         <div className="flex items-center gap-1.5 text-sm">
-          <button onClick={goHome} className="text-surface-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/[0.04]"><Home size={14} /></button>
+          <Tooltip text="Inicio" side="bottom">
+            <button onClick={goHome} className="text-surface-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/[0.04]"><Home size={14} /></button>
+          </Tooltip>
           {path.map((f, i) => (
             <span key={f.id} className="flex items-center gap-1.5">
               <ChevronRight size={13} className="text-surface-500" />

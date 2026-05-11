@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import Tooltip from './Tooltip';
 
 const backdrop = {
   hidden: { opacity: 0 },
@@ -43,13 +44,15 @@ export default function Modal({ open, onClose, title, children, wide }) {
           >
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold">{title}</h2>
-              <button onClick={onClose}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-surface-400 hover:text-white transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>
-                <X size={16} />
-              </button>
+              <Tooltip text="Cerrar" side="left">
+                <button onClick={onClose}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-surface-400 hover:text-white transition-all"
+                  style={{ background: 'rgba(255,255,255,0.04)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>
+                  <X size={16} />
+                </button>
+              </Tooltip>
             </div>
             {children}
           </motion.div>

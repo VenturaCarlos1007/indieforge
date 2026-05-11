@@ -5,6 +5,7 @@ import { Sun, Moon, Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationBell from './NotificationBell';
 import GlobalSearchModal from '../common/GlobalSearchModal';
+import Tooltip from '../common/Tooltip';
 import { useTheme } from '../../context/ThemeContext';
 
 const SECTION_MAP = {
@@ -63,14 +64,16 @@ export default function Layout() {
         {/* Header */}
         <header className="flex items-center gap-3 px-4 md:px-6 py-3 shrink-0 z-20">
           {/* Hamburger — mobile only */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Abrir menú"
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl transition-all shrink-0 cursor-pointer"
-            style={{ background: 'var(--btn-sec-bg)', border: '1px solid var(--btn-sec-border)' }}
-          >
-            <Menu size={18} style={{ color: 'var(--body-color)' }} />
-          </button>
+          <Tooltip text="Abrir menú" side="bottom">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir menú"
+              className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl transition-all shrink-0 cursor-pointer"
+              style={{ background: 'var(--btn-sec-bg)', border: '1px solid var(--btn-sec-border)' }}
+            >
+              <Menu size={18} style={{ color: 'var(--body-color)' }} />
+            </button>
+          </Tooltip>
 
           {/* Section name — mobile only */}
           <span className="md:hidden text-sm font-semibold truncate flex-1" style={{ color: 'var(--body-color)' }}>
@@ -79,17 +82,19 @@ export default function Layout() {
 
           {/* Actions */}
           <div className="flex items-center gap-2 ml-auto">
-            <button
-              onClick={toggle}
-              aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-              className="w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
-              style={{ background: 'var(--btn-sec-bg)', border: '1px solid var(--btn-sec-border)' }}
-            >
-              {dark
-                ? <Sun size={15} style={{ color: '#fbbf24' }} />
-                : <Moon size={15} style={{ color: '#7C3AED' }} />
-              }
-            </button>
+            <Tooltip text={dark ? 'Modo claro' : 'Modo oscuro'} side="bottom">
+              <button
+                onClick={toggle}
+                aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                className="w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                style={{ background: 'var(--btn-sec-bg)', border: '1px solid var(--btn-sec-border)' }}
+              >
+                {dark
+                  ? <Sun size={15} style={{ color: '#fbbf24' }} />
+                  : <Moon size={15} style={{ color: '#7C3AED' }} />
+                }
+              </button>
+            </Tooltip>
             <NotificationBell />
           </div>
         </header>

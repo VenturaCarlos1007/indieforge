@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
+import SplashScreen from './components/common/SplashScreen';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -27,24 +30,37 @@ function GuestRoute({ children }) {
 }
 
 export default function App() {
+  // Splash: muestra 1.1s + 0.4s fade-out = 1.5s total
+  const [showSplash, setShowSplash] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowSplash(false), 1100);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
-    <Routes>
-      <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
-      <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-      <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="project/:projectId" element={<ProjectLayout />}>
-          <Route index element={<ProjectDashboard />} />
-          <Route path="assets" element={<AssetsPage />} />
-          <Route path="kanban" element={<KanbanPage />} />
-          <Route path="members" element={<MembersPage />} />
-          <Route path="stats" element={<ProjectStatsPage />} />
-          <Route path="chat" element={<ChatPage />} />
+    <>
+      <AnimatePresence>
+        {showSplash && <SplashScreen key="splash" />}
+      </AnimatePresence>
+
+      <Routes>
+        <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
+        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+        <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="project/:projectId" element={<ProjectLayout />}>
+            <Route index element={<ProjectDashboard />} />
+            <Route path="assets" element={<AssetsPage />} />
+            <Route path="kanban" element={<KanbanPage />} />
+            <Route path="members" element={<MembersPage />} />
+            <Route path="stats" element={<ProjectStatsPage />} />
+            <Route path="chat" element={<ChatPage />} />
+          </Route>
         </Route>
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
