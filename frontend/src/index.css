@@ -5,46 +5,50 @@
 /* ── CSS Custom Properties ──────────────────────── */
 :root {
   /* Light mode (default) */
-  --body-bg:              #F2F0FA;
-  --body-color:           #1E1B3A;
-  --glass-bg:             rgba(255,255,255,0.70);
-  --glass-border:         rgba(0,0,0,0.07);
-  --glass-shadow:         0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
-  --glass-strong-bg:      rgba(255,255,255,0.85);
-  --glass-strong-border:  rgba(0,0,0,0.10);
-  --glass-strong-shadow:  0 8px 40px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.95);
-  --glass-sm-bg:          rgba(255,255,255,0.55);
-  --glass-sm-border:      rgba(0,0,0,0.06);
-  --glass-sm-shadow:      0 2px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
-  --sidebar-bg:           linear-gradient(180deg, #EDE9FA 0%, #F2F0FA 100%);
-  --border-subtle:        rgba(0,0,0,0.06);
+  --body-bg:              #F8FAFC;
+  --body-color:           #1E293B;
+  --glass-bg:             rgba(255,255,255,0.90);
+  --glass-border:         rgba(0,0,0,0.10);
+  --glass-shadow:         0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,1);
+  --glass-strong-bg:      rgba(255,255,255,1);
+  --glass-strong-border:  rgba(0,0,0,0.12);
+  --glass-strong-shadow:  0 8px 40px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,1);
+  --glass-sm-bg:          rgba(255,255,255,0.92);
+  --glass-sm-border:      rgba(0,0,0,0.10);
+  --glass-sm-shadow:      0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,1);
+  --sidebar-bg:           #F8FAFC;
+  --border-subtle:        rgba(0,0,0,0.08);
   --avatar-inner:         #E8E4F8;
-  --surface-hover:        rgba(0,0,0,0.03);
+  --surface-hover:        rgba(0,0,0,0.04);
   --btn-sec-bg:           rgba(0,0,0,0.04);
-  --btn-sec-border:       rgba(0,0,0,0.09);
-  --btn-sec-text:         #2D2A4A;
+  --btn-sec-border:       rgba(0,0,0,0.12);
+  --btn-sec-text:         #1E293B;
   --btn-sec-hover-bg:     rgba(0,0,0,0.07);
-  --btn-sec-hover-border: rgba(0,0,0,0.13);
-  --btn-ghost-text:       #4A4870;
-  --btn-ghost-hover-text: #1E1B3A;
-  --btn-ghost-hover-bg:   rgba(0,0,0,0.04);
-  --input-bg:             rgba(255,255,255,0.80);
-  --input-border:         rgba(0,0,0,0.10);
-  --input-text:           #1E1B3A;
+  --btn-sec-hover-border: rgba(0,0,0,0.16);
+  --btn-ghost-text:       #475569;
+  --btn-ghost-hover-text: #1E293B;
+  --btn-ghost-hover-bg:   rgba(0,0,0,0.05);
+  --input-bg:             #ffffff;
+  --input-border:         rgba(0,0,0,0.12);
+  --input-text:           #1E293B;
   --input-placeholder:    #94A3B8;
-  --stat-card-bg:         rgba(255,255,255,0.50);
-  --stat-card-border:     rgba(0,0,0,0.06);
-  --kanban-card-bg:       rgba(255,255,255,0.65);
-  --kanban-card-border:   rgba(0,0,0,0.06);
+  --stat-card-bg:         #ffffff;
+  --stat-card-border:     rgba(0,0,0,0.10);
+  --kanban-card-bg:       #ffffff;
+  --kanban-card-border:   rgba(0,0,0,0.10);
   --skeleton-from:        rgba(0,0,0,0.04);
   --skeleton-via:         rgba(0,0,0,0.09);
+  --progress-track:       rgba(0,0,0,0.08);
+  --card-inner-bg:        rgba(0,0,0,0.03);
+  --card-inner-border:    rgba(0,0,0,0.08);
+  --activity-empty:       rgba(0,0,0,0.07);
 }
 
 .dark {
   --body-bg:              #07070E;
   --body-color:           #E2E8F0;
   --glass-bg:             rgba(255,255,255,0.03);
-  --glass-border:         rgba(255,255,255,0.08);
+  --glass-border:         rgba(255,255,255,0.10);
   --glass-shadow:         0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.05);
   --glass-strong-bg:      rgba(255,255,255,0.05);
   --glass-strong-border:  rgba(255,255,255,0.12);
@@ -53,7 +57,7 @@
   --glass-sm-border:      rgba(255,255,255,0.06);
   --glass-sm-shadow:      0 2px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
   --sidebar-bg:           linear-gradient(180deg, #0c0b18 0%, #07070E 100%);
-  --border-subtle:        rgba(255,255,255,0.04);
+  --border-subtle:        rgba(255,255,255,0.06);
   --avatar-inner:         #0c0b18;
   --surface-hover:        rgba(255,255,255,0.02);
   --btn-sec-bg:           rgba(255,255,255,0.04);
@@ -67,13 +71,17 @@
   --input-bg:             rgba(255,255,255,0.03);
   --input-border:         rgba(255,255,255,0.08);
   --input-text:           #E2E8F0;
-  --input-placeholder:    #475569;
+  --input-placeholder:    #64748B;
   --stat-card-bg:         rgba(255,255,255,0.02);
-  --stat-card-border:     rgba(255,255,255,0.06);
+  --stat-card-border:     rgba(255,255,255,0.08);
   --kanban-card-bg:       rgba(255,255,255,0.025);
-  --kanban-card-border:   rgba(255,255,255,0.06);
+  --kanban-card-border:   rgba(255,255,255,0.08);
   --skeleton-from:        rgba(255,255,255,0.02);
   --skeleton-via:         rgba(255,255,255,0.06);
+  --progress-track:       rgba(255,255,255,0.06);
+  --card-inner-bg:        rgba(255,255,255,0.03);
+  --card-inner-border:    rgba(255,255,255,0.06);
+  --activity-empty:       rgba(255,255,255,0.07);
 }
 
 /* ── Base ──────────────────────────────────────── */
@@ -92,15 +100,20 @@ body {
  * Light-mode overrides: surface/white utilities only legible on dark backgrounds.
  * Targets Tailwind classes used directly in JSX (not @apply inlines).
  */
-html:not(.dark) .text-white       { color: var(--body-color) !important; }
-html:not(.dark) .text-surface-50  { color: #1E1B3A !important; }
-html:not(.dark) .text-surface-100 { color: #2D2A4A !important; }
+html:not(.dark) .text-white       { color: #1E293B !important; }
+html:not(.dark) .text-surface-50  { color: #1E293B !important; }
+html:not(.dark) .text-surface-100 { color: #334155 !important; }
 html:not(.dark) .text-surface-200 { color: #475569 !important; }
 /* Preserve white text on gradient-filled buttons */
 html:not(.dark) .btn-primary,
 html:not(.dark) .btn-primary *,
 html:not(.dark) .btn-primary-pulse,
 html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
+
+/* Dark-mode: surface-300/400/500 usados como texto secundario/muted son demasiado oscuros en fondo oscuro */
+.dark .text-surface-300 { color: #94A3B8; }
+.dark .text-surface-400 { color: #94A3B8; }
+.dark .text-surface-500 { color: #64748B; }
 
 * { scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.4) transparent; }
 ::selection { background-color: rgba(124, 58, 237, 0.35); }
@@ -133,9 +146,9 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
   to { transform: rotate(360deg); }
 }
 
-/* Light: soft lavender gradient */
+/* Light: soft neutral gradient */
 .animated-bg {
-  background-image: linear-gradient(135deg, #F2F0FA 0%, #EBE6F8 25%, #F2F0FA 50%, #E8ECF8 75%, #F2F0FA 100%);
+  background-image: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 25%, #F8FAFC 50%, #EEF2FF 75%, #F8FAFC 100%);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
 }
@@ -345,6 +358,15 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
     background: linear-gradient(135deg, #7C3AED, #06B6D4);
     border-radius: 9999px;
   }
+
+  /* Card interior items — adaptan a light/dark */
+  .card-inner {
+    border-radius: 0.75rem;
+    background: var(--card-inner-bg);
+    border: 1px solid var(--card-inner-border);
+    transition: background 200ms ease;
+  }
+  .card-inner:hover { background: var(--surface-hover); }
 }
 
 /* Pulse glow keyframes */
@@ -352,6 +374,10 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.8; }
 }
+
+/* Cuadrícula de actividad — borde adaptativo */
+.activity-cell { border: 1px solid rgba(0,0,0,0.08); }
+.dark .activity-cell { border: 1px solid rgba(255,255,255,0.06); }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
