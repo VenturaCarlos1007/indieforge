@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, LogOut, Gamepad2, Sparkles, Settings, User } from 'lucide-react';
 
@@ -10,6 +11,7 @@ const navItems = [
 
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
     <aside className={[
@@ -106,7 +108,7 @@ export default function Sidebar({ open, onClose }) {
             <p className="text-[11px] text-surface-400 truncate">{user?.email}</p>
           </div>
         </div>
-        <button onClick={logout}
+        <button onClick={() => setConfirmOpen(true)}
           className="w-full flex items-center justify-center gap-2 text-[13px] text-surface-400 hover:text-red-400 py-2.5 rounded-xl transition-all duration-200"
           style={{ background: 'var(--surface-hover)' }}
           onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
@@ -114,6 +116,65 @@ export default function Sidebar({ open, onClose }) {
           <LogOut size={15} /> Cerrar sesión
         </button>
       </div>
+
+      {/* Logout confirmation modal */}
+      <AnimatePresence>
+        {confirmOpen && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}>
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setConfirmOpen(false)}
+            />
+            {/* Card */}
+            <motion.div
+              className="relative w-full max-w-sm rounded-2xl p-6"
+              style={{
+                background: 'var(--glass-strong-bg)',
+                border: '1px solid var(--glass-strong-border)',
+                backdropFilter: 'blur(24px)',
+                boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+              }}
+              initial={{ opacity: 0, scale: 0.94, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 8 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}>
+
+              {/* Icon */}
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.20)' }}>
+                <LogOut size={22} style={{ color: '#f87171' }} />
+              </div>
+
+              <h2 className="text-base font-semibold text-center mb-1" style={{ color: 'var(--body-color)' }}>
+                ¿Cerrar sesión?
+              </h2>
+              <p className="text-sm text-center text-surface-400 mb-6">
+                ¿Estás seguro que deseas cerrar sesión?
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmOpen(false)}
+                  className="btn-secondary flex-1 py-2.5 text-sm">
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => { setConfirmOpen(false); logout(); }}
+                  className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.22)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.12)'}>
+                  <LogOut size={15} /> Cerrar sesión
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </aside>
   );
 }
