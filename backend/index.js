@@ -23,6 +23,7 @@ const profileRoutes  = require('./src/routes/profile');
 const notificationRoutes = require('./src/routes/notifications').router;
 const searchRoutes   = require('./src/routes/search');
 const dashboardRoutes = require('./src/routes/dashboard');
+const messageRoutes  = require('./src/routes/messages');
 
 const app = express();
 const server = http.createServer(app);
@@ -63,6 +64,7 @@ app.use('/api/profile',  profileRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search',   searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/messages',  messageRoutes);
 
 // ── 404
 app.use((_req, res) => { res.status(404).json({ error: 'Ruta no encontrada.' }); });
@@ -83,6 +85,15 @@ async function runMigrations() {
     await pool.query(`
       ALTER TABLE project_members
       ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active'
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS project_messages (
+        id          SERIAL PRIMARY KEY,
+        project_id  INTEGER NOT NULL REFERENCES projects(id)  ON DELETE CASCADE,
+        user_id     INTEGER NOT NULL REFERENCES users(id)     ON DELETE CASCADE,
+        content     TEXT    NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT NOW()
+      )
     `);
     console.log('✅ Migrations OK');
   } catch (err) {

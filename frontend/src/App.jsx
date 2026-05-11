@@ -11,6 +11,7 @@ import AssetsPage from './pages/project/AssetsPage';
 import KanbanPage from './pages/project/KanbanPage';
 import MembersPage from './pages/project/MembersPage';
 import ProjectStatsPage from './pages/project/ProjectStatsPage';
+import ChatPage from './pages/project/ChatPage';
 import ProfilePage from './pages/ProfilePage';
 
 function ProtectedRoute({ children }) {
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="kanban" element={<KanbanPage />} />
           <Route path="members" element={<MembersPage />} />
           <Route path="stats" element={<ProjectStatsPage />} />
+          <Route path="chat" element={<ChatPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

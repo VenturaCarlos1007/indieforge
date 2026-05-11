@@ -95,6 +95,14 @@ function initSocket(httpServer) {
       socket.to(`project:${data.projectId}`).emit('task_moved', data);
     });
 
+    // ── Chat typing indicators
+    socket.on('chat:typing_start', ({ projectId, userName }) => {
+      socket.to(`project:${projectId}`).emit('chat:typing', { userId: socket.userId, userName, typing: true });
+    });
+    socket.on('chat:typing_stop', ({ projectId }) => {
+      socket.to(`project:${projectId}`).emit('chat:typing', { userId: socket.userId, typing: false });
+    });
+
     // ── Assets
     socket.on('asset_uploaded', (data) => {
       socket.to(`project:${data.projectId}`).emit('asset_uploaded', data);

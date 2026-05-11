@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2, MessageSquare } from 'lucide-react';
 import { useProject } from './ProjectLayout';
 import { getSocket } from '../../services/socket';
 
@@ -13,6 +13,7 @@ const navItems = [
   { path: 'kanban',  label: 'Kanban',     icon: Columns3,        accent: '#fbbf24' },
   { path: 'members', label: 'Miembros',   icon: Users,           accent: '#34d399' },
   { path: 'stats',   label: 'Estadísticas',icon: BarChart2,      accent: '#f43f5e' },
+  { path: 'chat',   label: 'Chat',         icon: MessageSquare,  accent: '#a855f7' },
 ];
 
 export default function ProjectSidebar({ project }) {
