@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
 import { getSocket } from '../../services/socket';
@@ -8,8 +8,31 @@ import { SkeletonStat, SkeletonList } from '../../components/common/Skeleton';
 import Modal from '../../components/common/Modal';
 import {
   Package, CheckCircle2, Clock, Users, Activity, TrendingUp,
-  Upload, MessageSquare, PlusCircle, UserPlus, Folder, Pencil
+  Upload, MessageSquare, PlusCircle, UserPlus, Folder, Pencil,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
+
+const PREVIEW_LIMIT = 5;
+
+function groupByDay(list) {
+  const todayStr = new Date().toDateString();
+  const yestStr  = new Date(Date.now() - 86400000).toDateString();
+  const groups   = [];
+  const byDate   = {};
+  list.forEach((a) => {
+    const d  = new Date(a.created_at || a.timestamp);
+    const ds = d.toDateString();
+    if (byDate[ds] === undefined) {
+      const lbl = ds === todayStr ? 'Hoy'
+                : ds === yestStr  ? 'Ayer'
+                : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+      byDate[ds] = groups.length;
+      groups.push({ label: lbl, items: [] });
+    }
+    groups[byDate[ds]].items.push(a);
+  });
+  return groups;
+}
 
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 const stagger = { show: { transition: { staggerChildren: 0.07 } } };
@@ -31,11 +54,39 @@ const STAT_CONFIGS = [
   { key: 'members', label: 'Miembros', icon: Users, gradient: 'linear-gradient(135deg, #F59E0B15, #F59E0B05)', borderColor: '#F59E0B25', iconBg: '#F59E0B20', iconColor: '#fbbf24', valueColor: '#fde68a' },
 ];
 
+function ActivityItem({ a, i }) {
+  const cfg  = ACTION_ICONS[a.action] || ACTION_ICONS.created;
+  const Icon = cfg.icon;
+  return (
+    <motion.div
+      className="flex items-start gap-4 py-2.5 relative group"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: i * 0.03 }}
+    >
+      <div className="w-[31px] h-[31px] rounded-full flex items-center justify-center shrink-0 relative z-10 transition-transform duration-200 group-hover:scale-110"
+        style={{ background: `${cfg.color}15`, boxShadow: `0 0 12px ${cfg.color}10` }}>
+        <Icon size={14} style={{ color: cfg.color }} />
+      </div>
+      <div className="flex-1 min-w-0 pt-0.5">
+        <p className="text-sm">
+          <span className="font-semibold text-white">{a.user_name}</span>{' '}
+          <span className="text-surface-300">{activityLabel(a.action, a.resource_type)}</span>
+        </p>
+        <span className="text-[11px] text-surface-400">{timeAgo(a.created_at || a.timestamp)}</span>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function ProjectDashboard() {
   const { projectId, project, setProject, role } = useProject();
   const canEdit = role === 'owner' || role === 'admin';
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
+  const [expanded, setExpanded] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const expandedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState('');
@@ -48,7 +99,7 @@ export default function ProjectDashboard() {
       try {
         const [s, a] = await Promise.all([
           api.get(`/activity/stats?project_id=${projectId}`),
-          api.get(`/activity?project_id=${projectId}&limit=20`),
+          api.get(`/activity?project_id=${projectId}&limit=${PREVIEW_LIMIT}`),
         ]);
         setStats(s.data.stats);
         setActivities(a.data.activities);
@@ -59,11 +110,31 @@ export default function ProjectDashboard() {
 
     const socket = getSocket();
     if (socket) {
-      const handler = (data) => setActivities((prev) => [data, ...prev].slice(0, 30));
+      const handler = (data) => setActivities((prev) => {
+        const next = [data, ...prev];
+        return expandedRef.current ? next : next.slice(0, PREVIEW_LIMIT);
+      });
       socket.on('new_activity', handler);
       return () => socket.off('new_activity', handler);
     }
   }, [projectId]);
+
+  const loadAll = async () => {
+    setLoadingMore(true);
+    try {
+      const { data } = await api.get(`/activity?project_id=${projectId}&limit=200`);
+      setActivities(data.activities);
+      expandedRef.current = true;
+      setExpanded(true);
+    } catch (e) { console.error(e); }
+    finally { setLoadingMore(false); }
+  };
+
+  const collapse = () => {
+    setActivities((prev) => prev.slice(0, PREVIEW_LIMIT));
+    expandedRef.current = false;
+    setExpanded(false);
+  };
 
   const openEdit = () => {
     setEditName(project?.name || '');
@@ -181,37 +252,35 @@ export default function ProjectDashboard() {
           <p className="text-sm text-surface-400 text-center py-10">No hay actividad todavía.</p>
         ) : (
           <div className="relative">
-            {/* Timeline vertical line */}
             <div className="absolute left-[15px] top-2 bottom-2 w-px" style={{ background: 'linear-gradient(180deg, #7C3AED30, #06B6D420, transparent)' }} />
-
             <div className="space-y-0.5">
-              {activities.map((a, i) => {
-                const actionConfig = ACTION_ICONS[a.action] || ACTION_ICONS.created;
-                const ActionIcon = actionConfig.icon;
-                return (
-                  <motion.div
-                    key={a.id || i}
-                    className="flex items-start gap-4 py-2.5 pl-0 relative group"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                  >
-                    {/* Timeline dot */}
-                    <div className="w-[31px] h-[31px] rounded-full flex items-center justify-center shrink-0 relative z-10 transition-transform duration-200 group-hover:scale-110"
-                      style={{ background: `${actionConfig.color}15`, boxShadow: `0 0 12px ${actionConfig.color}10` }}>
-                      <ActionIcon size={14} style={{ color: actionConfig.color }} />
+              {expanded
+                ? groupByDay(activities).map((group) => (
+                    <div key={group.label}>
+                      <div className="text-[11px] font-semibold text-surface-500 uppercase tracking-wider py-2 pl-10">
+                        {group.label}
+                      </div>
+                      {group.items.map((a, i) => <ActivityItem key={a.id || i} a={a} i={i} />)}
                     </div>
-                    <div className="flex-1 min-w-0 pt-0.5">
-                      <p className="text-sm">
-                        <span className="font-semibold text-white">{a.user_name}</span>{' '}
-                        <span className="text-surface-300">{activityLabel(a.action, a.resource_type)}</span>
-                      </p>
-                      <span className="text-[11px] text-surface-400">{timeAgo(a.created_at || a.timestamp)}</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                  ))
+                : activities.map((a, i) => <ActivityItem key={a.id || i} a={a} i={i} />)
+              }
             </div>
+            {(activities.length >= PREVIEW_LIMIT || expanded) && (
+              <div className="mt-4 pt-3 border-t border-white/[0.06] flex justify-center">
+                <button
+                  onClick={expanded ? collapse : loadAll}
+                  disabled={loadingMore}
+                  className="flex items-center gap-1 text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors disabled:opacity-50"
+                >
+                  {loadingMore
+                    ? 'Cargando…'
+                    : expanded
+                    ? <><ChevronUp size={13} /> Ver menos</>
+                    : <><ChevronDown size={13} /> Ver más</>}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </motion.div>

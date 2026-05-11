@@ -1,13 +1,16 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationBell from './NotificationBell';
 import GlobalSearchModal from '../common/GlobalSearchModal';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Layout() {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { dark, toggle } = useTheme();
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -25,7 +28,18 @@ export default function Layout() {
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Notification bar — parte del flujo, no overlay */}
-        <header className="flex justify-end items-center px-4 md:px-6 py-3 shrink-0 z-50">
+        <header className="flex justify-end items-center gap-2 px-4 md:px-6 py-3 shrink-0 z-50">
+          <button
+            onClick={toggle}
+            aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            className="w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-105"
+            style={{ background: 'var(--btn-sec-bg)', border: '1px solid var(--btn-sec-border)' }}
+          >
+            {dark
+              ? <Sun size={15} style={{ color: '#fbbf24' }} />
+              : <Moon size={15} style={{ color: '#7C3AED' }} />
+            }
+          </button>
           <NotificationBell />
         </header>
 

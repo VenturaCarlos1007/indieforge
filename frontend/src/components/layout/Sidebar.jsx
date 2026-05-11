@@ -18,7 +18,8 @@ export default function Sidebar() {
         style={{ background: 'linear-gradient(90deg, #7C3AED, #06B6D4, #7C3AED)' }} />
 
       {/* Logo */}
-      <Link to="/dashboard" className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <Link to="/dashboard" className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"
+        style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="relative">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
@@ -32,7 +33,7 @@ export default function Sidebar() {
             style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             IndieForge
           </span>
-          <span className="text-[10px] text-surface-500 font-medium tracking-widest uppercase flex items-center gap-1">
+          <span className="text-[10px] text-surface-400 dark:text-surface-500 font-medium tracking-widest uppercase flex items-center gap-1">
             <Sparkles size={8} /> Game Studio
           </span>
         </div>
@@ -62,13 +63,17 @@ export default function Sidebar() {
                 )}
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 relative z-10 ${isActive ? '' : 'group-hover:scale-110'}`}
                   style={{
-                    background: isActive ? `${accent}15` : 'rgba(255,255,255,0.03)',
-                    boxShadow: isActive ? `0 0 15px ${accent}15` : 'none'
+                    background: isActive ? `${accent}15` : 'var(--btn-sec-bg)',
+                    boxShadow: isActive ? `0 0 15px ${accent}15` : 'none',
                   }}>
                   <Icon size={16} style={{ color: isActive ? accent : '#64748B' }}
                     className="transition-colors group-hover:brightness-150" />
                 </div>
-                <span className={`relative z-10 ${isActive ? 'text-white' : 'text-surface-300 group-hover:text-white'}`}>
+                <span className={`relative z-10 transition-colors ${
+                  isActive
+                    ? 'dark:text-white text-brand-700 font-semibold'
+                    : 'text-surface-300 dark:group-hover:text-white group-hover:text-brand-600'
+                }`}>
                   {label}
                 </span>
               </>
@@ -78,11 +83,11 @@ export default function Sidebar() {
       </nav>
 
       {/* User */}
-      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="px-4 py-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center gap-3 mb-3">
           <div className="avatar-ring">
             <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden"
-              style={{ background: '#0c0b18' }}>
+              style={{ background: 'var(--avatar-inner)', color: 'var(--btn-sec-text)' }}>
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -91,15 +96,15 @@ export default function Sidebar() {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{user?.name}</p>
-            <p className="text-[11px] text-surface-500 truncate">{user?.email}</p>
+            <p className="text-sm font-semibold truncate" style={{ color: 'var(--body-color)' }}>{user?.name}</p>
+            <p className="text-[11px] text-surface-400 truncate">{user?.email}</p>
           </div>
         </div>
         <button onClick={logout}
           className="w-full flex items-center justify-center gap-2 text-[13px] text-surface-400 hover:text-red-400 py-2.5 rounded-xl transition-all duration-200"
-          style={{ background: 'rgba(255,255,255,0.02)' }}
+          style={{ background: 'var(--surface-hover)' }}
           onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+          onMouseLeave={(e) => e.currentTarget.style.background = 'var(--surface-hover)'}>
           <LogOut size={15} /> Cerrar sesión
         </button>
       </div>

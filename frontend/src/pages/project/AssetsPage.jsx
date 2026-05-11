@@ -32,6 +32,8 @@ function fileTypeFromName(name) {
   return 'other';
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+
 export default function AssetsPage() {
   const { projectId, role } = useProject();
   const { user } = useAuth();
@@ -55,6 +57,7 @@ export default function AssetsPage() {
   const [folderToDelete, setFolderToDelete] = useState(null);
   const [assetToDelete, setAssetToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const currentFolderId = path.length > 0 ? path[path.length - 1].id : null;
 
@@ -139,6 +142,7 @@ export default function AssetsPage() {
         await api.post('/assets', {
           project_id: projectId, folder_id: currentFolderId,
           name: file.name, type: fileTypeFromName(file.name), storage_url: reader.result,
+          size_bytes: file.size,
         });
         getSocket()?.emit('asset_uploaded', { projectId });
         resolve();
@@ -167,9 +171,17 @@ export default function AssetsPage() {
     e.preventDefault();
     setDragging(false);
     const files = Array.from(e.dataTransfer.files);
+
+    const tooLarge = files.filter(f => f.size > MAX_FILE_SIZE);
+    const valid    = files.filter(f => f.size <= MAX_FILE_SIZE);
+
+    if (tooLarge.length > 0) {
+      setUploadError(`${tooLarge.map(f => `"${f.name}"`).join(', ')} supera${tooLarge.length > 1 ? 'n' : ''} el límite de 50 MB.`);
+    }
+
     const conflicts = [];
     const direct = [];
-    for (const file of files) {
+    for (const file of valid) {
       if (assets.some(a => a.name.toLowerCase() === file.name.toLowerCase())) {
         conflicts.push(file);
       } else {
@@ -218,6 +230,22 @@ export default function AssetsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
+      {/* Upload size error banner */}
+      <AnimatePresence>
+        {uploadError && (
+          <motion.div
+            className="flex items-start gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20"
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+          >
+            <AlertTriangle size={15} className="text-red-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-300 flex-1">{uploadError}</p>
+            <button onClick={() => setUploadError('')} className="text-red-400 hover:text-red-300 transition-colors">
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-xl font-bold">Assets</h1>
@@ -277,6 +305,7 @@ export default function AssetsPage() {
                 <CloudUpload size={48} style={{ color: '#7C3AED' }} />
               </motion.div>
               <p className="text-brand-400 font-semibold mt-3">Suelta los archivos aquí</p>
+              <p className="text-xs text-surface-400 mt-1">Máximo 50 MB por archivo</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -292,7 +321,7 @@ export default function AssetsPage() {
                 icon={search ? Search : Folder}
                 iconColor="#fbbf24"
                 title={search ? 'Sin resultados' : 'Sube tu primer asset para comenzar'}
-                subtitle={search ? `No se encontró "${search}"` : 'Arrastra archivos aquí o usa el botón Subir'}
+                subtitle={search ? `No se encontró "${search}"` : 'Arrastra archivos aquí o usa el botón Subir · Máximo 50 MB'}
               />
             )}
 
