@@ -94,6 +94,7 @@ body {
   color: var(--body-color);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   transition: background-color 300ms ease, color 300ms ease;
+  overflow-x: hidden;
 }
 
 /*
@@ -232,7 +233,7 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
 
   /* ── Buttons ─────────────────────────────────── */
   .btn-primary {
-    @apply font-semibold py-2.5 px-6 rounded-xl text-white text-sm
+    @apply font-semibold py-2.5 px-6 rounded-xl text-white text-sm min-h-[44px]
            active:scale-[0.97] transition-all duration-300 relative overflow-hidden;
     background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
     box-shadow: 0 4px 20px rgba(124,58,237,0.3), 0 0 0 1px rgba(124,58,237,0.15);
@@ -264,7 +265,7 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
     }
   }
   .btn-secondary {
-    @apply font-medium py-2 px-4 rounded-xl text-sm
+    @apply font-medium py-2 px-4 rounded-xl text-sm min-h-[44px]
            active:scale-[0.97] transition-all duration-200;
     color: var(--btn-sec-text);
     background: var(--btn-sec-bg);

@@ -8,17 +8,23 @@ const navItems = [
   { to: '/profile', label: 'Mi Perfil', icon: User, accent: '#06b6d4' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="hidden md:flex flex-col w-[260px] glass-sidebar shrink-0 relative">
+    <aside className={[
+      'flex flex-col w-[260px] glass-sidebar shrink-0',
+      'fixed inset-y-0 left-0 z-40',
+      'transition-transform duration-300 ease-in-out',
+      open ? 'translate-x-0' : '-translate-x-full',
+      'md:relative md:z-auto md:translate-x-0',
+    ].join(' ')}>
       {/* Gradient top line */}
       <div className="absolute top-0 left-0 right-0 h-[2px] z-10"
         style={{ background: 'linear-gradient(90deg, #7C3AED, #06B6D4, #7C3AED)' }} />
 
       {/* Logo */}
-      <Link to="/dashboard" className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"
+      <Link to="/dashboard" onClick={onClose} className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"
         style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="relative">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
@@ -42,7 +48,7 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 py-5 space-y-1">
         {navItems.map(({ to, label, icon: Icon, accent }) => (
-          <NavLink key={to} to={to}
+          <NavLink key={to} to={to} onClick={onClose}
             className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group">
             {({ isActive }) => (
               <>
