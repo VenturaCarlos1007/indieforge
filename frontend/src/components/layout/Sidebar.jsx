@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -14,6 +15,7 @@ export default function Sidebar({ open, onClose }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
+    <>
     <aside className={[
       'flex flex-col w-[260px] glass-sidebar shrink-0',
       'fixed inset-y-0 left-0 z-40',
@@ -117,31 +119,35 @@ export default function Sidebar({ open, onClose }) {
         </button>
       </div>
 
-      {/* Logout confirmation modal */}
+    </aside>
+
+    {/* Portal: renderiza fuera del aside para evitar que el transform cree un containing block */}
+    {createPortal(
       <AnimatePresence>
         {confirmOpen && (
           <motion.div
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}>
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setConfirmOpen(false)}
-            />
-            {/* Card */}
+            className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4"
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
+            initial="hidden" animate="visible" exit="hidden">
+            {/* Backdrop — igual que Modal.jsx */}
             <motion.div
-              className="relative w-full max-w-sm rounded-2xl p-6"
-              style={{
-                background: 'var(--glass-strong-bg)',
-                border: '1px solid var(--glass-strong-border)',
-                backdropFilter: 'blur(24px)',
-                boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+              className="absolute inset-0"
+              onClick={() => setConfirmOpen(false)}
+              style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px) saturate(120%)' }}
+            />
+            {/* Card — bottom sheet en móvil, dialog centrado en sm+ */}
+            <motion.div
+              className="relative glass-strong w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl px-5 pt-5 pb-6 sm:p-7"
+              variants={{
+                hidden: { opacity: 0, scale: 0.92, y: 40 },
+                visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', damping: 28, stiffness: 320 } },
+                exit:    { opacity: 0, scale: 0.92, y: 40, transition: { duration: 0.15 } },
               }}
-              initial={{ opacity: 0, scale: 0.94, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 8 }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}>
+              style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+
+              {/* Drag handle — solo móvil */}
+              <div className="sm:hidden w-10 h-1 rounded-full mx-auto mb-5"
+                style={{ background: 'rgba(255,255,255,0.15)' }} />
 
               {/* Icon */}
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
@@ -156,25 +162,28 @@ export default function Sidebar({ open, onClose }) {
                 ¿Estás seguro que deseas cerrar sesión?
               </p>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirmOpen(false)}
-                  className="btn-secondary flex-1 py-2.5 text-sm">
-                  Cancelar
-                </button>
+              {/* Botones: apilados en móvil, lado a lado en sm+ */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => { setConfirmOpen(false); logout(); }}
-                  className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 min-h-[44px] text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
                   style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.22)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.12)'}>
                   <LogOut size={15} /> Cerrar sesión
                 </button>
+                <button
+                  onClick={() => setConfirmOpen(false)}
+                  className="btn-secondary flex-1 min-h-[44px] text-sm">
+                  Cancelar
+                </button>
               </div>
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
-    </aside>
+      </AnimatePresence>,
+      document.body
+    )}
+    </>
   );
 }
