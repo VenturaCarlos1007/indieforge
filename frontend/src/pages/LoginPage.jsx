@@ -78,13 +78,12 @@ function AuthMockup() {
           </div>
         </div>
       </div>
-      {/* Floating badges */}
+      {/* Floating badge */}
       <motion.div className="absolute -bottom-3 -right-3 px-2.5 py-1.5 rounded-xl text-[9px] font-semibold"
         style={{ background:'rgba(34,211,238,0.1)', border:'1px solid rgba(34,211,238,0.2)', color:'#22d3ee', backdropFilter:'blur(12px)' }}
         animate={{ y:[0,-4,0] }} transition={{ duration:3, repeat:Infinity, ease:'easeInOut' }}>
         🚀 v3 subida por Alex
       </motion.div>
-
     </motion.div>
   );
 }
@@ -128,7 +127,7 @@ export default function LoginPage() {
           style={{ background: 'radial-gradient(circle, #06B6D4, transparent 70%)' }} />
       </div>
 
-      {/* Left — Branding + Mockup */}
+      {/* Left — Branding + Mockup (desktop only) */}
       <div className="hidden lg:flex flex-col justify-between flex-1 relative z-10 p-12">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -164,38 +163,40 @@ export default function LoginPage() {
       </div>
 
       {/* Right — Form */}
-      <div className="flex-1 flex items-center justify-center p-6 relative z-10">
+      <div className="flex-1 flex items-start sm:items-center justify-center p-4 sm:p-6 relative z-10 overflow-y-auto">
         <motion.div
           ref={cardRef}
-          className="glass-strong p-8 md:p-10 w-full max-w-md"
+          className="glass-strong p-6 sm:p-8 md:p-10 w-full max-w-md my-auto"
           initial={{ opacity: 0, y: 24, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
 
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-              <Gamepad2 size={20} className="text-white" />
-            </div>
-            <span className="text-lg font-extrabold"
-              style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              IndieForge
-            </span>
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-7">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
+                <Gamepad2 size={22} className="text-white" />
+              </div>
+              <span className="text-xl font-extrabold"
+                style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                IndieForge
+              </span>
+            </Link>
           </div>
 
-          <div className="text-center lg:text-left mb-7">
+          <div className="text-center mb-7">
             <h1 className="text-2xl font-bold mb-1">Bienvenido de vuelta</h1>
             <p className="text-surface-400 text-sm">Inicia sesión para continuar</p>
           </div>
 
-          {/* Social buttons */}
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <button type="button" className="btn-secondary py-2.5 flex items-center justify-center gap-2 text-xs">
-              <Github size={14} /> GitHub
+          {/* Social buttons — stacked on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            <button type="button" className="btn-secondary py-3 flex items-center justify-center gap-2 text-sm">
+              <Github size={15} /> GitHub
             </button>
-            <button type="button" className="btn-secondary py-2.5 flex items-center justify-center gap-2 text-xs">
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
+            <button type="button" className="btn-secondary py-3 flex items-center justify-center gap-2 text-sm">
+              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -226,7 +227,9 @@ export default function LoginPage() {
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
                 <input id="login-email" type="email" placeholder="tu@email.com" value={email}
-                  onChange={(e) => setEmail(e.target.value)} required className="input-field pl-10" />
+                  onChange={(e) => setEmail(e.target.value)} required
+                  className="input-field pl-10"
+                  style={{ fontSize: '16px' }} />
               </div>
             </div>
             <div>
@@ -234,7 +237,9 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
                 <input id="login-password" type="password" placeholder="••••••••" value={password}
-                  onChange={(e) => setPassword(e.target.value)} required className="input-field pl-10" />
+                  onChange={(e) => setPassword(e.target.value)} required
+                  className="input-field pl-10"
+                  style={{ fontSize: '16px' }} />
               </div>
             </div>
             <button id="login-submit" type="submit" disabled={loading}

@@ -5,6 +5,7 @@ import {
   Gamepad2, Users, FolderKanban, Upload, Columns3,
   MessageSquare, Zap, ArrowRight, Sparkles, Github,
   Check, Star, Twitter, Folder, Play, ChevronRight,
+  Menu, X,
 } from 'lucide-react';
 
 const fadeUp = {
@@ -75,7 +76,7 @@ const TESTIMONIALS = [
 function AppMockup() {
   return (
     <motion.div className="relative"
-      initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
       <div className="absolute inset-0 rounded-3xl blur-3xl opacity-20 pointer-events-none"
         style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }} />
@@ -153,8 +154,6 @@ function AppMockup() {
           </div>
         </div>
       </div>
-
-
     </motion.div>
   );
 }
@@ -163,9 +162,13 @@ function AppMockup() {
 export default function LandingPage() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 40);
+    const handler = () => {
+      setScrolled(window.scrollY > 40);
+      if (window.scrollY > 40) setMobileMenuOpen(false);
+    };
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
@@ -184,9 +187,9 @@ export default function LandingPage() {
 
       {/* ── Fixed Navbar ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'py-3 border-b border-white/[0.06]' : 'py-5'
-      }`} style={{ background: scrolled ? 'rgba(7,7,14,0.80)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
-        <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 lg:px-10">
+        scrolled ? 'py-3 border-b border-white/[0.06]' : 'py-4 md:py-5'
+      }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
+        <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
@@ -209,30 +212,77 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/login')} className="btn-ghost text-sm hidden sm:block">
+            <button onClick={() => navigate('/login')} className="btn-ghost text-sm hidden md:block">
               Iniciar sesión
             </button>
-            <button onClick={() => navigate('/register')} className="btn-primary text-sm py-2 px-5">
-              Comenzar gratis
+            <button onClick={() => navigate('/register')} className="btn-primary text-sm py-2 px-4 md:px-5 hidden sm:flex">
+              Empezar gratis
+            </button>
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen(v => !v)}
+              aria-label="Abrir menú"
+              className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl transition-all"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              {mobileMenuOpen
+                ? <X size={18} className="text-white" />
+                : <Menu size={18} className="text-white" />}
             </button>
           </div>
         </nav>
+
+        {/* Mobile dropdown menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              className="absolute top-full left-0 right-0 md:hidden overflow-hidden"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}>
+              <div className="mx-4 mb-4 rounded-2xl overflow-hidden"
+                style={{ background: 'rgba(10,10,20,0.97)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {[
+                  { href: '#how',      label: 'Cómo funciona' },
+                  { href: '#features', label: 'Características' },
+                  { href: '#pricing',  label: 'Precios' },
+                ].map(({ href, label }) => (
+                  <a key={href} href={href} onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center px-5 py-4 text-sm text-surface-300 hover:text-white hover:bg-white/5 transition-colors border-b"
+                    style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                    {label}
+                  </a>
+                ))}
+                <div className="p-4 flex flex-col gap-2">
+                  <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                    className="btn-ghost text-sm w-full py-2.5">
+                    Iniciar sesión
+                  </button>
+                  <button onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
+                    className="btn-primary text-sm w-full">
+                    Empezar gratis
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ── Hero ── */}
-      <motion.section className="relative z-10 pt-36 pb-24 px-6"
+      <motion.section className="relative z-10 pt-24 md:pt-36 pb-14 md:pb-24 px-4 sm:px-6"
         variants={stagger} initial="hidden" animate="show">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left — text always on top */}
-          <div className="relative z-20">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Left — text */}
+          <div className="relative z-20 text-center lg:text-left">
             <motion.div variants={fadeUp}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 md:mb-8"
               style={{ background: 'rgba(124,58,237,0.10)', border: '1px solid rgba(124,58,237,0.25)', color: '#c084fc' }}>
               <Sparkles size={12} /> Plataforma colaborativa para game dev
             </motion.div>
 
             <motion.h1 variants={fadeUp}
-              className="text-5xl md:text-[3.75rem] font-black leading-[1.05] tracking-tight mb-6">
+              className="text-[2.25rem] sm:text-5xl md:text-[3.75rem] font-black leading-[1.08] tracking-tight mb-5 md:mb-6">
               Crea videojuegos{' '}
               <span style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 indie
@@ -243,22 +293,22 @@ export default function LandingPage() {
               </span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="text-lg text-surface-300 mb-10 leading-relaxed max-w-lg">
+            <motion.p variants={fadeUp} className="text-base md:text-lg text-surface-300 mb-8 md:mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0">
               Todo lo que tu equipo necesita en un solo lugar: gestión de assets, tableros kanban,
               versionado de archivos y colaboración en tiempo real.
             </motion.p>
 
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mb-12">
-              <button onClick={() => navigate('/register')} className="btn-primary-pulse flex items-center gap-2 text-base">
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-9 md:mb-12">
+              <button onClick={() => navigate('/register')} className="btn-primary-pulse flex items-center justify-center gap-2 text-base w-full sm:w-auto">
                 Empezar gratis <ArrowRight size={18} />
               </button>
-              <button onClick={() => navigate('/login')} className="btn-secondary py-3 px-7 text-base flex items-center gap-2">
+              <button onClick={() => navigate('/login')} className="btn-secondary py-3 px-7 text-base flex items-center justify-center gap-2 w-full sm:w-auto">
                 Iniciar sesión <ChevronRight size={16} />
               </button>
             </motion.div>
 
             {/* Trust signals */}
-            <motion.div variants={fadeUp} className="flex items-center gap-4">
+            <motion.div variants={fadeUp} className="flex items-center gap-4 justify-center lg:justify-start">
               <div className="flex -space-x-2">
                 {['#a855f7','#22d3ee','#34d399','#f472b6'].map((c, i) => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold"
@@ -276,26 +326,26 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Right: Mockup */}
-          <div className="hidden lg:block relative z-10">
+          {/* Right: Mockup — visible on all screens, below text on mobile */}
+          <div className="relative z-10 max-w-sm mx-auto lg:max-w-none w-full">
             <AppMockup />
           </div>
         </div>
       </motion.section>
 
       {/* ── Stats bar ── */}
-      <section className="relative z-10 py-12 border-y border-white/[0.05]">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      <section className="relative z-10 py-10 md:py-12 border-y border-white/[0.05]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
             {STATS.map((s, i) => (
               <motion.div key={s.label}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
-                <p className="text-3xl font-black mb-1"
+                <p className="text-2xl md:text-3xl font-black mb-1"
                   style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {s.value}
                 </p>
-                <p className="text-sm text-surface-400">{s.label}</p>
+                <p className="text-xs md:text-sm text-surface-400">{s.label}</p>
               </motion.div>
             ))}
           </div>
@@ -303,25 +353,24 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section id="how" className="relative z-10 px-6 py-28">
-        <motion.div className="text-center mb-16"
+      <section id="how" className="relative z-10 px-4 sm:px-6 py-16 md:py-28">
+        <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
             style={{ background: 'rgba(124,58,237,0.10)', color: '#c084fc', border: '1px solid rgba(124,58,237,0.22)' }}>
             Cómo funciona
           </span>
-          <h2 className="text-4xl font-bold mb-4">En tres pasos tienes todo listo</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">En tres pasos tienes todo listo</h2>
           <p className="text-surface-400 max-w-md mx-auto">Sin configuraciones complicadas. Empieza a crear en minutos.</p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 relative">
-          {/* Connector line */}
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 relative">
           <div className="hidden md:block absolute top-14 left-[calc(33%+1rem)] right-[calc(33%+1rem)] h-px"
             style={{ background: 'linear-gradient(90deg, #7C3AED30, #06B6D440, #7C3AED30)' }} />
 
           {STEPS.map((step, i) => (
             <motion.div key={step.n}
-              className="glass p-8 relative text-center"
+              className="glass p-7 md:p-8 relative text-center"
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.15 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}>
@@ -341,26 +390,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section id="features" className="relative z-10 px-6 pb-28">
-        <motion.div className="text-center mb-16"
+      <section id="features" className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
+        <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
             style={{ background: 'rgba(6,182,212,0.10)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.22)' }}>
             Características
           </span>
-          <h2 className="text-4xl font-bold mb-4">Todo para tu pipeline de desarrollo</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Todo para tu pipeline de desarrollo</h2>
           <p className="text-surface-400 max-w-lg mx-auto">Herramientas diseñadas específicamente para equipos indie que quieren crear juegos increíbles.</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 max-w-5xl mx-auto">
           {FEATURES.map((f, i) => (
-            <motion.div key={f.title} className="glass-sm p-6 group"
+            <motion.div key={f.title} className="glass-sm p-5 md:p-6 group"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"
+              <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"
                 style={{ background:`${f.color}10`, boxShadow:`0 0 20px ${f.color}08` }}>
-                <f.icon size={22} style={{ color: f.color }} />
+                <f.icon size={20} style={{ color: f.color }} />
               </div>
               <h3 className="font-semibold mb-2">{f.title}</h3>
               <p className="text-sm text-surface-400 leading-relaxed">{f.desc}</p>
@@ -370,20 +419,20 @@ export default function LandingPage() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="relative z-10 px-6 pb-28">
-        <motion.div className="text-center mb-16"
+      <section className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
+        <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
             style={{ background: 'rgba(52,211,153,0.10)', color: '#34d399', border: '1px solid rgba(52,211,153,0.22)' }}>
             Testimonios
           </span>
-          <h2 className="text-4xl font-bold mb-4">Lo que dicen los equipos</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Lo que dicen los equipos</h2>
           <p className="text-surface-400 max-w-md mx-auto">Más de 500 estudios indie ya confían en IndieForge para lanzar sus juegos.</p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-4 md:gap-5">
           {TESTIMONIALS.map((t, i) => (
-            <motion.div key={t.name} className="glass-sm p-6 flex flex-col gap-4"
+            <motion.div key={t.name} className="glass-sm p-5 md:p-6 flex flex-col gap-4"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.12 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}>
@@ -409,21 +458,21 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ── */}
-      <section id="pricing" className="relative z-10 px-6 pb-28">
-        <motion.div className="text-center mb-16"
+      <section id="pricing" className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
+        <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
             style={{ background: 'rgba(251,191,36,0.10)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.22)' }}>
             Precios
           </span>
-          <h2 className="text-4xl font-bold mb-4">Simple y transparente</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple y transparente</h2>
           <p className="text-surface-400 max-w-md mx-auto">Sin cargos ocultos. Empieza gratis y escala cuando lo necesites.</p>
         </motion.div>
 
-        <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-6 items-start">
+        <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-5 md:gap-6 items-start">
           {PLANS.map((plan, i) => (
             <motion.div key={plan.name}
-              className="glass p-8 relative"
+              className="glass p-7 md:p-8 relative"
               style={plan.primary ? { boxShadow: `0 0 0 1px ${plan.color}30, 0 8px 32px rgba(0,0,0,0.3)` } : {}}
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.15 }}
@@ -460,15 +509,15 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA banner ── */}
-      <motion.section className="relative z-10 px-6 pb-28"
+      <motion.section className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28"
         initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-        <div className="max-w-3xl mx-auto text-center py-16 px-8 rounded-3xl relative overflow-hidden"
+        <div className="max-w-3xl mx-auto text-center py-12 md:py-16 px-6 md:px-8 rounded-3xl relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(6,182,212,0.06))', border: '1px solid rgba(124,58,237,0.15)' }}>
           <div className="absolute inset-0 dot-grid opacity-40" />
           <div className="relative z-10">
-            <h2 className="text-4xl font-bold mb-3">¿Listo para forjar tu próximo juego?</h2>
-            <p className="text-surface-300 mb-8 max-w-md mx-auto">Únete a IndieForge y empieza a crear con tu equipo hoy mismo. Sin tarjeta de crédito.</p>
-            <button onClick={() => navigate('/register')} className="btn-primary-pulse flex items-center gap-2 mx-auto text-base">
+            <h2 className="text-2xl md:text-4xl font-bold mb-3">¿Listo para forjar tu próximo juego?</h2>
+            <p className="text-surface-300 mb-7 md:mb-8 max-w-md mx-auto text-sm md:text-base">Únete a IndieForge y empieza a crear con tu equipo hoy mismo. Sin tarjeta de crédito.</p>
+            <button onClick={() => navigate('/register')} className="btn-primary-pulse flex items-center justify-center gap-2 mx-auto text-base w-full sm:w-auto">
               Crear cuenta gratis <ArrowRight size={18} />
             </button>
           </div>
@@ -477,10 +526,10 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="relative z-10 border-t border-white/[0.05]">
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-10 mb-8 md:mb-12">
+            {/* Brand — always visible */}
+            <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
@@ -505,13 +554,13 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Link columns */}
+            {/* Link columns — hidden on mobile */}
             {[
               { title: 'Producto',  links: ['Características', 'Precios', 'Changelog', 'Roadmap'] },
               { title: 'Empresa',   links: ['Acerca de', 'Blog', 'Carreras', 'Prensa'] },
               { title: 'Soporte',   links: ['Documentación', 'Discord', 'Status', 'Contacto'] },
             ].map(col => (
-              <div key={col.title}>
+              <div key={col.title} className="hidden md:block">
                 <h4 className="text-sm font-semibold mb-4">{col.title}</h4>
                 <ul className="space-y-3">
                   {col.links.map(l => (
