@@ -83,6 +83,25 @@ router.post('/', async (req, res, next) => {
     const userRes = await query('SELECT name, avatar_url FROM users WHERE id = $1', [req.user.id]);
     const commentWithUser = { ...rows[0], user_name: userRes.rows[0].name, avatar_url: userRes.rows[0].avatar_url };
 
+    // Detect @mentions and notify mentioned members
+    const asset = assetResult.rows[0];
+    const mentionPattern = /@([^\s@,]+(?:\s[^\s@,]+)*)/g;
+    const mentionedNames = [...content.matchAll(mentionPattern)].map(m => m[1].trim());
+    if (mentionedNames.length && asset) {
+      const { rows: members } = await query(
+        `SELECT u.id, u.name FROM project_members pm JOIN users u ON u.id = pm.user_id
+          WHERE pm.project_id = $1 AND pm.status = 'active' AND u.id != $2`,
+        [asset.project_id, req.user.id]
+      );
+      for (const name of mentionedNames) {
+        const target = members.find(m => m.name.toLowerCase() === name.toLowerCase());
+        if (target) {
+          await createNotification(req, target.id, asset.project_id, 'mention',
+            'Te mencionaron', `${userRes.rows[0].name} te mencionó en un comentario`, { assetId: asset_id });
+        }
+      }
+    }
+
     res.status(201).json({ comment: commentWithUser });
   } catch (err) {
     next(err);

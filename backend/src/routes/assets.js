@@ -3,6 +3,8 @@ const { query, getClient } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
 
+const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+
 const router = Router();
 router.use(authenticate);
 
@@ -56,6 +58,9 @@ router.post('/', async (req, res, next) => {
     const { project_id, folder_id, name, type, storage_url, size_bytes } = req.body;
     if (!project_id || !name || !type || !storage_url) {
       return res.status(400).json({ error: 'Campos requeridos: project_id, name, type, storage_url.' });
+    }
+    if (size_bytes && Number(size_bytes) > MAX_SIZE) {
+      return res.status(413).json({ error: 'El archivo supera el límite de 50 MB.' });
     }
 
     const { rows: perm } = await client.query(
@@ -127,6 +132,9 @@ router.post('/:id/versions', async (req, res, next) => {
     await client.query('BEGIN');
     const { storage_url, size_bytes } = req.body;
     if (!storage_url) return res.status(400).json({ error: 'storage_url es requerido.' });
+    if (size_bytes && Number(size_bytes) > MAX_SIZE) {
+      return res.status(413).json({ error: 'El archivo supera el límite de 50 MB.' });
+    }
 
     const assetRes = await client.query('SELECT * FROM assets WHERE id = $1', [req.params.id]);
     if (!assetRes.rows.length) return res.status(404).json({ error: 'Asset no encontrado.' });
@@ -157,7 +165,7 @@ router.post('/:id/versions', async (req, res, next) => {
     const userRes = await query('SELECT name FROM users WHERE id = $1', [req.user.id]);
     const version = { ...verRes.rows[0], uploader_name: userRes.rows[0].name };
 
-    await logActivity(req, asset.rows[0].project_id, req.user.id, 'uploaded', 'asset', req.params.id);
+    await logActivity(req, asset.project_id, req.user.id, 'uploaded', 'asset', req.params.id);
     res.status(201).json({ version, current_version: newVerNum });
   } catch (err) {
     await client.query('ROLLBACK');

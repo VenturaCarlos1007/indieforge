@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import { timeAgo } from '../../utils/helpers';
 import { useProject } from '../layout/ProjectLayout';
@@ -26,6 +26,10 @@ export default function AssetDetail({ asset, onUpdate }) {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [versionError, setVersionError] = useState('');
+  const [mentionQuery, setMentionQuery] = useState(null); // string being typed after @
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const commentInputRef = useRef(null);
 
   useEffect(() => {
     if (!lightbox) return;
@@ -68,6 +72,11 @@ export default function AssetDetail({ asset, onUpdate }) {
     input.onchange = (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        setVersionError('El archivo supera el límite de 50 MB.');
+        return;
+      }
+      setVersionError('');
       setUploadingNewVersion(true);
       const reader = new FileReader();
       reader.onload = async () => {
@@ -82,7 +91,7 @@ export default function AssetDetail({ asset, onUpdate }) {
           ]);
           onUpdate?.();
         } catch (err) {
-          console.error('Error uploading new version:', err);
+          setVersionError(err.response?.data?.error || 'Error al subir la versión.');
         } finally {
           setUploadingNewVersion(false);
         }
@@ -109,6 +118,47 @@ export default function AssetDetail({ asset, onUpdate }) {
   const resolveComment = async (id) => {
     await api.patch(`/comments/${id}/resolve`);
     setComments((prev) => prev.map((c) => c.id === id ? { ...c, resolved: true } : c));
+  };
+
+  const { members } = useProject();
+
+  const filteredMembers = mentionQuery !== null
+    ? members.filter(m => m.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6)
+    : [];
+
+  const handleCommentChange = (e) => {
+    const val = e.target.value;
+    setNewComment(val);
+    const cursor = e.target.selectionStart;
+    const textBefore = val.slice(0, cursor);
+    const match = textBefore.match(/@([^\s@]*)$/);
+    if (match) {
+      setMentionQuery(match[1]);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+  };
+
+  const insertMention = (member) => {
+    const cursor = commentInputRef.current?.selectionStart ?? newComment.length;
+    const textBefore = newComment.slice(0, cursor);
+    const match = textBefore.match(/@([^\s@]*)$/);
+    if (!match) return;
+    const start = cursor - match[0].length;
+    const updated = newComment.slice(0, start) + `@${member.name} ` + newComment.slice(cursor);
+    setNewComment(updated);
+    setMentionQuery(null);
+    setTimeout(() => commentInputRef.current?.focus(), 0);
+  };
+
+  const handleCommentKeyDown = (e) => {
+    if (mentionQuery !== null && filteredMembers.length > 0) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setMentionIndex(i => Math.min(i + 1, filteredMembers.length - 1)); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setMentionIndex(i => Math.max(i - 1, 0)); return; }
+      if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertMention(filteredMembers[mentionIndex]); return; }
+      if (e.key === 'Escape')    { setMentionQuery(null); return; }
+    }
   };
 
   // Build threaded comments
@@ -194,6 +244,9 @@ export default function AssetDetail({ asset, onUpdate }) {
             </button>
           )}
         </div>
+        {versionError && (
+          <p className="text-xs text-red-400">{versionError}</p>
+        )}
       </div>
 
       {/* Tabs */}
@@ -283,25 +336,68 @@ export default function AssetDetail({ asset, onUpdate }) {
 
           {/* New comment form — hidden for viewer */}
           {!isViewer && (
-            <form onSubmit={sendComment} className="flex gap-2 pt-2 border-t border-white/[0.06]">
-              <div className="flex-1">
-                {replyTo && (
-                  <div className="flex items-center gap-2 text-xs text-surface-300 mb-1.5">
-                    <Reply size={12} /> Respondiendo a un comentario
-                    <button type="button" onClick={() => setReplyTo(null)} className="text-red-400 hover:text-red-300">✕</button>
-                  </div>
-                )}
-                <input value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Escribe un comentario…" className="input-sm" />
+            <form onSubmit={sendComment} className="pt-2 border-t border-white/[0.06]">
+              {replyTo && (
+                <div className="flex items-center gap-2 text-xs text-surface-300 mb-1.5">
+                  <Reply size={12} /> Respondiendo a un comentario
+                  <button type="button" onClick={() => setReplyTo(null)} className="text-red-400 hover:text-red-300">✕</button>
+                </div>
+              )}
+              <div className="relative flex gap-2">
+                <div className="flex-1 relative">
+                  <input
+                    ref={commentInputRef}
+                    value={newComment}
+                    onChange={handleCommentChange}
+                    onKeyDown={handleCommentKeyDown}
+                    placeholder="Escribe un comentario… usa @ para mencionar"
+                    className="input-sm w-full"
+                  />
+                  {/* Mention dropdown */}
+                  <AnimatePresence>
+                    {mentionQuery !== null && filteredMembers.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                        className="absolute bottom-full mb-1.5 left-0 right-0 rounded-xl overflow-hidden z-50 shadow-2xl"
+                        style={{ background: 'var(--glass-strong-bg)', border: '1px solid var(--glass-strong-border)', backdropFilter: 'blur(20px)' }}>
+                        {filteredMembers.map((m, i) => (
+                          <button
+                            key={m.user_id}
+                            type="button"
+                            onMouseDown={(e) => { e.preventDefault(); insertMention(m); }}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                              i === mentionIndex ? 'bg-purple-500/15' : 'hover:bg-white/5'
+                            }`}>
+                            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+                              style={{ background: 'linear-gradient(135deg,#7C3AED,#06B6D4)' }}>
+                              {m.name?.[0]?.toUpperCase()}
+                            </div>
+                            <span>{m.name}</span>
+                            <span className="text-xs text-surface-500 ml-auto">{m.role}</span>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <button type="submit" className="btn-primary px-3 self-end disabled:opacity-50" disabled={sendingComment}>
+                  {sendingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                </button>
               </div>
-              <button type="submit" className="btn-primary px-3 self-end disabled:opacity-50" disabled={sendingComment}>
-                {sendingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              </button>
             </form>
           )}
         </div>
       )}
     </div>
+  );
+}
+
+function MentionText({ text }) {
+  const parts = text.split(/(@\S+)/g);
+  return parts.map((part, i) =>
+    /^@\S+/.test(part)
+      ? <span key={i} className="font-semibold" style={{ color: '#a855f7' }}>{part}</span>
+      : part
   );
 }
 
@@ -321,7 +417,7 @@ function CommentNode({ comment: c, replies, allComments, onReply, onResolve, isV
             <span className="text-xs text-surface-400">{timeAgo(c.created_at)}</span>
             {c.resolved && <span className="badge badge-green text-[10px]"><Check size={10} /> Resuelto</span>}
           </div>
-          <p className="text-sm text-surface-200 mt-0.5">{c.content}</p>
+          <p className="text-sm text-surface-200 mt-0.5"><MentionText text={c.content} /></p>
           <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button onClick={() => onReply(c.id)} className="text-xs text-surface-300 hover:text-brand-400 flex items-center gap-1">
               <Reply size={12} /> Responder
