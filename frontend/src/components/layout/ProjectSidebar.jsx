@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2, MessageSquare } from 'lucide-react';
 import { useProject } from './ProjectLayout';
 import { getSocket } from '../../services/socket';
-
-const initial = (name) => name?.[0]?.toUpperCase() || '?';
+import UserAvatar from '../common/UserAvatar';
 
 const navItems = [
   { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#a855f7', end: true },
@@ -60,11 +59,13 @@ export default function ProjectSidebar({ project }) {
             {members.map((m) => {
               const isOnline = onlineIds.has(m.user_id);
               return (
-                <div key={m.id} className="relative group/avatar" title={m.name}>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-opacity ${isOnline ? 'opacity-100' : 'opacity-40'}`}
-                    style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                    {initial(m.name)}
-                  </div>
+                <div key={m.id} className="relative group/avatar">
+                  <UserAvatar
+                    name={m.name}
+                    avatarUrl={m.avatar_url}
+                    size={28}
+                    className={isOnline ? 'opacity-100' : 'opacity-40'}
+                  />
                   <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-green-400' : 'bg-surface-500'}`} />
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-0.5 rounded-lg text-[10px] text-white whitespace-nowrap pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity z-50"

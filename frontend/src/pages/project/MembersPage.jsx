@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   UserPlus, Shield, ShieldCheck, Eye, Crown, Trash2, Mail, AlertTriangle
 } from 'lucide-react';
+import UserAvatar from '../../components/common/UserAvatar';
 
 const ROLE_CONFIG = {
   owner:  { label: 'Propietario', icon: Crown,      badge: 'bg-amber-500/15 text-amber-400' },
@@ -127,9 +128,7 @@ export default function MembersPage() {
                 transition={{ delay: i * 0.04 }}
               >
                 {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-sm font-bold shrink-0">
-                  {m.name[0].toUpperCase()}
-                </div>
+                <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={40} />
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">

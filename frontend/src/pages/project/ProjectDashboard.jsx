@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { timeAgo, activityLabel } from '../../utils/helpers';
 import { SkeletonStat, SkeletonList } from '../../components/common/Skeleton';
 import Modal from '../../components/common/Modal';
+import UserAvatar from '../../components/common/UserAvatar';
 import {
   Package, CheckCircle2, Clock, Users, Activity, TrendingUp,
   Upload, MessageSquare, PlusCircle, UserPlus, Folder, Pencil,
@@ -55,8 +56,6 @@ const STAT_CONFIGS = [
 ];
 
 function ActivityItem({ a, i }) {
-  const cfg  = ACTION_ICONS[a.action] || ACTION_ICONS.created;
-  const Icon = cfg.icon;
   return (
     <motion.div
       className="flex items-start gap-4 py-2.5 relative group"
@@ -64,10 +63,7 @@ function ActivityItem({ a, i }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: i * 0.03 }}
     >
-      <div className="w-[31px] h-[31px] rounded-full flex items-center justify-center shrink-0 relative z-10 transition-transform duration-200 group-hover:scale-110"
-        style={{ background: `${cfg.color}15`, boxShadow: `0 0 12px ${cfg.color}10` }}>
-        <Icon size={14} style={{ color: cfg.color }} />
-      </div>
+      <UserAvatar name={a.user_name} avatarUrl={a.avatar_url} size={31} className="relative z-10 transition-transform duration-200 group-hover:scale-110" />
       <div className="flex-1 min-w-0 pt-0.5">
         <p className="text-sm">
           <span className="font-semibold text-white">{a.user_name}</span>{' '}

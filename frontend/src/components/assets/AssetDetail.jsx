@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { timeAgo } from '../../utils/helpers';
 import { useProject } from '../layout/ProjectLayout';
 import { History, RotateCcw, MessageSquare, Send, Check, Reply, ChevronDown, ChevronUp, Download, ZoomIn, X, Loader2, Upload } from 'lucide-react';
+import UserAvatar from '../common/UserAvatar';
 
 function formatBytes(bytes) {
   const n = Number(bytes);
@@ -368,10 +369,7 @@ export default function AssetDetail({ asset, onUpdate }) {
                             className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                               i === mentionIndex ? 'bg-purple-500/15' : 'hover:bg-white/5'
                             }`}>
-                            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                              style={{ background: 'linear-gradient(135deg,#7C3AED,#06B6D4)' }}>
-                              {m.name?.[0]?.toUpperCase()}
-                            </div>
+                            <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={24} />
                             <span>{m.name}</span>
                             <span className="text-xs text-surface-500 ml-auto">{m.role}</span>
                           </button>
@@ -408,9 +406,7 @@ function CommentNode({ comment: c, replies, allComments, onReply, onResolve, isV
   return (
     <div className={`pl-0 ${c.resolved ? 'opacity-60' : ''}`}>
       <div className="flex gap-3 group">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-          {(c.user_name || '?')[0].toUpperCase()}
-        </div>
+        <UserAvatar name={c.user_name} avatarUrl={c.avatar_url} size={28} className="mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{c.user_name}</span>

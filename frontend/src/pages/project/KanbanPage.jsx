@@ -8,8 +8,7 @@ import { SkeletonCard, EmptyState } from '../../components/common/Skeleton';
 import {
   Plus, GripVertical, Pencil, Trash2, Clock, CheckCircle2, Loader2, Users, AlertTriangle, AlertCircle, ArrowDownCircle, Calendar
 } from 'lucide-react';
-
-const initial = (name) => name?.[0]?.toUpperCase() || '?';
+import UserAvatar from '../../components/common/UserAvatar';
 
 const COLUMNS = [
   {
@@ -280,11 +279,7 @@ export default function KanbanPage() {
                         {task.assignees && task.assignees.length > 0 && (
                           <div className="flex items-center gap-0.5 mt-3 pt-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
                             {task.assignees.slice(0, 4).map((a) => (
-                              <div key={a.id} className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold ring-1 ring-surface-800"
-                                style={{ background: `linear-gradient(135deg, ${col.accent}60, ${col.accent}30)` }}
-                                title={a.name}>
-                                {initial(a.name)}
-                              </div>
+                              <UserAvatar key={a.id} name={a.name} avatarUrl={a.avatar_url} size={24} className="ring-1 ring-surface-800" title={a.name} />
                             ))}
                             {task.assignees.length > 4 && (
                               <span className="text-[10px] text-surface-400 ml-1">+{task.assignees.length - 4}</span>
@@ -382,10 +377,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
                   border: `1px solid ${assignees.includes(m.user_id) ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.06)'}`,
                   color: assignees.includes(m.user_id) ? '#c084fc' : '#94A3B8',
                 }}>
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold"
-                  style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                  {initial(m.name)}
-                </div>
+                <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={20} />
                 {m.name}
               </button>
             ))}
