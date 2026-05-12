@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
+const { createNotification } = require('./notifications');
 
 router.use(authenticate);
 
@@ -42,7 +43,7 @@ router.get('/', async (req, res) => {
 // POST /api/messages  — enviar mensaje
 router.post('/', async (req, res) => {
   try {
-    const { project_id, content } = req.body;
+    const { project_id, content, mention_ids } = req.body;
     if (!project_id || !content?.trim()) return res.status(400).json({ error: 'Datos incompletos.' });
 
     const member = await query(
@@ -79,6 +80,20 @@ router.post('/', async (req, res) => {
       console.log(`[chat] emitted chat:message to project:${project_id}`);
     } else {
       console.error('[chat] io not available on req.app');
+    }
+
+    // Send mention notifications
+    if (Array.isArray(mention_ids) && mention_ids.length > 0) {
+      const preview = content.trim().slice(0, 80) + (content.trim().length > 80 ? '…' : '');
+      for (const mentionedId of mention_ids) {
+        if (mentionedId !== req.user.id) {
+          await createNotification(req, mentionedId, project_id, 'mention',
+            'Te mencionaron en el chat',
+            `${req.user.name}: ${preview}`,
+            { projectId: project_id, messageId: msg.id }
+          );
+        }
+      }
     }
 
     res.status(201).json({ message: fullMsg });

@@ -6,11 +6,26 @@ import { getSocket } from '../../services/socket';
 import { useProject } from '../../components/layout/ProjectLayout';
 import { useAuth } from '../../context/AuthContext';
 import { timeAgo } from '../../utils/helpers';
+import UserAvatar, { nameColor } from '../../components/common/UserAvatar';
 
-const initial = (name) => name?.[0]?.toUpperCase() || '?';
-
-const ACCENT_COLORS = ['#a855f7', '#22d3ee', '#34d399', '#f472b6', '#fbbf24', '#fb923c'];
-const userColor = (id) => ACCENT_COLORS[id % ACCENT_COLORS.length];
+function MentionText({ text, members }) {
+  if (!text) return null;
+  if (!members?.length) {
+    const parts = text.split(/(@\S+)/g);
+    return parts.map((p, i) =>
+      p.startsWith('@') ? <span key={i} className="font-semibold" style={{ color: '#a855f7' }}>{p}</span> : p
+    );
+  }
+  const sorted = [...members].sort((a, b) => b.name.length - a.name.length);
+  const escaped = sorted.map(m => m.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const pattern = new RegExp(`(@(?:${escaped.join('|')})|@\\S+)`, 'g');
+  const parts = text.split(pattern).filter(Boolean);
+  return parts.map((p, i) =>
+    p.startsWith('@')
+      ? <span key={i} className="font-semibold" style={{ color: '#a855f7' }}>{p}</span>
+      : p
+  );
+}
 
 export default function ChatPage() {
   const { projectId, members } = useProject();
@@ -19,10 +34,18 @@ export default function ChatPage() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [typers, setTypers] = useState(new Map()); // userId → name
+  const [typers, setTypers] = useState(new Map());
+  const [mentionQuery, setMentionQuery] = useState(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const [mentionedIds, setMentionedIds] = useState(new Set());
   const bottomRef = useRef(null);
   const typingTimer = useRef(null);
   const isTyping = useRef(false);
+  const textareaRef = useRef(null);
+
+  const filteredMembers = mentionQuery !== null
+    ? members.filter(m => m.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6)
+    : [];
 
   useEffect(() => {
     api.get(`/messages?project_id=${projectId}`)
@@ -31,18 +54,15 @@ export default function ChatPage() {
       .finally(() => setLoading(false));
   }, [projectId]);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typers]);
 
-  // Socket listeners
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
     const onMessage = (msg) => setMessages(prev => [...prev, msg]);
-
     const onTyping = ({ userId, userName, typing }) => {
       if (userId === user?.id) return;
       setTypers(prev => {
@@ -76,10 +96,35 @@ export default function ChatPage() {
   }, [projectId]);
 
   const handleInput = (e) => {
-    setText(e.target.value);
+    const val = e.target.value;
+    const cursor = e.target.selectionStart;
+    setText(val);
+
+    const textBefore = val.slice(0, cursor);
+    const match = textBefore.match(/@([^\s@]*)$/);
+    if (match) {
+      setMentionQuery(match[1]);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+
     emitTypingStart();
     clearTimeout(typingTimer.current);
     typingTimer.current = setTimeout(emitTypingStop, 2000);
+  };
+
+  const insertMention = (member) => {
+    const cursor = textareaRef.current?.selectionStart ?? text.length;
+    const textBefore = text.slice(0, cursor);
+    const match = textBefore.match(/@([^\s@]*)$/);
+    if (!match) return;
+    const start = cursor - match[0].length;
+    const updated = text.slice(0, start) + `@${member.name} ` + text.slice(cursor);
+    setText(updated);
+    setMentionedIds(prev => new Set([...prev, member.user_id]));
+    setMentionQuery(null);
+    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   const send = async (e) => {
@@ -88,9 +133,16 @@ export default function ChatPage() {
     clearTimeout(typingTimer.current);
     emitTypingStop();
     setSending(true);
+    const currentMentions = [...mentionedIds];
     try {
-      await api.post('/messages', { project_id: projectId, content: text.trim() });
+      await api.post('/messages', {
+        project_id: projectId,
+        content: text.trim(),
+        mention_ids: currentMentions,
+      });
       setText('');
+      setMentionedIds(new Set());
+      setMentionQuery(null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -99,6 +151,13 @@ export default function ChatPage() {
   };
 
   const handleKeyDown = (e) => {
+    if (mentionQuery !== null && filteredMembers.length > 0) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setMentionIndex(i => Math.min(i + 1, filteredMembers.length - 1)); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setMentionIndex(i => Math.max(i - 1, 0)); return; }
+      if (e.key === 'Tab')       { e.preventDefault(); insertMention(filteredMembers[mentionIndex]); return; }
+      if (e.key === 'Escape')    { setMentionQuery(null); return; }
+      if (e.key === 'Enter')     { e.preventDefault(); insertMention(filteredMembers[mentionIndex]); return; }
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
@@ -138,7 +197,7 @@ export default function ChatPage() {
             <p className="text-xs text-surface-500">Sé el primero en escribir algo</p>
           </div>
         ) : (
-          <MessageList messages={messages} currentUserId={user?.id} />
+          <MessageList messages={messages} currentUserId={user?.id} members={members} />
         )}
 
         {/* Typing indicator */}
@@ -168,27 +227,53 @@ export default function ChatPage() {
       {/* Input */}
       <div className="px-6 py-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
         <form onSubmit={send} className="flex items-end gap-2">
-          <textarea
-            value={text}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            placeholder="Escribe un mensaje… (Enter para enviar)"
-            rows={1}
-            className="input-field flex-1 resize-none py-2.5 leading-relaxed"
-            style={{ maxHeight: '120px', overflowY: 'auto' }}
-          />
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={handleInput}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe un mensaje… (@ para mencionar)"
+              rows={1}
+              className="input-field w-full resize-none py-2.5 leading-relaxed"
+              style={{ maxHeight: '120px', overflowY: 'auto' }}
+            />
+            {/* Mention dropdown */}
+            <AnimatePresence>
+              {mentionQuery !== null && filteredMembers.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+                  className="absolute bottom-full mb-1.5 left-0 right-0 rounded-xl overflow-hidden z-50 shadow-2xl"
+                  style={{ background: 'var(--glass-strong-bg, rgba(15,15,25,0.97))', border: '1px solid var(--glass-strong-border, rgba(255,255,255,0.1))', backdropFilter: 'blur(20px)' }}>
+                  {filteredMembers.map((m, i) => (
+                    <button
+                      key={m.user_id}
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); insertMention(m); }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                        i === mentionIndex ? 'bg-purple-500/15' : 'hover:bg-white/5'
+                      }`}>
+                      <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={24} />
+                      <span className="font-medium">{m.name}</span>
+                      <span className="text-xs text-surface-500 ml-auto">{m.role}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <button type="submit" disabled={!text.trim() || sending}
             className="btn-primary px-3 py-2.5 shrink-0 disabled:opacity-40">
             {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>
         </form>
-        <p className="text-[10px] text-surface-500 mt-1.5">Enter para enviar · Shift+Enter para nueva línea</p>
+        <p className="text-[10px] text-surface-500 mt-1.5">Enter para enviar · Shift+Enter para nueva línea · @ para mencionar</p>
       </div>
     </div>
   );
 }
 
-function MessageList({ messages, currentUserId }) {
+function MessageList({ messages, currentUserId, members }) {
   let lastUserId = null;
   let lastDate = null;
 
@@ -199,7 +284,7 @@ function MessageList({ messages, currentUserId }) {
     const showAvatar = msg.user_id !== lastUserId || showDate;
     lastUserId = msg.user_id;
     lastDate = msgDate;
-    const color = userColor(msg.user_id);
+    const color = nameColor(msg.user_name);
 
     return (
       <div key={msg.id}>
@@ -214,10 +299,7 @@ function MessageList({ messages, currentUserId }) {
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
           className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''} ${showAvatar ? 'mt-3' : 'mt-0.5'}`}>
           {showAvatar ? (
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
-              style={{ background: `${color}25`, color, border: `1px solid ${color}40` }}>
-              {initial(msg.user_name)}
-            </div>
+            <UserAvatar name={msg.user_name} avatarUrl={msg.avatar_url} size={28} className="mt-0.5" />
           ) : (
             <div className="w-7 shrink-0" />
           )}
@@ -229,15 +311,13 @@ function MessageList({ messages, currentUserId }) {
               </div>
             )}
             <div className={`px-3 py-2 rounded-2xl text-sm leading-relaxed break-words ${
-              isMe
-                ? 'rounded-tr-sm'
-                : 'rounded-tl-sm'
+              isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'
             }`}
               style={isMe
                 ? { background: 'linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.15))', border: '1px solid rgba(124,58,237,0.2)' }
                 : { background: 'var(--glass-sm-bg)', border: '1px solid var(--glass-sm-border)' }
               }>
-              {msg.content}
+              <MentionText text={msg.content} members={members} />
             </div>
           </div>
         </motion.div>

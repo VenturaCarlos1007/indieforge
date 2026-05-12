@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, Info, AlertTriangle, AlertCircle, Clock, UserPlus, Loader2, X, Trash2 } from 'lucide-react';
+import { Bell, Check, Info, AlertTriangle, AlertCircle, Clock, UserPlus, Loader2, X, Trash2, AtSign } from 'lucide-react';
 import api from '../../services/api';
 import { getSocket } from '../../services/socket';
 import Tooltip from '../common/Tooltip';
@@ -129,6 +129,9 @@ export default function NotificationBell() {
       case 'asset_uploaded':
         navigate(`/project/${projectId}/assets`);
         break;
+      case 'mention':
+        navigate(`/project/${projectId}/chat`);
+        break;
       default:
         if (projectId) navigate(`/project/${projectId}`);
     }
@@ -138,6 +141,7 @@ export default function NotificationBell() {
     switch (type) {
       case 'project_invitation': return <UserPlus className="w-5 h-5 text-purple-400" />;
       case 'task_assigned':      return <Info className="w-5 h-5 text-cyan-400" />;
+      case 'mention':            return <AtSign className="w-5 h-5 text-purple-400" />;
       case 'warning':            return <AlertTriangle className="w-5 h-5 text-yellow-400" />;
       case 'error':              return <AlertCircle className="w-5 h-5 text-red-400" />;
       default:                   return <Bell className="w-5 h-5 text-purple-400" />;
