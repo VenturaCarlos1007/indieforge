@@ -479,6 +479,17 @@ export default function ChatPage() {
   }, []);
 
   const reactToMessage = useCallback(async (msgId, emoji) => {
+    // optimistic update
+    setMessages(prev => prev.map(m => {
+      if (String(m.id) !== String(msgId)) return m;
+      const raw = m.raw_reactions || [];
+      const myPrev = raw.find(r => String(r.user_id) === String(user?.id));
+      let newRaw = raw.filter(r => String(r.user_id) !== String(user?.id));
+      if (!myPrev || myPrev.emoji !== emoji) {
+        newRaw = [...newRaw, { emoji, user_id: String(user?.id), user_name: user?.name }];
+      }
+      return { ...m, raw_reactions: newRaw };
+    }));
     try {
       const { data } = await api.post(`/messages/${msgId}/reactions`, { emoji });
       setMessages(prev => prev.map(m => String(m.id) === String(msgId)
@@ -486,7 +497,7 @@ export default function ChatPage() {
         : m
       ));
     } catch (err) { console.error(err); }
-  }, []);
+  }, [user?.id, user?.name]);
 
   // ── Input handlers ─────────────────────────────────────────────────
   const handleInput = (e) => {

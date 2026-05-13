@@ -211,12 +211,16 @@ router.post('/:id/reactions', async (req, res) => {
 
     const msgIdText = String(req.params.id);
     const existing = await query(
-      'SELECT id FROM message_reactions WHERE message_id=$1 AND user_id=$2 AND emoji=$3',
-      [msgIdText, req.user.id, emoji]
+      'SELECT id, emoji FROM message_reactions WHERE message_id=$1 AND user_id=$2',
+      [msgIdText, req.user.id]
     );
 
     if (existing.rows.length) {
-      await query('DELETE FROM message_reactions WHERE id=$1', [existing.rows[0].id]);
+      if (existing.rows[0].emoji === emoji) {
+        await query('DELETE FROM message_reactions WHERE id=$1', [existing.rows[0].id]);
+      } else {
+        await query('UPDATE message_reactions SET emoji=$1 WHERE id=$2', [emoji, existing.rows[0].id]);
+      }
     } else {
       await query(
         'INSERT INTO message_reactions (message_id, user_id, emoji) VALUES ($1,$2,$3)',

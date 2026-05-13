@@ -207,6 +207,26 @@ async function runMigrations() {
     `);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_msg_reactions_msg ON message_reactions(message_id)`);
 
+    // ── One reaction per user per message
+    await pool.query(`
+      DELETE FROM message_reactions
+      WHERE id NOT IN (
+        SELECT DISTINCT ON (message_id, user_id) id
+        FROM message_reactions
+        ORDER BY message_id, user_id, created_at DESC
+      )
+    `);
+    await pool.query(`ALTER TABLE message_reactions DROP CONSTRAINT IF EXISTS message_reactions_message_id_user_id_emoji_key`);
+    await pool.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'message_reactions_message_id_user_id_key'
+        ) THEN
+          ALTER TABLE message_reactions ADD CONSTRAINT message_reactions_message_id_user_id_key UNIQUE(message_id, user_id);
+        END IF;
+      END $$
+    `);
+
     console.log('✅ Migrations OK');
   } catch (err) {
     console.error('❌ Migration error:', err.message);
