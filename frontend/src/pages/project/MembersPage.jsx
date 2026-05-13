@@ -152,7 +152,7 @@ export default function MembersPage() {
 
                 {/* Actions */}
                 {isOwner && m.role !== 'owner' && m.user_id !== user?.id && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="hidden md:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <select
                       value={m.role}
                       onChange={(e) => changeRole(m.id, e.target.value)}

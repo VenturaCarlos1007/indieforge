@@ -10,11 +10,17 @@ const POSITIONS = {
 
 const Y_DELTA = { top: 4, bottom: -4, left: 0, right: 0 };
 
+const canHover =
+  typeof window !== 'undefined'
+    ? window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    : true;
+
 export default function Tooltip({ text, children, side = 'top' }) {
   const [visible, setVisible] = useState(false);
   const timer = useRef(null);
 
   const show = () => {
+    if (!canHover) return;
     timer.current = setTimeout(() => setVisible(true), 500);
   };
   const hide = () => {
