@@ -63,6 +63,7 @@ export default function ProfilePage() {
   const [form, setForm]           = useState({ name: '', bio: '', location: '', website: '', favorite_engine: null, avatar_url: '' });
   const [saving, setSaving]       = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [websiteError, setWebsiteError] = useState('');
   const fileInputRef              = useRef(null);
 
   // Password change
@@ -115,9 +116,24 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
+  const handleWebsiteBlur = () => {
+    const val = form.website?.trim();
+    if (val && !/^https?:\/\/.+/.test(val)) {
+      setWebsiteError('Debe ser una URL válida (https://...)');
+    } else {
+      setWebsiteError('');
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || saving) return;
+    if (form.name.trim().length < 2) { setSaveError('El nombre debe tener al menos 2 caracteres.'); return; }
+    const websiteVal = form.website?.trim();
+    if (websiteVal && !/^https?:\/\/.+/.test(websiteVal)) {
+      setSaveError('El sitio web debe ser una URL válida (ej. https://miweb.com).');
+      return;
+    }
     setSaving(true);
     setSaveError('');
     try {
@@ -431,8 +447,15 @@ export default function ProfilePage() {
               <label className="text-xs font-medium text-surface-400 mb-1.5 block">
                 <Globe size={11} className="inline mr-1" />Website
               </label>
-              <input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
-                className="input-field" placeholder="Ej: mi-sitio.com" />
+              <input
+                value={form.website}
+                onChange={e => { setForm(f => ({ ...f, website: e.target.value })); if (websiteError) setWebsiteError(''); }}
+                onBlur={handleWebsiteBlur}
+                className="input-field"
+                style={websiteError ? { borderColor: '#f87171' } : {}}
+                placeholder="Ej: https://mi-sitio.com"
+              />
+              {websiteError && <p className="text-xs text-red-400 mt-1">{websiteError}</p>}
             </div>
           </div>
 

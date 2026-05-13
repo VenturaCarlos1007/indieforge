@@ -77,10 +77,16 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
+  const handleNameBlur = () => {
+    const trimmed = name.trim();
+    if (trimmed && trimmed.length < 3) setNameError('El nombre debe tener al menos 3 caracteres.');
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
+    if (trimmed.length < 3) { setNameError('El nombre debe tener al menos 3 caracteres.'); return; }
     if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
       setNameError('Ya tienes un proyecto con ese nombre');
       return;
@@ -152,6 +158,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
                   <input
                     value={name}
                     onChange={(e) => { setName(e.target.value); setNameError(''); }}
+                    onBlur={handleNameBlur}
                     placeholder="Mi Juego Increíble"
                     className="input-field"
                     style={nameError ? { borderColor: '#f87171' } : {}}
@@ -276,10 +283,12 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl text-sm font-semibold text-white"
+                    disabled={!name.trim() || name.trim().length < 3}
+                    className="px-5 py-2 rounded-xl text-sm font-semibold text-white disabled:cursor-not-allowed"
                     style={{
                       background: `linear-gradient(135deg, ${eng.color}ee, ${eng.color}aa)`,
                       boxShadow: `0 4px 20px ${eng.color}35`,
+                      opacity: (!name.trim() || name.trim().length < 3) ? 0.5 : 1,
                       transition: 'all 150ms ease',
                     }}
                   >

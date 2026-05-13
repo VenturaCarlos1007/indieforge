@@ -96,6 +96,8 @@ export default function MilestonesPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || saving) return;
+    if (form.name.trim().length < 3) { setFormError('El nombre del hito debe tener al menos 3 caracteres.'); return; }
+    if (!form.due_date) { setFormError('La fecha límite es requerida.'); return; }
     setSaving(true);
     setFormError('');
     try {
@@ -305,12 +307,16 @@ export default function MilestonesPage() {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-surface-400 mb-1.5 block">Fecha límite</label>
+            <label className="text-xs font-medium text-surface-400 mb-1.5 block">
+              Fecha límite <span className="text-red-400">*</span>
+            </label>
             <input
               type="date"
               value={form.due_date}
               onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))}
+              min={new Date().toISOString().split('T')[0]}
               className="input-field"
+              required
             />
           </div>
           <div>

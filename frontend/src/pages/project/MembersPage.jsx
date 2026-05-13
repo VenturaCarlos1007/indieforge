@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { getSocket } from '../../services/socket';
 import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import {
   UserPlus, Shield, ShieldCheck, Eye, Crown, Trash2, Mail, AlertTriangle
 } from 'lucide-react';
@@ -21,6 +22,7 @@ const ROLE_CONFIG = {
 export default function MembersPage() {
   const { projectId, project, members, setMembers, role } = useProject();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState('');
@@ -51,7 +53,9 @@ export default function MembersPage() {
       setShowInvite(false);
       // Member is pending until they accept — not shown in active members list
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al invitar.');
+      const msg = err.response?.data?.error || 'Error al invitar.';
+      setError(msg);
+      addToast({ message: msg, type: 'error' });
     } finally { setLoading(false); }
   };
 
@@ -63,7 +67,9 @@ export default function MembersPage() {
       await api.patch(`/members/${memberId}/role`, { role: newRole });
       setMembers((p) => p.map((m) => m.id === memberId ? { ...m, role: newRole } : m));
     } catch (err) {
-      setRoleError(err.response?.data?.error || 'Error al cambiar rol.');
+      const msg = err.response?.data?.error || 'Error al cambiar rol.';
+      setRoleError(msg);
+      addToast({ message: msg, type: 'error' });
     }
   };
 

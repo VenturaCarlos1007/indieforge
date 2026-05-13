@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
 import Tooltip from '../../components/common/Tooltip';
@@ -34,10 +35,13 @@ function fileTypeFromName(name) {
 }
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const ALLOWED_EXTENSIONS = ['png','jpg','jpeg','gif','webp','svg','mp3','wav','ogg','mp4','js','ts','cs','lua','gd','json','fbx','obj','glb','gltf','zip','pdf'];
+const getFileExt = (name) => name.split('.').pop().toLowerCase();
 
 export default function AssetsPage() {
   const { projectId, role } = useProject();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const isViewer = role === 'viewer';
   const isOwnerOrAdmin = role === 'owner' || role === 'admin';
   const location = useLocation();
@@ -173,11 +177,17 @@ export default function AssetsPage() {
     setDragging(false);
     const files = Array.from(e.dataTransfer.files);
 
-    const tooLarge = files.filter(f => f.size > MAX_FILE_SIZE);
-    const valid    = files.filter(f => f.size <= MAX_FILE_SIZE);
+    const tooLarge  = files.filter(f => f.size > MAX_FILE_SIZE);
+    const badType   = files.filter(f => f.size <= MAX_FILE_SIZE && !ALLOWED_EXTENSIONS.includes(getFileExt(f.name)));
+    const valid     = files.filter(f => f.size <= MAX_FILE_SIZE && ALLOWED_EXTENSIONS.includes(getFileExt(f.name)));
 
     if (tooLarge.length > 0) {
-      setUploadError(`${tooLarge.map(f => `"${f.name}"`).join(', ')} supera${tooLarge.length > 1 ? 'n' : ''} el límite de 50 MB.`);
+      const msg = `${tooLarge.map(f => `"${f.name}"`).join(', ')} supera${tooLarge.length > 1 ? 'n' : ''} el límite de 50 MB.`;
+      setUploadError(msg);
+      addToast({ message: 'El archivo supera el límite de 50MB.', type: 'error' });
+    }
+    if (badType.length > 0) {
+      addToast({ message: 'Tipo de archivo no permitido.', type: 'error' });
     }
 
     const conflicts = [];
