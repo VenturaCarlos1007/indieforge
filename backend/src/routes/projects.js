@@ -58,6 +58,9 @@ router.post('/', async (req, res, next) => {
     if (!name) {
       return res.status(400).json({ error: 'El nombre del proyecto es requerido.' });
     }
+    if (name.trim().length < 3) {
+      return res.status(400).json({ error: 'El nombre del proyecto debe tener al menos 3 caracteres.' });
+    }
 
     const safeEngine = VALID_ENGINES.includes(engine) ? engine : 'custom';
 
@@ -376,6 +379,13 @@ router.delete('/:id', async (req, res, next) => {
     );
     if (!mem.rows.length || mem.rows[0].role !== 'owner') {
       return res.status(403).json({ error: 'Solo el propietario puede eliminar el proyecto.' });
+    }
+
+    const { rows: activeTasks } = await query(
+      `SELECT id FROM tasks WHERE project_id = $1 AND status != 'done' LIMIT 1`, [id]
+    );
+    if (activeTasks.length > 0) {
+      return res.status(400).json({ error: 'El proyecto tiene tareas activas. Completálas o eliminalas antes de eliminar el proyecto.' });
     }
 
     const { rows } = await query('DELETE FROM projects WHERE id = $1 RETURNING id', [id]);
