@@ -37,6 +37,11 @@ router.post('/', async (req, res, next) => {
   try {
     const { project_id, title, description, status, priority, due_date, assignee_ids, board_id } = req.body;
     if (!project_id || !title) return res.status(400).json({ error: 'project_id y title son requeridos.' });
+    if (title.trim().length < 3) return res.status(400).json({ error: 'El título debe tener al menos 3 caracteres.' });
+    if (due_date) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (due_date < todayStr) return res.status(400).json({ error: 'La fecha límite no puede ser en el pasado.' });
+    }
 
     const { rows: perm } = await query(
       `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
@@ -112,6 +117,10 @@ router.put('/:id', async (req, res, next) => {
       return res.status(403).json({ error: 'No tienes permiso para editar tareas.' });
     }
 
+    if (Array.isArray(assignee_ids) && t.status === 'done') {
+      return res.status(400).json({ error: 'No se puede asignar miembros a una tarea completada.' });
+    }
+
     await query(
       'UPDATE tasks SET title = $1, description = $2, status = $3, priority = $4, due_date = $5, board_id = $6 WHERE id = $7',
       [title || t.title, description !== undefined ? description : t.description, status || t.status, priority || t.priority, due_date !== undefined ? due_date : t.due_date, board_id !== undefined ? (board_id || null) : t.board_id, req.params.id]
@@ -178,6 +187,11 @@ router.patch('/:id/status', async (req, res, next) => {
     );
     if (!perm.length || perm[0].role === 'viewer') {
       return res.status(403).json({ error: 'No tienes permiso para mover tareas.' });
+    }
+
+    if (status === 'done') {
+      const { rows: asgn } = await query('SELECT id FROM task_assignments WHERE task_id = $1', [req.params.id]);
+      if (!asgn.length) return res.status(400).json({ error: 'Asigná al menos un miembro antes de completar la tarea.' });
     }
 
     const { rows } = await query('UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *', [status, req.params.id]);
