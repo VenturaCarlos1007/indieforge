@@ -38,10 +38,17 @@ export default function ChatPage() {
   const [mentionQuery, setMentionQuery] = useState(null);
   const [mentionIndex, setMentionIndex] = useState(0);
   const [mentionedIds, setMentionedIds] = useState(new Set());
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const bottomRef = useRef(null);
   const typingTimer = useRef(null);
   const isTyping = useRef(false);
   const textareaRef = useRef(null);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler, { passive: true });
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   const filteredMembers = mentionQuery !== null
     ? members.filter(m => m.user_id !== user?.id && m.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6)
@@ -100,7 +107,6 @@ export default function ChatPage() {
     const cursor = e.target.selectionStart;
     setText(val);
 
-    // Remove IDs whose @Name was deleted from the text
     setMentionedIds(prev => {
       if (!prev.size) return prev;
       const next = new Set();
@@ -176,11 +182,12 @@ export default function ChatPage() {
   };
 
   const typerNames = [...typers.values()];
+  const avatarSize = isMobile ? 32 : 28;
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-6rem)]">
+    <div className="flex flex-col h-[100dvh] md:h-full md:max-h-[calc(100vh-6rem)]">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b"
+      <div className="flex items-center gap-3 px-4 md:px-6 py-4 border-b shrink-0"
         style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center"
           style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.2)' }}>
@@ -193,7 +200,7 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-1 scrollbar-thin">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 size={20} className="animate-spin text-surface-400" />
@@ -208,7 +215,7 @@ export default function ChatPage() {
             <p className="text-xs text-surface-500">Sé el primero en escribir algo</p>
           </div>
         ) : (
-          <MessageList messages={messages} currentUserId={user?.id} members={members} />
+          <MessageList messages={messages} currentUserId={user?.id} members={members} avatarSize={avatarSize} />
         )}
 
         {/* Typing indicator */}
@@ -236,7 +243,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="px-6 py-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="px-3 md:px-6 py-3 md:py-4 border-t shrink-0" style={{ borderColor: 'var(--border-subtle)' }}>
         <form onSubmit={send} className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -247,7 +254,7 @@ export default function ChatPage() {
               placeholder="Escribe un mensaje… (@ para mencionar)"
               rows={1}
               className="input-field w-full resize-none py-2.5 leading-relaxed"
-              style={{ maxHeight: '120px', overflowY: 'auto' }}
+              style={{ maxHeight: '120px', overflowY: 'auto', fontSize: isMobile ? '16px' : undefined }}
             />
             {/* Mention dropdown */}
             <AnimatePresence>
@@ -261,7 +268,7 @@ export default function ChatPage() {
                       key={m.user_id}
                       type="button"
                       onMouseDown={(e) => { e.preventDefault(); insertMention(m); }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${
                         i === mentionIndex ? 'bg-purple-500/15' : 'hover:bg-white/5'
                       }`}>
                       <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={24} />
@@ -274,17 +281,17 @@ export default function ChatPage() {
             </AnimatePresence>
           </div>
           <button type="submit" disabled={!text.trim() || sending}
-            className="btn-primary px-3 py-2.5 shrink-0 disabled:opacity-40">
+            className="btn-primary px-3 py-2.5 min-h-[44px] min-w-[44px] shrink-0 disabled:opacity-40 flex items-center justify-center">
             {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>
         </form>
-        <p className="text-[10px] text-surface-500 mt-1.5">Enter para enviar · Shift+Enter para nueva línea · @ para mencionar</p>
+        <p className="hidden md:block text-[10px] text-surface-500 mt-1.5">Enter para enviar · Shift+Enter para nueva línea · @ para mencionar</p>
       </div>
     </div>
   );
 }
 
-function MessageList({ messages, currentUserId, members }) {
+function MessageList({ messages, currentUserId, members, avatarSize = 28 }) {
   let lastUserId = null;
   let lastDate = null;
 
@@ -310,11 +317,11 @@ function MessageList({ messages, currentUserId, members }) {
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
           className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''} ${showAvatar ? 'mt-3' : 'mt-0.5'}`}>
           {showAvatar ? (
-            <UserAvatar name={msg.user_name} avatarUrl={msg.avatar_url} size={28} className="mt-0.5" />
+            <UserAvatar name={msg.user_name} avatarUrl={msg.avatar_url} size={avatarSize} className="mt-0.5 shrink-0" />
           ) : (
-            <div className="w-7 shrink-0" />
+            <div style={{ width: avatarSize }} className="shrink-0" />
           )}
-          <div className={`max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+          <div className={`max-w-[85%] md:max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
             {showAvatar && (
               <div className={`flex items-baseline gap-2 mb-1 ${isMe ? 'flex-row-reverse' : ''}`}>
                 <span className="text-xs font-semibold" style={{ color }}>{msg.user_name}</span>
