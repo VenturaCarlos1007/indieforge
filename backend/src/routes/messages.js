@@ -86,7 +86,7 @@ router.post('/', async (req, res) => {
     if (Array.isArray(mention_ids) && mention_ids.length > 0) {
       const preview = content.trim().slice(0, 80) + (content.trim().length > 80 ? '…' : '');
       for (const mentionedId of mention_ids) {
-        if (mentionedId !== req.user.id) {
+        if (Number(mentionedId) !== Number(req.user.id)) {
           await createNotification(req, mentionedId, project_id, 'mention',
             'Te mencionaron en el chat',
             `${req.user.name}: ${preview}`,

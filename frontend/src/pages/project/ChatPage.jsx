@@ -44,7 +44,7 @@ export default function ChatPage() {
   const textareaRef = useRef(null);
 
   const filteredMembers = mentionQuery !== null
-    ? members.filter(m => m.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6)
+    ? members.filter(m => m.user_id !== user?.id && m.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6)
     : [];
 
   useEffect(() => {
@@ -99,6 +99,17 @@ export default function ChatPage() {
     const val = e.target.value;
     const cursor = e.target.selectionStart;
     setText(val);
+
+    // Remove IDs whose @Name was deleted from the text
+    setMentionedIds(prev => {
+      if (!prev.size) return prev;
+      const next = new Set();
+      for (const id of prev) {
+        const member = members.find(m => m.user_id === id);
+        if (member && val.includes(`@${member.name}`)) next.add(id);
+      }
+      return next.size === prev.size ? prev : next;
+    });
 
     const textBefore = val.slice(0, cursor);
     const match = textBefore.match(/@([^\s@]*)$/);
