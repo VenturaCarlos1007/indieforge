@@ -145,6 +145,10 @@ router.patch('/:id/role', async (req, res, next) => {
     const mem = await query('SELECT * FROM project_members WHERE id = $1', [req.params.id]);
     if (!mem.rows.length) return res.status(404).json({ error: 'Miembro no encontrado.' });
 
+    if (mem.rows[0].role === 'owner') {
+      return res.status(400).json({ error: 'No se puede cambiar el rol del propietario.' });
+    }
+
     const perm = await query(
       `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
       [mem.rows[0].project_id, req.user.id]
@@ -163,7 +167,7 @@ router.delete('/:id', async (req, res, next) => {
   try {
     const mem = await query('SELECT * FROM project_members WHERE id = $1', [req.params.id]);
     if (!mem.rows.length) return res.status(404).json({ error: 'Miembro no encontrado.' });
-    if (mem.rows[0].role === 'owner') return res.status(403).json({ error: 'No puedes eliminar al propietario.' });
+    if (mem.rows[0].role === 'owner') return res.status(400).json({ error: 'No se puede eliminar al propietario del proyecto.' });
     if (mem.rows[0].user_id === req.user.id) return res.status(403).json({ error: 'No puedes eliminarte a ti mismo del proyecto.' });
 
     const perm = await query(
