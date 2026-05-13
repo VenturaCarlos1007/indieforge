@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "db:init": "node src/scripts/initDb.js"
+    "db:init": "node src/scripts/initDb.js",
+    "seed:demo": "node src/utils/seedDemo.js"
   },
   "keywords": [
     "indieforge",

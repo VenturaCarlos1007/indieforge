@@ -25,6 +25,7 @@ const searchRoutes   = require('./src/routes/search');
 const dashboardRoutes = require('./src/routes/dashboard');
 const messageRoutes  = require('./src/routes/messages');
 const { projectMilestonesRouter, milestonesRouter } = require('./src/routes/milestones');
+const adminRoutes    = require('./src/routes/admin');
 
 const app = express();
 const server = http.createServer(app);
@@ -69,6 +70,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/messages',  messageRoutes);
 app.use('/api/projects',  projectMilestonesRouter);
 app.use('/api/milestones', milestonesRouter);
+app.use('/api/admin',    adminRoutes);
 
 // ── 404
 app.use((_req, res) => { res.status(404).json({ error: 'Ruta no encontrada.' }); });
