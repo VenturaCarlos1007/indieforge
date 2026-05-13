@@ -17,6 +17,7 @@ import KanbanPage from './pages/project/KanbanPage';
 import MembersPage from './pages/project/MembersPage';
 import ProjectStatsPage from './pages/project/ProjectStatsPage';
 import ChatPage from './pages/project/ChatPage';
+import MilestonesPage from './pages/project/MilestonesPage';
 import ProfilePage from './pages/ProfilePage';
 
 function ProtectedRoute({ children }) {
@@ -57,6 +58,7 @@ export default function App() {
             <Route index element={<ProjectDashboard />} />
             <Route path="assets" element={<AssetsPage />} />
             <Route path="kanban" element={<KanbanPage />} />
+            <Route path="milestones" element={<MilestonesPage />} />
             <Route path="members" element={<MembersPage />} />
             <Route path="stats" element={<ProjectStatsPage />} />
             <Route path="chat" element={<ChatPage />} />

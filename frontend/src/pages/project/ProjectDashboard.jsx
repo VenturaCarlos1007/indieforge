@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
@@ -12,7 +12,7 @@ import { EngineImg } from '../../components/common/EngineIcons';
 import {
   Package, CheckCircle2, Clock, Users, Activity,
   Upload, MessageSquare, PlusCircle, UserPlus, Pencil,
-  ArrowRight, Layers,
+  ArrowRight, Layers, Flag, Check, ChevronRight,
 } from 'lucide-react';
 
 const ENGINES = {
@@ -68,6 +68,8 @@ export default function ProjectDashboard() {
   const [loading, setLoading]     = useState(true);
   const [onlineIds, setOnlineIds] = useState(new Set());
 
+  const [milestones, setMilestones] = useState([]);
+
   const [showEdit,   setShowEdit]   = useState(false);
   const [editName,   setEditName]   = useState('');
   const [editDesc,   setEditDesc]   = useState('');
@@ -79,6 +81,10 @@ export default function ProjectDashboard() {
       .then(r => setOverview(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    api.get(`/projects/${projectId}/milestones`)
+      .then(r => setMilestones(r.data))
+      .catch(() => {});
 
     const socket = getSocket();
     if (!socket) return;
@@ -140,6 +146,16 @@ export default function ProjectDashboard() {
 
   const onlineMembers = members.filter(m => onlineIds.has(m.user_id));
   const offlineCount  = members.length - onlineMembers.length;
+
+  function getTimelineLine(prev, curr) {
+    if (prev.status === 'completado' && curr.status === 'completado') return accent;
+    if (prev.status === 'completado') return `linear-gradient(90deg, ${accent}, #374151)`;
+    return '#374151';
+  }
+
+  const MAX_SHOWN = 5;
+  const displayedMilestones = milestones.slice(0, MAX_SHOWN);
+  const remainingCount      = Math.max(0, milestones.length - MAX_SHOWN);
 
   const statConfigs = [
     { key: 'active_tasks',        label: 'Tareas activas',      icon: Clock,        color: accent    },
@@ -232,6 +248,76 @@ export default function ProjectDashboard() {
           </motion.div>
         ))}
       </motion.div>
+
+      {/* ── Milestones timeline ─────────────────────────────────────── */}
+      {displayedMilestones.length > 0 && (
+        <motion.div className="glass p-6" variants={item}
+          style={{ borderColor: `${accent}15` }}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: `${accent}18` }}>
+                <Flag size={15} style={{ color: accent }} />
+              </div>
+              <h3 className="font-semibold">Hitos del Proyecto</h3>
+            </div>
+            <NavLink to={`/project/${projectId}/milestones`}
+              className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
+              style={{ color: accent }}>
+              Ver todos <ChevronRight size={13} />
+            </NavLink>
+          </div>
+
+          <div className="flex items-start overflow-x-auto pb-2 gap-0">
+            {displayedMilestones.map((ms, i) => (
+              <Fragment key={ms.id}>
+                {i > 0 && (
+                  <div className="flex-1 h-0.5 mt-4 mx-1 min-w-[20px] shrink"
+                    style={{ background: getTimelineLine(displayedMilestones[i - 1], ms) }} />
+                )}
+                <div className="flex flex-col items-center shrink-0" style={{ minWidth: 72 }}>
+                  {ms.status === 'completado' ? (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                      style={{ background: accent, boxShadow: `0 0 10px ${accent}40` }}>
+                      <Check size={14} className="text-white" />
+                    </div>
+                  ) : ms.status === 'en_progreso' ? (
+                    <div className="relative w-8 h-8 flex items-center justify-center">
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        style={{ border: `2px solid ${accent}` }}
+                        animate={{ boxShadow: [`0 0 0 0 ${accent}50`, `0 0 0 5px transparent`] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+                      />
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: accent }} />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full" style={{ border: '2px solid #4B5563' }} />
+                  )}
+                  <span className={`text-[10px] mt-1.5 text-center leading-tight font-medium ${
+                    ms.status === 'en_progreso' ? '' : ms.status === 'completado' ? '' : 'text-surface-500'
+                  }`}
+                    style={ms.status !== 'pendiente' ? { color: accent } : undefined}>
+                    {ms.name}
+                  </span>
+                </div>
+              </Fragment>
+            ))}
+            {remainingCount > 0 && (
+              <Fragment>
+                <div className="flex-1 h-0.5 mt-4 mx-1 min-w-[20px] shrink" style={{ background: '#374151' }} />
+                <div className="flex flex-col items-center shrink-0" style={{ minWidth: 56 }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-surface-400"
+                    style={{ border: '2px dashed #4B5563' }}>
+                    +{remainingCount}
+                  </div>
+                  <span className="text-[10px] mt-1.5 text-surface-500">más</span>
+                </div>
+              </Fragment>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* ── 2-column content ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
@@ -357,13 +443,13 @@ export default function ProjectDashboard() {
             · {members.length} {members.length === 1 ? 'miembro' : 'miembros'}
           </span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
+        <div className="flex md:grid overflow-x-auto md:overflow-visible gap-2.5 pb-1 md:pb-0 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {members.map(m => {
             const isOnline = onlineIds.has(m.user_id);
             const rColor   = ROLE_COLORS[m.role] || '#64748b';
             return (
               <div key={m.user_id}
-                className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02] transition-all">
+                className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02] transition-all shrink-0 min-w-[160px] md:min-w-0">
                 <div className="relative shrink-0">
                   <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={32} />
                   <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${

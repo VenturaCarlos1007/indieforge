@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2, MessageSquare, Flag } from 'lucide-react';
 import { useProject } from './ProjectLayout';
 import { getSocket } from '../../services/socket';
 import UserAvatar from '../common/UserAvatar';
@@ -9,8 +9,9 @@ import UserAvatar from '../common/UserAvatar';
 const navItems = [
   { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#a855f7', end: true },
   { path: 'assets',  label: 'Assets',     icon: FolderOpen,      accent: '#22d3ee' },
-  { path: 'kanban',  label: 'Kanban',     icon: Columns3,        accent: '#fbbf24' },
-  { path: 'members', label: 'Miembros',   icon: Users,           accent: '#34d399' },
+  { path: 'kanban',      label: 'Kanban',     icon: Columns3,  accent: '#fbbf24' },
+  { path: 'milestones', label: 'Hitos',     icon: Flag,      accent: '#f97316' },
+  { path: 'members',    label: 'Miembros',  icon: Users,     accent: '#34d399' },
   { path: 'stats',   label: 'Estadísticas',icon: BarChart2,      accent: '#f43f5e' },
   { path: 'chat',   label: 'Chat',         icon: MessageSquare,  accent: '#a855f7' },
 ];

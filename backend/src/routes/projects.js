@@ -3,7 +3,8 @@ const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
-const { initProjectBoards } = require('../utils/initProjectBoards');
+const { initProjectBoards }     = require('../utils/initProjectBoards');
+const { initProjectMilestones } = require('../utils/initProjectMilestones');
 
 const router = Router();
 
@@ -86,6 +87,7 @@ router.post('/', async (req, res, next) => {
     }
 
     await initProjectBoards(project.id, safeEngine);
+    await initProjectMilestones(project.id, safeEngine, req.user.id);
     await logActivity(req, project.id, req.user.id, 'created', 'project', project.id);
 
     res.status(201).json({ project });

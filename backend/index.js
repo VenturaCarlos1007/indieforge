@@ -24,6 +24,7 @@ const notificationRoutes = require('./src/routes/notifications').router;
 const searchRoutes   = require('./src/routes/search');
 const dashboardRoutes = require('./src/routes/dashboard');
 const messageRoutes  = require('./src/routes/messages');
+const { projectMilestonesRouter, milestonesRouter } = require('./src/routes/milestones');
 
 const app = express();
 const server = http.createServer(app);
@@ -66,6 +67,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/search',   searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/messages',  messageRoutes);
+app.use('/api/projects',  projectMilestonesRouter);
+app.use('/api/milestones', milestonesRouter);
 
 // ── 404
 app.use((_req, res) => { res.status(404).json({ error: 'Ruta no encontrada.' }); });
@@ -80,7 +83,8 @@ app.set('io', io);
 // ── Cron Jobs
 initCronJobs(io);
 
-const { initProjectBoards } = require('./src/utils/initProjectBoards');
+const { initProjectBoards }     = require('./src/utils/initProjectBoards');
+const { initProjectMilestones } = require('./src/utils/initProjectMilestones');
 
 // ── Migrations (idempotent, run at startup)
 async function runMigrations() {
@@ -135,6 +139,12 @@ async function runMigrations() {
     await pool.query(`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS board_id UUID REFERENCES boards(id) ON DELETE SET NULL`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_boards_project ON boards(project_id)`);
 
+    // ── Profile extended fields
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_engine VARCHAR(20)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(100)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS website VARCHAR(200)`);
+
     // Backfill: seed boards for existing projects that have none
     const already = await pool.query(`SELECT name FROM migrations_log WHERE name = 'seed_boards_v1'`);
     if (!already.rows.length) {
@@ -147,6 +157,37 @@ async function runMigrations() {
       }
       await pool.query(`INSERT INTO migrations_log (name) VALUES ('seed_boards_v1') ON CONFLICT DO NOTHING`);
       if (projects.length) console.log(`✅ Boards seeded for ${projects.length} project(s)`);
+    }
+
+    // ── Milestones feature
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS milestones (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id  UUID REFERENCES projects(id) ON DELETE CASCADE,
+        name        VARCHAR(100) NOT NULL,
+        description TEXT,
+        due_date    DATE,
+        status      VARCHAR(20) DEFAULT 'pendiente'
+                      CHECK (status IN ('pendiente', 'en_progreso', 'completado')),
+        position    INTEGER DEFAULT 0,
+        created_by  UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_at  TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_milestones_project ON milestones(project_id)`);
+
+    // Backfill: seed milestones for existing projects that have none
+    const alreadyMs = await pool.query(`SELECT name FROM migrations_log WHERE name = 'seed_milestones_v1'`);
+    if (!alreadyMs.rows.length) {
+      const { rows: projectsMs } = await pool.query(`
+        SELECT p.id, p.engine FROM projects p
+        WHERE NOT EXISTS (SELECT 1 FROM milestones m WHERE m.project_id = p.id)
+      `);
+      for (const p of projectsMs) {
+        await initProjectMilestones(p.id, p.engine || 'custom');
+      }
+      await pool.query(`INSERT INTO migrations_log (name) VALUES ('seed_milestones_v1') ON CONFLICT DO NOTHING`);
+      if (projectsMs.length) console.log(`✅ Milestones seeded for ${projectsMs.length} project(s)`);
     }
 
     console.log('✅ Migrations OK');
