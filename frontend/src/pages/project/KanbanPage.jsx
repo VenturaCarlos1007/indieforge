@@ -4,6 +4,7 @@ import { useProject } from '../../components/layout/ProjectLayout';
 import { getSocket } from '../../services/socket';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
+import { useToast } from '../../context/ToastContext';
 import { SkeletonCard, EmptyState } from '../../components/common/Skeleton';
 import {
   Plus, GripVertical, Pencil, Trash2, Clock, CheckCircle2, Loader2,
@@ -74,6 +75,7 @@ function BoardItem({ label, icon, count, active, onClick, accent }) {
 
 export default function KanbanPage() {
   const { projectId, members, role, project } = useProject();
+  const { addToast } = useToast();
   const isViewer = role === 'viewer';
 
   const [tasks, setTasks]               = useState([]);
@@ -85,6 +87,7 @@ export default function KanbanPage() {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [selectedBoard, setSelectedBoard]   = useState(null); // null = Todos
   const [kanbanError, setKanbanError]   = useState('');
+  const [shakingTask, setShakingTask]   = useState(null);
   const dragItem = useRef(null);
 
   const accent      = ENGINE_ACCENT[project?.engine] || '#7C3AED';
@@ -123,7 +126,11 @@ export default function KanbanPage() {
     }
   }, [projectId]);
 
-  const showError = (msg) => { setKanbanError(msg); setTimeout(() => setKanbanError(''), 4000); };
+  const showError = (msg) => {
+    setKanbanError(msg);
+    addToast({ message: msg, type: 'error' });
+    setTimeout(() => setKanbanError(''), 4000);
+  };
 
   const createTask = async ({ title, description, status, priority, due_date, assignee_ids, board_id }) => {
     try {
@@ -152,9 +159,22 @@ export default function KanbanPage() {
   };
 
   const moveTask = async (taskId, newStatus) => {
-    await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
-    setTasks((p) => p.map((t) => t.id === taskId ? { ...t, status: newStatus } : t));
-    getSocket()?.emit('task_moved', { projectId, taskId, status: newStatus });
+    if (newStatus === 'done') {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task?.assignees?.length) {
+        showError('Asigná al menos un miembro antes de completar la tarea.');
+        setShakingTask(taskId);
+        setTimeout(() => setShakingTask(null), 600);
+        return;
+      }
+    }
+    try {
+      await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
+      setTasks((p) => p.map((t) => t.id === taskId ? { ...t, status: newStatus } : t));
+      getSocket()?.emit('task_moved', { projectId, taskId, status: newStatus });
+    } catch (e) {
+      showError(e.response?.data?.error || 'Error al mover la tarea.');
+    }
   };
 
   const handleDragStart  = (e, taskId) => { dragItem.current = taskId; e.dataTransfer.effectAllowed = 'move'; e.target.style.opacity = '0.4'; };
@@ -385,7 +405,9 @@ export default function KanbanPage() {
                           onDragEnd={isViewer ? undefined : handleDragEnd}
                           layout
                           initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
+                          animate={shakingTask === task.id
+                            ? { x: [0, -7, 7, -5, 5, 0], opacity: 1, y: 0, transition: { duration: 0.45 } }
+                            : { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
                           exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.15 } }}
                           whileHover={{ y: -2, boxShadow: `0 8px 30px ${col.accent}18, 0 0 0 1px ${col.accent}20` }}
                         >
@@ -495,7 +517,10 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
     }
   }, [task, open, defaultBoardId]);
 
-  const toggleAssignee = (id) => setAssignees((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
+  const isCompleted = task?.status === 'done';
+  const [titleError, setTitleError] = useState('');
+  const toggleAssignee = (id) => { if (!isCompleted) setAssignees((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]); };
+  const today = new Date().toISOString().split('T')[0];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -509,7 +534,16 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
   return (
     <Modal open={open} onClose={onClose} title={modalTitle}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título de la tarea" className="input-field" autoFocus required />
+        <input
+          value={title}
+          onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(''); }}
+          onBlur={() => { if (title.trim() && title.trim().length < 3) setTitleError('El título debe tener al menos 3 caracteres.'); }}
+          placeholder="Título de la tarea"
+          className="input-field"
+          style={titleError ? { borderColor: '#f87171' } : {}}
+          autoFocus required
+        />
+        {titleError && <p className="text-xs text-red-400 mt-1">{titleError}</p>}
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descripción (opcional)" rows={3} className="input-field resize-none" />
 
         <div className="grid grid-cols-2 gap-4">
@@ -525,6 +559,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
           <div>
             <label className="text-xs font-medium text-surface-300 mb-2 flex items-center gap-1"><Calendar size={13} /> Fecha límite</label>
             <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+              min={today}
               className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm [color-scheme:dark]" />
           </div>
         </div>
@@ -545,20 +580,25 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
 
         <div>
           <label className="text-xs font-medium text-surface-300 mb-2 flex items-center gap-1"><Users size={13} /> Asignar a</label>
-          <div className="flex flex-wrap gap-2 mt-1">
+          <div className="flex flex-wrap gap-2 mt-1" style={{ opacity: isCompleted ? 0.5 : 1, cursor: isCompleted ? 'not-allowed' : undefined }}>
             {members.map((m) => (
               <button key={m.user_id} type="button" onClick={() => toggleAssignee(m.user_id)}
+                disabled={isCompleted}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={{
                   background: assignees.includes(m.user_id) ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.03)',
                   border: `1px solid ${assignees.includes(m.user_id) ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.06)'}`,
                   color: assignees.includes(m.user_id) ? '#c084fc' : '#94A3B8',
+                  cursor: isCompleted ? 'not-allowed' : 'pointer',
                 }}>
                 <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={20} />
                 {m.name}
               </button>
             ))}
           </div>
+          {isCompleted && (
+            <p className="text-xs text-surface-500 mt-1.5">Las tareas completadas no pueden recibir nuevas asignaciones.</p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
