@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProject } from '../../components/layout/ProjectLayout';
 import { getSocket } from '../../services/socket';
@@ -7,130 +8,94 @@ import { timeAgo, activityLabel } from '../../utils/helpers';
 import { SkeletonStat, SkeletonList } from '../../components/common/Skeleton';
 import Modal from '../../components/common/Modal';
 import UserAvatar from '../../components/common/UserAvatar';
+import { EngineImg } from '../../components/common/EngineIcons';
 import {
-  Package, CheckCircle2, Clock, Users, Activity, TrendingUp,
-  Upload, MessageSquare, PlusCircle, UserPlus, Folder, Pencil,
-  ChevronDown, ChevronUp,
+  Package, CheckCircle2, Clock, Users, Activity,
+  Upload, MessageSquare, PlusCircle, UserPlus, Pencil,
+  ArrowRight, Layers,
 } from 'lucide-react';
 
-const PREVIEW_LIMIT = 5;
-
-function groupByDay(list) {
-  const todayStr = new Date().toDateString();
-  const yestStr  = new Date(Date.now() - 86400000).toDateString();
-  const groups   = [];
-  const byDate   = {};
-  list.forEach((a) => {
-    const d  = new Date(a.created_at || a.timestamp);
-    const ds = d.toDateString();
-    if (byDate[ds] === undefined) {
-      const lbl = ds === todayStr ? 'Hoy'
-                : ds === yestStr  ? 'Ayer'
-                : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-      byDate[ds] = groups.length;
-      groups.push({ label: lbl, items: [] });
-    }
-    groups[byDate[ds]].items.push(a);
-  });
-  return groups;
-}
-
-const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
-const stagger = { show: { transition: { staggerChildren: 0.07 } } };
-
-const ACTION_ICONS = {
-  created: { icon: PlusCircle, color: '#a855f7' },
-  uploaded: { icon: Upload, color: '#22d3ee' },
-  commented: { icon: MessageSquare, color: '#fbbf24' },
-  updated: { icon: Pencil, color: '#60a5fa' },
-  added_member: { icon: UserPlus, color: '#34d399' },
-  deleted: { icon: Clock, color: '#f87171' },
-  assigned: { icon: Users, color: '#fb923c' },
+const ENGINES = {
+  unity:  { label: 'Unity',         color: '#4CAF50' },
+  unreal: { label: 'Unreal Engine', color: '#2196F3' },
+  godot:  { label: 'Godot Engine',  color: '#5C6BC0' },
+  roblox: { label: 'Roblox Studio', color: '#F59E0B' },
+  custom: { label: 'Personalizado', color: '#7C3AED' },
 };
 
-const STAT_CONFIGS = [
-  { key: 'assets', label: 'Assets', icon: Package, gradient: 'linear-gradient(135deg, #7C3AED15, #7C3AED05)', borderColor: '#7C3AED25', iconBg: '#7C3AED20', iconColor: '#a855f7', valueColor: '#c084fc' },
-  { key: 'done', label: 'Completadas', icon: CheckCircle2, gradient: 'linear-gradient(135deg, #10B98115, #10B98105)', borderColor: '#10B98125', iconBg: '#10B98120', iconColor: '#34d399', valueColor: '#6ee7b7' },
-  { key: 'in_progress', label: 'En progreso', icon: TrendingUp, gradient: 'linear-gradient(135deg, #06B6D415, #06B6D405)', borderColor: '#06B6D425', iconBg: '#06B6D420', iconColor: '#22d3ee', valueColor: '#67e8f9' },
-  { key: 'members', label: 'Miembros', icon: Users, gradient: 'linear-gradient(135deg, #F59E0B15, #F59E0B05)', borderColor: '#F59E0B25', iconBg: '#F59E0B20', iconColor: '#fbbf24', valueColor: '#fde68a' },
-];
+const ROLE_LABELS = { owner: 'Propietario', admin: 'Admin', member: 'Miembro' };
+const ROLE_COLORS = { owner: '#a855f7',     admin: '#22d3ee', member: '#64748b' };
 
-function ActivityItem({ a, i }) {
-  return (
-    <motion.div
-      className="flex items-start gap-4 py-2.5 relative group"
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: i * 0.03 }}
-    >
-      <UserAvatar name={a.user_name} avatarUrl={a.avatar_url} size={31} className="relative z-10 transition-transform duration-200 group-hover:scale-110" />
-      <div className="flex-1 min-w-0 pt-0.5">
-        <p className="text-sm">
-          <span className="font-semibold text-white">{a.user_name}</span>{' '}
-          <span className="text-surface-300">{activityLabel(a.action, a.resource_type)}</span>
-        </p>
-        <span className="text-[11px] text-surface-400">{timeAgo(a.created_at || a.timestamp)}</span>
-      </div>
-    </motion.div>
-  );
+const STATUS_LABELS = { pending: 'Pendiente', in_progress: 'En progreso', done: 'Completada' };
+const STATUS_COLORS = { pending: '#64748b',  in_progress: '#22d3ee',     done: '#34d399' };
+
+const ACTION_ICONS = {
+  created:      { icon: PlusCircle,    color: '#a855f7' },
+  uploaded:     { icon: Upload,        color: '#22d3ee' },
+  commented:    { icon: MessageSquare, color: '#fbbf24' },
+  updated:      { icon: Pencil,        color: '#60a5fa' },
+  added_member: { icon: UserPlus,      color: '#34d399' },
+  deleted:      { icon: Clock,         color: '#f87171' },
+  assigned:     { icon: Users,         color: '#fb923c' },
+};
+
+function CountUp({ to = 0, duration = 800 }) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!to) { setVal(0); return; }
+    let frameId;
+    let start = null;
+    const raf = (ts) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      setVal(Math.round(p * to));
+      if (p < 1) frameId = requestAnimationFrame(raf);
+    };
+    frameId = requestAnimationFrame(raf);
+    return () => cancelAnimationFrame(frameId);
+  }, [to, duration]);
+  return <>{val}</>;
 }
+
+const item   = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
+const stagger = { show: { transition: { staggerChildren: 0.06 } } };
 
 export default function ProjectDashboard() {
   const { projectId, project, setProject, role } = useProject();
   const canEdit = role === 'owner' || role === 'admin';
-  const [stats, setStats] = useState(null);
-  const [activities, setActivities] = useState([]);
-  const [expanded, setExpanded] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const expandedRef = useRef(false);
-  const [loading, setLoading] = useState(true);
-  const [showEdit, setShowEdit] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editDesc, setEditDesc] = useState('');
+
+  const [overview, setOverview]   = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [onlineIds, setOnlineIds] = useState(new Set());
+
+  const [showEdit,   setShowEdit]   = useState(false);
+  const [editName,   setEditName]   = useState('');
+  const [editDesc,   setEditDesc]   = useState('');
   const [editSaving, setEditSaving] = useState(false);
-  const [editError, setEditError] = useState('');
+  const [editError,  setEditError]  = useState('');
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [s, a] = await Promise.all([
-          api.get(`/activity/stats?project_id=${projectId}`),
-          api.get(`/activity?project_id=${projectId}&limit=${PREVIEW_LIMIT}`),
-        ]);
-        setStats(s.data.stats);
-        setActivities(a.data.activities);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    };
-    load();
+    api.get(`/projects/${projectId}/overview`)
+      .then(r => setOverview(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
 
     const socket = getSocket();
-    if (socket) {
-      const handler = (data) => setActivities((prev) => {
-        const next = [data, ...prev];
-        return expandedRef.current ? next : next.slice(0, PREVIEW_LIMIT);
-      });
-      socket.on('new_activity', handler);
-      return () => socket.off('new_activity', handler);
-    }
+    if (!socket) return;
+
+    const handleOnline   = ({ onlineUserIds }) => setOnlineIds(new Set(onlineUserIds));
+    const handleActivity = (a) => setOverview(prev => prev
+      ? { ...prev, recentActivity: [a, ...prev.recentActivity].slice(0, 6) }
+      : prev
+    );
+
+    socket.on('online_users_update', handleOnline);
+    socket.on('new_activity',        handleActivity);
+    return () => {
+      socket.off('online_users_update', handleOnline);
+      socket.off('new_activity',        handleActivity);
+    };
   }, [projectId]);
-
-  const loadAll = async () => {
-    setLoadingMore(true);
-    try {
-      const { data } = await api.get(`/activity?project_id=${projectId}&limit=200`);
-      setActivities(data.activities);
-      expandedRef.current = true;
-      setExpanded(true);
-    } catch (e) { console.error(e); }
-    finally { setLoadingMore(false); }
-  };
-
-  const collapse = () => {
-    setActivities((prev) => prev.slice(0, PREVIEW_LIMIT));
-    expandedRef.current = false;
-    setExpanded(false);
-  };
 
   const openEdit = () => {
     setEditName(project?.name || '');
@@ -145,8 +110,8 @@ export default function ProjectDashboard() {
     setEditSaving(true);
     setEditError('');
     try {
-      const { data } = await api.put(`/projects/${projectId}`, { name: editName.trim(), description: editDesc });
-      setProject(data.project);
+      const { data: d } = await api.put(`/projects/${projectId}`, { name: editName.trim(), description: editDesc });
+      setProject(d.project);
       setShowEdit(false);
     } catch (err) {
       setEditError(err.response?.data?.error || 'Error al guardar.');
@@ -154,142 +119,280 @@ export default function ProjectDashboard() {
   };
 
   if (loading) return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="glass p-6"><div className="skeleton h-16 rounded-xl" /></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => <SkeletonStat key={i} />)}
       </div>
-      <div className="glass p-6"><SkeletonList count={6} /></div>
+      <div className="glass p-6"><SkeletonList count={5} /></div>
     </div>
   );
 
-  if (!stats) return (
+  if (!overview) return (
     <div className="flex items-center justify-center h-40 text-surface-400 text-sm">
-      No se pudieron cargar las estadísticas.
+      No se pudo cargar el dashboard.
     </div>
   );
 
-  const taskTotal = stats.total_tasks || 1;
-  const donePercent = Math.round((stats.tasks.done / taskTotal) * 100);
+  const { stats, recentActivity, urgentTasks, recentAssets, members } = overview;
+  const eng    = ENGINES[project?.engine] || ENGINES.custom;
+  const accent = eng.color;
 
-  const statValues = {
-    assets: stats.total_assets,
-    done: stats.tasks.done,
-    in_progress: stats.tasks.in_progress,
-    members: stats.total_members,
-  };
+  const onlineMembers = members.filter(m => onlineIds.has(m.user_id));
+  const offlineCount  = members.length - onlineMembers.length;
+
+  const statConfigs = [
+    { key: 'active_tasks',        label: 'Tareas activas',      icon: Clock,        color: accent    },
+    { key: 'completed_this_week', label: 'Completadas / semana', icon: CheckCircle2, color: '#34d399' },
+    { key: 'total_assets',        label: 'Assets',              icon: Package,      color: '#22d3ee' },
+    { key: 'total_members',       label: 'Miembros',            icon: Users,        color: '#fbbf24' },
+  ];
 
   return (
-    <motion.div className="max-w-5xl mx-auto space-y-6" variants={stagger} initial="hidden" animate="show">
-      {/* Header with edit button */}
-      {canEdit && (
-        <motion.div className="flex justify-end" variants={item}>
-          <button onClick={openEdit}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-surface-300 hover:text-white border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] transition-all">
-            <Pencil size={13} /> Editar proyecto
-          </button>
-        </motion.div>
-      )}
+    <motion.div className="max-w-6xl mx-auto space-y-5" variants={stagger} initial="hidden" animate="show">
 
-      {/* Stat cards */}
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <motion.div className="glass p-6" variants={item}
+        style={{ borderColor: `${accent}25`, boxShadow: `0 0 40px ${accent}08` }}>
+        <div className="flex items-start gap-5 flex-wrap sm:flex-nowrap">
+          {/* Engine icon */}
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0"
+            style={{ background: `${accent}15`, border: `1px solid ${accent}35`, boxShadow: `0 0 24px ${accent}20` }}>
+            <EngineImg engine={project?.engine || 'custom'} size={48} />
+          </div>
+
+          {/* Project info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 mb-1 flex-wrap">
+              <h1 className="text-xl font-bold text-white">{project?.name}</h1>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}35` }}>
+                {eng.label}
+              </span>
+              {canEdit && (
+                <button onClick={openEdit}
+                  className="flex items-center gap-1 text-[11px] text-surface-400 hover:text-white px-2 py-0.5 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-all">
+                  <Pencil size={11} /> Editar
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-surface-400 leading-relaxed">
+              {project?.description || <span className="italic text-surface-500">Sin descripción.</span>}
+            </p>
+            {/* Online strip */}
+            {members.length > 0 && (
+              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                <span className="text-[11px] text-surface-500">En línea:</span>
+                <div className="flex -space-x-1.5">
+                  {onlineMembers.slice(0, 6).map(m => (
+                    <div key={m.user_id} className="relative" title={m.name}>
+                      <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={24} />
+                      <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-green-400 border border-gray-900" />
+                    </div>
+                  ))}
+                </div>
+                {onlineMembers.length === 0
+                  ? <span className="text-[11px] text-surface-500">Nadie en línea</span>
+                  : onlineMembers.length > 6
+                    ? <span className="text-[11px] text-surface-500">+{onlineMembers.length - 6} más</span>
+                    : null
+                }
+                {offlineCount > 0 && (
+                  <span className="text-[11px] text-surface-600">· {offlineCount} sin conexión</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* CTA */}
+          <NavLink to={`/project/${projectId}/kanban`}
+            className="btn-primary flex items-center gap-2 shrink-0 self-start relative overflow-hidden">
+            <Layers size={15} />
+            <span>Abrir tablero</span>
+            <ArrowRight size={14} />
+          </NavLink>
+        </div>
+      </motion.div>
+
+      {/* ── Stat cards ─────────────────────────────────────────────── */}
       <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-4" variants={item}>
-        {STAT_CONFIGS.map((cfg) => (
-          <motion.div key={cfg.key} className="stat-card group" variants={item}
-            style={{ background: cfg.gradient, borderColor: cfg.borderColor }}
-            whileHover={{ y: -2, transition: { duration: 0.2 } }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-1"
-              style={{ background: cfg.iconBg, boxShadow: `0 0 20px ${cfg.iconColor}15` }}>
-              <cfg.icon size={19} style={{ color: cfg.iconColor }} />
+        {statConfigs.map(cfg => (
+          <motion.div key={cfg.key} className="stat-card"
+            variants={item}
+            style={{ background: `${cfg.color}08`, borderColor: `${cfg.color}20` }}
+            whileHover={{ y: -2, transition: { duration: 0.18 } }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-1"
+              style={{ background: `${cfg.color}18`, boxShadow: `0 0 16px ${cfg.color}15` }}>
+              <cfg.icon size={17} style={{ color: cfg.color }} />
             </div>
             <span className="text-[11px] text-surface-300 font-medium uppercase tracking-wider">{cfg.label}</span>
-            <span className="text-3xl font-extrabold" style={{ color: cfg.valueColor }}>{statValues[cfg.key]}</span>
+            <span className="text-3xl font-extrabold" style={{ color: cfg.color }}>
+              <CountUp to={stats[cfg.key] || 0} />
+            </span>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Progress bar */}
-      <motion.div className="glass p-5" variants={item}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-semibold">Progreso general</span>
-          <span className="text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            {donePercent}%
-          </span>
-        </div>
-        <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
-          <motion.div
-            className="h-full rounded-full relative"
-            style={{ background: 'linear-gradient(90deg, #7C3AED, #06B6D4)' }}
-            initial={{ width: 0 }}
-            animate={{ width: `${donePercent}%` }}
-            transition={{ duration: 1.2, ease: 'easeOut' }}
-          >
-            {/* Shine effect */}
-            <div className="absolute inset-0 rounded-full"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 50%, transparent)', animation: 'shimmer 2s infinite linear', backgroundSize: '200% 100%' }} />
+      {/* ── 2-column content ────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+        {/* Activity feed (3 cols) */}
+        <motion.div className="lg:col-span-3 glass p-6" variants={item}>
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#7C3AED18' }}>
+              <Activity size={15} style={{ color: '#a855f7' }} />
+            </div>
+            <h3 className="font-semibold">Actividad reciente</h3>
+          </div>
+          {recentActivity.length === 0 ? (
+            <p className="text-sm text-surface-500 text-center py-8">Sin actividad todavía.</p>
+          ) : (
+            <div className="relative">
+              <div className="absolute left-[15px] top-2 bottom-2 w-px"
+                style={{ background: 'linear-gradient(180deg, #7C3AED30, transparent)' }} />
+              <div className="space-y-0.5">
+                {recentActivity.slice(0, 5).map((a, i) => (
+                  <motion.div key={a.id || i}
+                    className="flex items-start gap-3 py-2 group"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}>
+                    <UserAvatar name={a.user_name} avatarUrl={a.avatar_url} size={30}
+                      className="relative z-10 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <p className="text-sm leading-snug">
+                        <span className="font-semibold text-white">{a.user_name}</span>{' '}
+                        <span className="text-surface-300">{activityLabel(a.action, a.resource_type)}</span>
+                      </p>
+                      <span className="text-[11px] text-surface-500">{timeAgo(a.created_at)}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              {recentActivity.length > 5 && (
+                <div className="mt-3 pt-3 border-t border-white/[0.05]">
+                  <NavLink to={`/project/${projectId}/stats`}
+                    className="flex items-center gap-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors">
+                    Ver toda la actividad <ArrowRight size={13} />
+                  </NavLink>
+                </div>
+              )}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Right column (2 cols) */}
+        <div className="lg:col-span-2 space-y-5">
+
+          {/* Urgent tasks */}
+          <motion.div className="glass p-5" variants={item}>
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#fb923c18' }}>
+                <Clock size={14} style={{ color: '#fb923c' }} />
+              </div>
+              <h3 className="font-semibold text-sm">Tareas urgentes</h3>
+              <span className="ml-auto text-[11px] text-surface-500">{urgentTasks.length} pendientes</span>
+            </div>
+            {urgentTasks.length === 0 ? (
+              <p className="text-xs text-surface-500 text-center py-5">¡Todo al día!</p>
+            ) : (
+              <div className="space-y-1.5">
+                {urgentTasks.map(t => (
+                  <div key={t.id} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-white/[0.03] transition-colors">
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: STATUS_COLORS[t.status] || '#64748b' }} />
+                    <span className="flex-1 text-xs text-surface-200 truncate">{t.title}</span>
+                    {t.assigned_name && (
+                      <UserAvatar name={t.assigned_name} avatarUrl={t.assigned_avatar} size={20} />
+                    )}
+                    <span className="text-[10px] shrink-0" style={{ color: STATUS_COLORS[t.status] }}>
+                      {STATUS_LABELS[t.status]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Recent assets */}
+          <motion.div className="glass p-5" variants={item}>
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#22d3ee18' }}>
+                <Package size={14} style={{ color: '#22d3ee' }} />
+              </div>
+              <h3 className="font-semibold text-sm">Assets recientes</h3>
+            </div>
+            {recentAssets.length === 0 ? (
+              <p className="text-xs text-surface-500 text-center py-5">No hay assets todavía.</p>
+            ) : (
+              <div className="space-y-1.5">
+                {recentAssets.map(a => (
+                  <div key={a.id} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-white/[0.03] transition-colors">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#22d3ee12' }}>
+                      <Upload size={13} style={{ color: '#22d3ee' }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-surface-200 truncate">{a.name}</p>
+                      <p className="text-[10px] text-surface-500">{timeAgo(a.created_at)}</p>
+                    </div>
+                    {a.uploaded_by_name && (
+                      <UserAvatar name={a.uploaded_by_name} avatarUrl={a.uploaded_by_avatar} size={20} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
-        <div className="flex gap-5 mt-3 text-xs text-surface-400">
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-surface-400" />{stats.tasks.pending} pendientes</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: '#06B6D4' }} />{stats.tasks.in_progress} en progreso</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: '#10B981' }} />{stats.tasks.done} completadas</span>
+      </div>
+
+      {/* ── Team bar ────────────────────────────────────────────────── */}
+      <motion.div className="glass p-5" variants={item}>
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#fbbf2418' }}>
+            <Users size={15} style={{ color: '#fbbf24' }} />
+          </div>
+          <h3 className="font-semibold text-sm">Equipo</h3>
+          <span className="text-[11px] text-surface-500 ml-1">
+            · {members.length} {members.length === 1 ? 'miembro' : 'miembros'}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
+          {members.map(m => {
+            const isOnline = onlineIds.has(m.user_id);
+            const rColor   = ROLE_COLORS[m.role] || '#64748b';
+            return (
+              <div key={m.user_id}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02] transition-all">
+                <div className="relative shrink-0">
+                  <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={32} />
+                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${
+                    isOnline ? 'bg-green-400 online-dot-pulse' : 'bg-surface-600'
+                  }`} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white truncate">{m.name}</p>
+                  <span className="text-[10px] font-medium" style={{ color: rColor }}>
+                    {ROLE_LABELS[m.role] || m.role}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </motion.div>
 
-      {/* Activity feed — Timeline style */}
-      <motion.div className="glass p-6" variants={item}>
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'rgba(124,58,237,0.12)' }}>
-            <Activity size={17} style={{ color: '#a855f7' }} />
-          </div>
-          <h3 className="font-semibold text-base">Actividad reciente</h3>
-        </div>
-        {activities.length === 0 ? (
-          <p className="text-sm text-surface-400 text-center py-10">No hay actividad todavía.</p>
-        ) : (
-          <div className="relative">
-            <div className="absolute left-[15px] top-2 bottom-2 w-px" style={{ background: 'linear-gradient(180deg, #7C3AED30, #06B6D420, transparent)' }} />
-            <div className="space-y-0.5">
-              {expanded
-                ? groupByDay(activities).map((group) => (
-                    <div key={group.label}>
-                      <div className="text-[11px] font-semibold text-surface-500 uppercase tracking-wider py-2 pl-10">
-                        {group.label}
-                      </div>
-                      {group.items.map((a, i) => <ActivityItem key={a.id || i} a={a} i={i} />)}
-                    </div>
-                  ))
-                : activities.map((a, i) => <ActivityItem key={a.id || i} a={a} i={i} />)
-              }
-            </div>
-            {(activities.length >= PREVIEW_LIMIT || expanded) && (
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex justify-center">
-                <button
-                  onClick={expanded ? collapse : loadAll}
-                  disabled={loadingMore}
-                  className="flex items-center gap-1 text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors disabled:opacity-50"
-                >
-                  {loadingMore
-                    ? 'Cargando…'
-                    : expanded
-                    ? <><ChevronUp size={13} /> Ver menos</>
-                    : <><ChevronDown size={13} /> Ver más</>}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </motion.div>
+      {/* Edit modal */}
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Editar proyecto">
         <form onSubmit={saveEdit} className="space-y-4">
           <div>
             <label className="text-xs font-medium text-surface-400 mb-1.5 block">Nombre</label>
-            <input value={editName} onChange={(e) => setEditName(e.target.value)}
+            <input value={editName} onChange={e => setEditName(e.target.value)}
               className="input-field" autoFocus required />
           </div>
           <div>
             <label className="text-xs font-medium text-surface-400 mb-1.5 block">Descripción</label>
-            <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)}
+            <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)}
               rows={3} className="input-field resize-none" />
           </div>
           {editError && <p className="text-xs text-red-400">{editError}</p>}

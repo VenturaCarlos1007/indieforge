@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, animate } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import Modal from '../components/common/Modal';
 import { SkeletonCard } from '../components/common/Skeleton';
-import { Plus, FolderKanban, Clock, Gamepad2, ArrowUpRight, CheckCircle2, FileUp, Activity, Rocket } from 'lucide-react';
+import { Plus, Clock, Gamepad2, ArrowUpRight, CheckCircle2, FileUp, Activity, Rocket } from 'lucide-react';
+import { EngineImg } from '../components/common/EngineIcons';
 import { EmptyState } from '../components/common/Skeleton';
 import { timeAgo } from '../utils/helpers';
+import CreateProjectModal from '../components/common/CreateProjectModal';
+import ProjectInitScreen from '../components/common/ProjectInitScreen';
 
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 const stagger = { show: { transition: { staggerChildren: 0.06 } } };
@@ -20,6 +22,14 @@ const CARD_GRADIENTS = [
   { from: '#10B981', to: '#34d399' },
   { from: '#F59E0B', to: '#fbbf24' },
 ];
+
+const ENGINE_ACCENT = {
+  unity:  '#4CAF50',
+  unreal: '#2196F3',
+  godot:  '#5C6BC0',
+  roblox: '#F59E0B',
+  custom: '#7C3AED',
+};
 
 function AnimatedCounter({ value }) {
   const [count, setCount] = useState(0);
@@ -132,10 +142,7 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [creatingProject, setCreatingProject] = useState(false);
-  const [projectNameError, setProjectNameError] = useState('');
+  const [initData, setInitData] = useState(null); // { engine, name, apiPromise }
 
   useEffect(() => {
     Promise.all([
@@ -150,24 +157,22 @@ export default function DashboardPage() {
     .finally(() => setLoading(false));
   }, []);
 
-  const createProject = async (e) => {
-    e.preventDefault();
-    if (!newName.trim() || creatingProject) return;
-    const trimmedName = newName.trim();
-    if (projects.some(p => p.name.toLowerCase() === trimmedName.toLowerCase())) {
-      setProjectNameError('Ya tienes un proyecto con ese nombre');
-      return;
-    }
-    setCreatingProject(true);
-    try {
-      const { data } = await api.post('/projects', { name: trimmedName, description: newDesc });
-      setProjects((p) => [data.project, ...p]);
-      setNewName(''); setNewDesc('');
-      setProjectNameError('');
-      setShowNew(false);
-    } catch { /* ignore */ }
-    finally { setCreatingProject(false); }
-  };
+  const handleModalSubmit = useCallback(({ name, description, engine }) => {
+    setShowNew(false);
+    const apiPromise = api.post('/projects', { name, description, engine });
+    setInitData({ engine, name, apiPromise });
+  }, []);
+
+  const handleInitComplete = useCallback((project) => {
+    setProjects((p) => [project, ...p]);
+    setInitData(null);
+    navigate(`/project/${project.id}`);
+  }, [navigate]);
+
+  const handleInitError = useCallback(() => {
+    setInitData(null);
+    setShowNew(true);
+  }, []);
 
   return (
     <div className="relative">
@@ -280,21 +285,23 @@ export default function DashboardPage() {
               <AnimatePresence>
                 {projects.map((p, i) => {
                   const grad = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
+                  const accent = ENGINE_ACCENT[p.engine] || grad.from;
                   return (
                     <motion.button key={p.id} onClick={() => navigate(`/project/${p.id}`)}
                       className="glass p-6 text-left group relative overflow-hidden"
                       layout whileHover={{
-                        y: -4, borderColor: `${grad.from}30`,
-                        boxShadow: `0 20px 60px ${grad.from}12, 0 0 0 1px ${grad.from}20`,
-                      }} transition={{ duration: 0.3 }}
+                        y: -4,
+                        borderColor: `${accent}35`,
+                        boxShadow: `0 20px 60px ${accent}20, 0 0 0 1px ${accent}25`,
+                      }} transition={{ duration: 0.2 }}
                     >
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                        style={{ background: `linear-gradient(135deg, ${grad.from}06, transparent)` }} />
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                        style={{ background: `linear-gradient(135deg, ${accent}08, transparent)` }} />
                       <div className="relative z-10">
                         <div className="flex items-start justify-between mb-4">
-                          <div className="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                            style={{ background: `linear-gradient(135deg, ${grad.from}18, ${grad.to}08)`, border: `1px solid ${grad.from}20`, boxShadow: `0 0 20px ${grad.from}10` }}>
-                            <FolderKanban size={20} style={{ color: grad.from }} />
+                          <div className="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-[8deg] transition-transform duration-200"
+                            style={{ background: `linear-gradient(135deg, ${accent}18, ${accent}08)`, border: `1px solid ${accent}25`, boxShadow: `0 0 20px ${accent}10` }}>
+                            <EngineImg engine={p.engine} size={20} />
                           </div>
                           <ArrowUpRight size={16} className="text-surface-500 group-hover:text-white transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </div>
@@ -330,33 +337,29 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* Create modal */}
-        <Modal open={showNew} onClose={() => { setShowNew(false); setProjectNameError(''); }} title="Nuevo proyecto">
-          <form onSubmit={createProject} className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-surface-400 mb-1.5 block">Nombre del proyecto</label>
-              <input
-                value={newName}
-                onChange={(e) => { setNewName(e.target.value); setProjectNameError(''); }}
-                placeholder="Mi Juego Increíble"
-                className="input-field"
-                autoFocus required
-              />
-              {projectNameError && <p className="text-xs text-red-400 mt-1">{projectNameError}</p>}
-            </div>
-            <div>
-              <label className="text-xs font-medium text-surface-400 mb-1.5 block">Descripción</label>
-              <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Un RPG 2D con pixel art..." rows={3} className="input-field resize-none" />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => { setShowNew(false); setProjectNameError(''); }} className="btn-secondary">Cancelar</button>
-              <button type="submit" className="btn-primary disabled:opacity-50" disabled={creatingProject}>
-                {creatingProject ? 'Creando…' : 'Crear proyecto'}
-              </button>
-            </div>
-          </form>
-        </Modal>
       </motion.div>
+
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        open={showNew}
+        onClose={() => setShowNew(false)}
+        onSubmit={handleModalSubmit}
+        existingNames={projects.map((p) => p.name)}
+      />
+
+      {/* Init screen */}
+      <AnimatePresence>
+        {initData && (
+          <ProjectInitScreen
+            key="project-init"
+            engine={initData.engine}
+            projectName={initData.name}
+            apiPromise={initData.apiPromise}
+            onComplete={handleInitComplete}
+            onError={handleInitError}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

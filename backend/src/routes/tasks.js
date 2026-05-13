@@ -35,7 +35,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/tasks
 router.post('/', async (req, res, next) => {
   try {
-    const { project_id, title, description, status, priority, due_date, assignee_ids } = req.body;
+    const { project_id, title, description, status, priority, due_date, assignee_ids, board_id } = req.body;
     if (!project_id || !title) return res.status(400).json({ error: 'project_id y title son requeridos.' });
 
     const { rows: perm } = await query(
@@ -47,8 +47,8 @@ router.post('/', async (req, res, next) => {
     }
 
     const { rows } = await query(
-      'INSERT INTO tasks (project_id, title, description, status, priority, due_date, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-      [project_id, title, description || null, status || 'pending', priority || 'medium', due_date || null, req.user.id]
+      'INSERT INTO tasks (project_id, title, description, status, priority, due_date, created_by, board_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+      [project_id, title, description || null, status || 'pending', priority || 'medium', due_date || null, req.user.id, board_id || null]
     );
     const task = rows[0];
 
@@ -92,7 +92,7 @@ router.post('/', async (req, res, next) => {
 // PUT /api/tasks/:id
 router.put('/:id', async (req, res, next) => {
   try {
-    const { title, description, status, priority, due_date, assignee_ids } = req.body;
+    const { title, description, status, priority, due_date, assignee_ids, board_id } = req.body;
     const validStatuses = ['pending', 'in_progress', 'done'];
 
     if (status && !validStatuses.includes(status)) {
@@ -113,8 +113,8 @@ router.put('/:id', async (req, res, next) => {
     }
 
     await query(
-      'UPDATE tasks SET title = $1, description = $2, status = $3, priority = $4, due_date = $5 WHERE id = $6',
-      [title || t.title, description !== undefined ? description : t.description, status || t.status, priority || t.priority, due_date !== undefined ? due_date : t.due_date, req.params.id]
+      'UPDATE tasks SET title = $1, description = $2, status = $3, priority = $4, due_date = $5, board_id = $6 WHERE id = $7',
+      [title || t.title, description !== undefined ? description : t.description, status || t.status, priority || t.priority, due_date !== undefined ? due_date : t.due_date, board_id !== undefined ? (board_id || null) : t.board_id, req.params.id]
     );
 
     // Update assignments if provided
@@ -182,6 +182,27 @@ router.patch('/:id/status', async (req, res, next) => {
 
     const { rows } = await query('UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *', [status, req.params.id]);
     res.json({ task: rows[0] });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/tasks/:id/board
+router.patch('/:id/board', async (req, res, next) => {
+  try {
+    const { boardId } = req.body;
+    const taskRes = await query('SELECT project_id FROM tasks WHERE id = $1', [req.params.id]);
+    if (!taskRes.rows.length) return res.status(404).json({ error: 'Tarea no encontrada.' });
+
+    const { rows: perm } = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [taskRes.rows[0].project_id, req.user.id]
+    );
+    if (!perm.length || perm[0].role === 'viewer') {
+      return res.status(403).json({ error: 'Sin permiso.' });
+    }
+
+    await query('UPDATE tasks SET board_id = $1 WHERE id = $2', [boardId || null, req.params.id]);
+    const full = await query('SELECT * FROM tasks WHERE id = $1', [req.params.id]);
+    res.json({ task: full.rows[0] });
   } catch (err) { next(err); }
 });
 

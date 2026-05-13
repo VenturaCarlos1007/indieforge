@@ -22,7 +22,7 @@ export default function UserAvatar({ name, avatarUrl, size = 28, className = '',
         src={avatarUrl}
         alt={name}
         title={titleAttr}
-        className={`rounded-full object-cover shrink-0 ${className}`}
+        className={`rounded-full object-cover shrink-0 avatar-in ${className}`}
         style={style}
         onError={() => setImgError(true)}
       />
@@ -31,7 +31,7 @@ export default function UserAvatar({ name, avatarUrl, size = 28, className = '',
 
   return (
     <div
-      className={`rounded-full flex items-center justify-center font-bold shrink-0 select-none ${className}`}
+      className={`rounded-full flex items-center justify-center font-bold shrink-0 select-none avatar-in ${className}`}
       style={{
         ...style,
         background: `${color}22`,

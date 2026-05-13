@@ -66,7 +66,7 @@ export default function ProjectSidebar({ project }) {
                     size={28}
                     className={isOnline ? 'opacity-100' : 'opacity-40'}
                   />
-                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-green-400' : 'bg-surface-500'}`} />
+                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-green-400 online-dot-pulse' : 'bg-surface-500'}`} />
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-0.5 rounded-lg text-[10px] text-white whitespace-nowrap pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity z-50"
                     style={{ background: 'rgba(15,15,20,0.95)', border: '1px solid rgba(255,255,255,0.08)' }}>

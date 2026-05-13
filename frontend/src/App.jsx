@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import ToastContainer from './components/common/Toast';
 import SplashScreen from './components/common/SplashScreen';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -38,7 +40,8 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <ToastProvider>
+      <ToastContainer />
       <AnimatePresence>
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
@@ -61,6 +64,6 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </ToastProvider>
   );
 }

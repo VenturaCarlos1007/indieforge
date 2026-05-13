@@ -32,8 +32,9 @@ const server = http.createServer(app);
 app.use(cors({
   origin: [
     'https://indieforge-beryl.vercel.app',
-    'https://indieforge-production.up.railway.app', 
-    'http://localhost:5173'
+    'https://indieforge-production.up.railway.app',
+    'http://localhost:5173',
+    'http://localhost:5174',
   ],
   credentials: true
 }));
@@ -79,6 +80,8 @@ app.set('io', io);
 // ── Cron Jobs
 initCronJobs(io);
 
+const { initProjectBoards } = require('./src/utils/initProjectBoards');
+
 // ── Migrations (idempotent, run at startup)
 async function runMigrations() {
   try {
@@ -95,6 +98,57 @@ async function runMigrations() {
         created_at  TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    await pool.query(`
+      ALTER TABLE projects
+      ADD COLUMN IF NOT EXISTS engine VARCHAR(20) NOT NULL DEFAULT 'custom'
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS project_boards (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        name       VARCHAR(150) NOT NULL,
+        "order"    INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_project_boards_project ON project_boards(project_id)
+    `);
+    // ── Boards feature
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS migrations_log (
+        name         VARCHAR(100) PRIMARY KEY,
+        executed_at  TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS boards (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id      UUID REFERENCES projects(id) ON DELETE CASCADE,
+        name            VARCHAR(100) NOT NULL,
+        icon            VARCHAR(10) DEFAULT '📋',
+        engine_specific BOOLEAN DEFAULT false,
+        position        INTEGER DEFAULT 0,
+        created_at      TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS board_id UUID REFERENCES boards(id) ON DELETE SET NULL`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_boards_project ON boards(project_id)`);
+
+    // Backfill: seed boards for existing projects that have none
+    const already = await pool.query(`SELECT name FROM migrations_log WHERE name = 'seed_boards_v1'`);
+    if (!already.rows.length) {
+      const { rows: projects } = await pool.query(`
+        SELECT p.id, p.engine FROM projects p
+        WHERE NOT EXISTS (SELECT 1 FROM boards b WHERE b.project_id = p.id)
+      `);
+      for (const p of projects) {
+        await initProjectBoards(p.id, p.engine || 'custom');
+      }
+      await pool.query(`INSERT INTO migrations_log (name) VALUES ('seed_boards_v1') ON CONFLICT DO NOTHING`);
+      if (projects.length) console.log(`✅ Boards seeded for ${projects.length} project(s)`);
+    }
+
     console.log('✅ Migrations OK');
   } catch (err) {
     console.error('❌ Migration error:', err.message);

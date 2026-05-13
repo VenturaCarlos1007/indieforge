@@ -3,6 +3,7 @@ const { Router } = require('express');
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 const { logActivity } = require('../utils/activity');
+const { initProjectBoards } = require('../utils/initProjectBoards');
 
 const router = Router();
 
@@ -36,31 +37,55 @@ router.get('/', async (req, res, next) => {
 });
 
 // ── POST /api/projects ───────────────────────────────────────────
+const VALID_ENGINES = ['unity', 'unreal', 'godot', 'roblox', 'custom'];
+const BASE_BOARDS = [
+  'Tareas de Gameplay', 'Seguimiento de Bugs', 'Pipeline de Arte', 'Audio',
+  'Diseño de Niveles', 'Build y Release', 'Marketing',
+];
+const ENGINE_BOARDS = {
+  unity:  ['Escenas', 'Prefabs', 'Scripts', 'Builds'],
+  unreal: ['Sistemas Blueprint', 'Sistemas C++', 'Niveles', 'Shaders / Materiales'],
+  godot:  ['Escenas', 'Scripts', 'Shaders', 'Plugins'],
+  roblox: ['Scripts de Gameplay', 'Construcción de Mapas', 'Monetización', 'Live Ops'],
+  custom: [],
+};
+
 router.post('/', async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, engine } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'El nombre del proyecto es requerido.' });
     }
 
-    // Create project
+    const safeEngine = VALID_ENGINES.includes(engine) ? engine : 'custom';
+
     const { rows } = await query(
-      `INSERT INTO projects (name, description, owner_id)
-       VALUES ($1, $2, $3)
+      `INSERT INTO projects (name, description, owner_id, engine)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [name, description || null, req.user.id]
+      [name, description || null, req.user.id, safeEngine]
     );
 
     const project = rows[0];
 
-    // Add creator as owner member
     await query(
       `INSERT INTO project_members (project_id, user_id, role)
        VALUES ($1, $2, 'owner')`,
       [project.id, req.user.id]
     );
 
+    // Insert default boards for this engine
+    const allBoards = [...BASE_BOARDS, ...(ENGINE_BOARDS[safeEngine] || [])];
+    if (allBoards.length > 0) {
+      const placeholders = allBoards.map((_, i) => `($1, $${i + 2}, ${i})`).join(', ');
+      await query(
+        `INSERT INTO project_boards (project_id, name, "order") VALUES ${placeholders}`,
+        [project.id, ...allBoards]
+      );
+    }
+
+    await initProjectBoards(project.id, safeEngine);
     await logActivity(req, project.id, req.user.id, 'created', 'project', project.id);
 
     res.status(201).json({ project });
@@ -204,6 +229,111 @@ router.get('/:id/stats', async (req, res, next) => {
       }
     });
 
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/projects/:id/boards ────────────────────────────────
+router.get('/:id/boards', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const mem = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [id, req.user.id]
+    );
+    if (!mem.rows.length) return res.status(403).json({ error: 'Sin acceso.' });
+
+    const { rows } = await query(`
+      SELECT b.id, b.name, b.icon, b.engine_specific, b.position,
+             COUNT(t.id)::int AS "taskCount"
+      FROM boards b
+      LEFT JOIN tasks t ON t.board_id = b.id
+      WHERE b.project_id = $1
+      GROUP BY b.id
+      ORDER BY b.position ASC
+    `, [id]);
+
+    res.json({ boards: rows });
+  } catch (err) { next(err); }
+});
+
+// ── GET /api/projects/:id/overview ──────────────────────────────
+router.get('/:id/overview', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const membership = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [id, req.user.id]
+    );
+    if (membership.rows.length === 0) {
+      return res.status(403).json({ error: 'No tienes acceso a este proyecto.' });
+    }
+
+    const projectResult = await query(
+      `SELECT p.*, u.name AS owner_name FROM projects p JOIN users u ON u.id = p.owner_id WHERE p.id = $1`,
+      [id]
+    );
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Proyecto no encontrado.' });
+    }
+
+    const [statsResult, activityResult, urgentResult, assetsResult, membersResult] = await Promise.all([
+      query(`
+        SELECT
+          (SELECT COUNT(*) FROM tasks WHERE project_id = $1 AND status != 'done')::int         AS active_tasks,
+          (SELECT COUNT(*) FROM tasks WHERE project_id = $1 AND status = 'done'
+            AND created_at >= NOW() - INTERVAL '7 days')::int                                  AS completed_this_week,
+          (SELECT COUNT(*) FROM assets WHERE project_id = $1)::int                             AS total_assets,
+          (SELECT COUNT(*) FROM project_members WHERE project_id = $1 AND status = 'active')::int AS total_members
+      `, [id]),
+      query(`
+        SELECT af.*, u.name AS user_name, u.avatar_url
+        FROM activity_feed af
+        JOIN users u ON u.id = af.user_id
+        WHERE af.project_id = $1
+        ORDER BY af.created_at DESC LIMIT 6
+      `, [id]),
+      query(`
+        SELECT t.id, t.title, t.status, t.created_at,
+          u.name AS assigned_name, u.avatar_url AS assigned_avatar
+        FROM tasks t
+        LEFT JOIN LATERAL (
+          SELECT u2.name, u2.avatar_url
+          FROM task_assignments ta
+          JOIN users u2 ON u2.id = ta.user_id
+          WHERE ta.task_id = t.id
+          LIMIT 1
+        ) u ON true
+        WHERE t.project_id = $1 AND t.status != 'done'
+        ORDER BY t.created_at ASC LIMIT 5
+      `, [id]),
+      query(`
+        SELECT a.id, a.name, a.type, a.created_at,
+          u.name AS uploaded_by_name, u.avatar_url AS uploaded_by_avatar
+        FROM assets a
+        JOIN users u ON u.id = a.uploaded_by
+        WHERE a.project_id = $1
+        ORDER BY a.created_at DESC LIMIT 5
+      `, [id]),
+      query(`
+        SELECT pm.role, pm.joined_at, u.id AS user_id, u.name, u.avatar_url
+        FROM project_members pm
+        JOIN users u ON u.id = pm.user_id
+        WHERE pm.project_id = $1 AND pm.status = 'active'
+        ORDER BY pm.joined_at ASC
+      `, [id]),
+    ]);
+
+    res.json({
+      project:        projectResult.rows[0],
+      stats:          statsResult.rows[0],
+      recentActivity: activityResult.rows,
+      urgentTasks:    urgentResult.rows,
+      recentAssets:   assetsResult.rows,
+      members:        membersResult.rows,
+    });
   } catch (err) {
     next(err);
   }

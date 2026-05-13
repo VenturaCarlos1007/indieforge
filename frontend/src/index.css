@@ -4,6 +4,9 @@
 
 /* ── CSS Custom Properties ──────────────────────── */
 :root {
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
   /* Light mode (default) */
   --body-bg:              #F8FAFC;
   --body-color:           #1E293B;
@@ -388,3 +391,53 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
   80%       { transform: translateX(5px); }
 }
 .shake { animation: shake 0.45s ease-in-out; }
+
+/* ── Micro-interaction keyframes ─────────────── */
+@keyframes ripple-expand {
+  from { transform: scale(0); opacity: 0.5; }
+  to   { transform: scale(4); opacity: 0;   }
+}
+@keyframes online-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1;    }
+  50%       { transform: scale(1.4); opacity: 0.5;  }
+}
+@keyframes float-icon {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes avatar-in {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+@keyframes check-draw {
+  from { stroke-dashoffset: 30; }
+  to   { stroke-dashoffset: 0;  }
+}
+
+.online-dot-pulse { animation: online-pulse 2s ease-in-out infinite; }
+.float-icon       { animation: float-icon 3s ease-in-out infinite; }
+.avatar-in        { animation: avatar-in 200ms ease-out both; }
+.check-draw {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: check-draw 400ms ease-out forwards;
+  animation-delay: 100ms;
+}
+.btn-ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(0);
+  animation: ripple-expand 550ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── prefers-reduced-motion ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
