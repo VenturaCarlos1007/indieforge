@@ -107,9 +107,9 @@ export default function ProjectInitScreen({ engine, projectName, apiPromise, onC
       />
 
       {/* Breadcrumb */}
-      <div className="relative z-10 px-8 pt-8">
+      <div className="relative z-10 px-4 sm:px-8 pt-6 sm:pt-8 overflow-hidden">
         <p
-          className="text-[11px] font-mono font-semibold tracking-widest select-none"
+          className="text-[11px] font-mono font-semibold tracking-widest select-none truncate"
           style={{ color: `${eng.color}70` }}
         >
           INDIEFORGE{' '}
@@ -121,27 +121,13 @@ export default function ProjectInitScreen({ engine, projectName, apiPromise, onC
       </div>
 
       {/* Center content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-10">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 sm:gap-10">
         {/* Orbital icon */}
-        <div
-          style={{
-            position: 'relative',
-            width: 160,
-            height: 160,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
+        <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
           {/* Decorative orbit ring */}
           <div
-            style={{
-              position: 'absolute',
-              width: 136,
-              height: 136,
-              borderRadius: '50%',
-              border: `1px dashed ${eng.color}22`,
-            }}
+            className="absolute w-28 h-28 sm:w-[136px] sm:h-[136px] rounded-full"
+            style={{ border: `1px dashed ${eng.color}22` }}
           />
 
           {/* Orbiting dots */}
@@ -170,30 +156,22 @@ export default function ProjectInitScreen({ engine, projectName, apiPromise, onC
 
           {/* Center icon */}
           <motion.div
+            className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center"
             style={{
-              position: 'relative',
-              zIndex: 1,
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
               background: `${eng.color}15`,
               border: `2px solid ${eng.color}50`,
-              color: eng.color,
               boxShadow: `0 0 30px ${eng.color}30`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
             }}
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <EngineImg engine={engine} size={64} />
+            <EngineImg engine={engine} size={64} className="w-12 h-12 sm:w-16 sm:h-16 object-contain" />
           </motion.div>
         </div>
 
         {/* Project name + stack */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">{projectName}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center px-4">{projectName}</h1>
           <p
             className="text-[11px] font-mono font-semibold tracking-widest"
             style={{ color: `${eng.color}70` }}
@@ -263,11 +241,11 @@ export default function ProjectInitScreen({ engine, projectName, apiPromise, onC
 
                   {/* Right status */}
                   {status === 'done' ? (
-                    <span className="text-xs font-semibold" style={{ color: '#10B981' }}>
+                    <span className="text-xs font-semibold shrink-0" style={{ color: '#10B981' }}>
                       ✓ listo
                     </span>
                   ) : (
-                    <span className="text-[11px] text-right" style={{ color: `${eng.color}70` }}>
+                    <span className="text-[11px] text-right hidden sm:block shrink-0" style={{ color: `${eng.color}70` }}>
                       {step.desc}
                     </span>
                   )}

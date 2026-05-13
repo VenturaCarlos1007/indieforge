@@ -92,7 +92,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
           <div
@@ -112,7 +112,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
               transition: 'border-color 150ms ease, box-shadow 150ms ease',
             }}
           >
-            <div className="p-7">
+            <div className="p-4 sm:p-7">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -179,7 +179,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
                 {/* Engine selector */}
                 <div>
                   <label className="text-xs font-medium text-surface-400 mb-2 block">Motor</label>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                     {Object.entries(ENGINES).map(([key, e]) => (
                       <button
                         key={key}

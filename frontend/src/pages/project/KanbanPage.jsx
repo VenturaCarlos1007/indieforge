@@ -188,7 +188,7 @@ export default function KanbanPage() {
     <div className="flex gap-3 items-start">
 
       {/* ── Board sidebar ──────────────────────────────────────── */}
-      <aside className="w-48 shrink-0 sticky top-0 rounded-2xl py-3 px-1"
+      <aside className="hidden md:block w-48 shrink-0 sticky top-0 rounded-2xl py-3 px-1"
         style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
         <p className="text-[10px] font-semibold text-surface-500 uppercase tracking-widest px-2 pb-2">
           Tableros
@@ -248,6 +248,25 @@ export default function KanbanPage() {
 
       {/* ── Main kanban area ───────────────────────────────────── */}
       <div className="flex-1 min-w-0 space-y-5">
+        {/* Mobile board selector */}
+        {boards.length > 0 && (
+          <div className="md:hidden">
+            <select
+              value={selectedBoard || ''}
+              onChange={e => setSelectedBoard(e.target.value || null)}
+              className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none"
+              style={{ colorScheme: 'dark' }}
+            >
+              <option value="" className="bg-gray-900">🗂️ Todos los tableros ({tasks.length})</option>
+              {boards.map(b => (
+                <option key={b.id} value={b.id} className="bg-gray-900">
+                  {b.icon} {b.name} ({boardTaskCount(b.id)})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {kanbanError && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-xl flex items-center justify-between">
             <span>{kanbanError}</span>
@@ -289,14 +308,14 @@ export default function KanbanPage() {
         </div>
 
         {/* Kanban board */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start dot-grid rounded-2xl p-4 -mx-4"
+        <div className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none gap-5 items-start dot-grid rounded-2xl p-4 -mx-4 pb-6 md:pb-4"
           style={{ minHeight: '500px' }}>
           {COLUMNS.map((col) => {
             const columnTasks = filteredTasks.filter((t) => t.status === col.status);
             const isOver = dragOverCol === col.status;
             return (
               <div key={col.status}
-                className="rounded-2xl transition-all duration-200"
+                className="shrink-0 w-[85vw] md:w-auto snap-start rounded-2xl transition-all duration-200"
                 style={{
                   background: isOver ? `${col.accent}0c` : 'transparent',
                   boxShadow: isOver
