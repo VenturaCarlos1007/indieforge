@@ -31,6 +31,8 @@ projectMilestonesRouter.post('/:projectId/milestones', async (req, res, next) =>
     const { name, description, due_date, status } = req.body;
 
     if (!name?.trim()) return res.status(400).json({ error: 'El nombre es requerido.' });
+    if (name.trim().length < 3) return res.status(400).json({ error: 'El nombre del hito debe tener al menos 3 caracteres.' });
+    if (!due_date) return res.status(400).json({ error: 'La fecha límite es requerida.' });
 
     const { rows: perm } = await query(
       `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,

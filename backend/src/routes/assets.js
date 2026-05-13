@@ -60,7 +60,13 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Campos requeridos: project_id, name, type, storage_url.' });
     }
     if (size_bytes && Number(size_bytes) > MAX_SIZE) {
-      return res.status(413).json({ error: 'El archivo supera el límite de 50 MB.' });
+      return res.status(400).json({ error: 'El archivo no puede superar los 50MB.' });
+    }
+
+    const ALLOWED_EXT = ['png','jpg','jpeg','gif','webp','svg','mp3','wav','ogg','mp4','js','ts','cs','lua','gd','json','fbx','obj','glb','gltf','zip','pdf'];
+    const fileExt = name.split('.').pop().toLowerCase();
+    if (!ALLOWED_EXT.includes(fileExt)) {
+      return res.status(400).json({ error: 'Tipo de archivo no permitido.' });
     }
 
     const { rows: perm } = await client.query(

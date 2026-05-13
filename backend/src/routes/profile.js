@@ -52,6 +52,10 @@ router.patch('/', async (req, res, next) => {
   try {
     const { name, bio, favorite_engine, location, website, avatar_url } = req.body;
     if (!name?.trim()) return res.status(400).json({ error: 'El nombre es requerido.' });
+    if (name.trim().length < 2) return res.status(400).json({ error: 'El nombre debe tener al menos 2 caracteres.' });
+    if (website?.trim() && !/^https?:\/\/.+/.test(website.trim())) {
+      return res.status(400).json({ error: 'El sitio web debe ser una URL válida (ej. https://miweb.com).' });
+    }
 
     const safeEngine = VALID_ENGINES.includes(favorite_engine) ? favorite_engine : null;
 
@@ -69,6 +73,10 @@ router.put('/', async (req, res, next) => {
   try {
     const { name, bio, favorite_engine, location, website, avatar_url } = req.body;
     if (!name?.trim()) return res.status(400).json({ error: 'El nombre es requerido.' });
+    if (name.trim().length < 2) return res.status(400).json({ error: 'El nombre debe tener al menos 2 caracteres.' });
+    if (website?.trim() && !/^https?:\/\/.+/.test(website.trim())) {
+      return res.status(400).json({ error: 'El sitio web debe ser una URL válida (ej. https://miweb.com).' });
+    }
 
     const safeEngine = VALID_ENGINES.includes(favorite_engine) ? favorite_engine : null;
 
