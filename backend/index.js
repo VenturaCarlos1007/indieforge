@@ -192,6 +192,21 @@ async function runMigrations() {
       if (projectsMs.length) console.log(`✅ Milestones seeded for ${projectsMs.length} project(s)`);
     }
 
+    // ── Chat edit & reactions feature
+    await pool.query(`ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT false`);
+    await pool.query(`ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS edited_at TIMESTAMP`);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS message_reactions (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        message_id TEXT NOT NULL,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        emoji      VARCHAR(10) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(message_id, user_id, emoji)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_msg_reactions_msg ON message_reactions(message_id)`);
+
     console.log('✅ Migrations OK');
   } catch (err) {
     console.error('❌ Migration error:', err.message);
