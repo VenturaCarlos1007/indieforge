@@ -9,6 +9,10 @@ import { SkeletonCard, EmptyState } from '../../components/common/Skeleton';
 import {
   Plus, GripVertical, Pencil, Trash2, Clock, CheckCircle2, Loader2,
   Users, AlertTriangle, AlertCircle, ArrowDownCircle, Calendar, Layers, ChevronDown, X,
+  Gamepad2, Bug, Palette, Music, Map, Rocket, Megaphone,
+  Clapperboard, Package, Code, Settings,
+  GitBranch, Zap, Mountain, Sparkles,
+  Plug, DollarSign, Radio, LayoutGrid,
 } from 'lucide-react';
 import UserAvatar from '../../components/common/UserAvatar';
 
@@ -46,6 +50,43 @@ const ENGINE_LABEL = {
   unity: 'Unity', unreal: 'Unreal', godot: 'Godot', roblox: 'Roblox', custom: 'Motor',
 };
 
+const BOARD_ICON_MAP = {
+  // "Todos" virtual entry
+  'Todos':                  LayoutGrid,
+  // Base boards
+  'Tareas de Gameplay':     Gamepad2,
+  'Seguimiento de Bugs':    Bug,
+  'Pipeline de Arte':       Palette,
+  'Audio':                  Music,
+  'Diseño de Niveles':      Map,
+  'Build y Release':        Rocket,
+  'Marketing':              Megaphone,
+  // Unity
+  'Escenas':                Clapperboard,
+  'Prefabs':                Package,
+  'Scripts':                Code,
+  'Builds':                 Settings,
+  // Unreal
+  'Sistemas Blueprint':     GitBranch,
+  'Sistemas C++':           Zap,
+  'Niveles':                Mountain,
+  'Shaders/Materiales':     Sparkles,
+  // Godot (Escenas/Scripts already mapped above)
+  'Shaders':                Sparkles,
+  'Plugins':                Plug,
+  // Roblox
+  'Scripts de Gameplay':    Code,
+  'Construcción de Mapas':  Map,
+  'Monetización':           DollarSign,
+  'Live Ops':               Radio,
+};
+
+function BoardIcon({ name, active, accent, size = 16 }) {
+  const Icon = BOARD_ICON_MAP[name];
+  if (!Icon) return null;
+  return <Icon size={size} style={{ color: active ? accent : '#9ca3af' }} />;
+}
+
 // ── Board sidebar item
 function BoardItem({ label, icon, count, active, onClick, accent }) {
   return (
@@ -58,7 +99,9 @@ function BoardItem({ label, icon, count, active, onClick, accent }) {
         borderLeft: `2px solid ${active ? accent : 'transparent'}`,
       }}
     >
-      <span className="shrink-0 text-sm leading-none">{icon}</span>
+      <span className="shrink-0 flex items-center justify-center w-4 h-4">
+        <BoardIcon name={label} active={active} accent={accent} />
+      </span>
       <span className="flex-1 truncate">{label}</span>
       {count > 0 && (
         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
@@ -299,7 +342,9 @@ export default function KanbanPage() {
               }}
             >
               <span className="flex items-center gap-2">
-                <span>{selectedBoardData?.icon || '🗂️'}</span>
+                <span className="flex items-center justify-center w-4 h-4">
+                  <BoardIcon name={selectedBoardData?.name || 'Todos'} active={true} accent={accent} />
+                </span>
                 <span className="truncate">
                   {selectedBoardData ? selectedBoardData.name : `Todos los tableros (${tasks.length})`}
                 </span>
@@ -325,7 +370,9 @@ export default function KanbanPage() {
                       color: !selectedBoard ? 'white' : '#94a3b8',
                     }}
                   >
-                    <span>🗂️</span>
+                    <span className="flex items-center justify-center w-4 h-4">
+                      <BoardIcon name="Todos" active={!selectedBoard} accent={accent} />
+                    </span>
                     <span className="flex-1 text-left">Todos los tableros</span>
                     <span className="text-[10px]" style={{ color: accent }}>{tasks.length}</span>
                   </button>
@@ -344,7 +391,9 @@ export default function KanbanPage() {
                         color: selectedBoard === b.id ? 'white' : '#94a3b8',
                       }}
                     >
-                      <span>{b.icon}</span>
+                      <span className="flex items-center justify-center w-4 h-4">
+                        <BoardIcon name={b.name} active={selectedBoard === b.id} accent={accent} />
+                      </span>
                       <span className="flex-1 text-left truncate">{b.name}</span>
                       <span className="text-[10px] text-surface-500">{boardTaskCount(b.id)}</span>
                     </button>
