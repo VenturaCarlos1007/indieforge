@@ -16,6 +16,12 @@ router.post('/register', async (req, res, next) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos.' });
     }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
+    }
+    if (!/\d/.test(password)) {
+      return res.status(400).json({ error: 'La contraseña debe incluir al menos un número.' });
+    }
 
     // Check if email already exists
     const existing = await query('SELECT id FROM users WHERE email = $1', [email]);

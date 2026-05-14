@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, User, Mail, Lock, AlertCircle, Github, Upload, Shield, Sparkles } from 'lucide-react';
+import { Gamepad2, User, Mail, Lock, AlertCircle, Github, Upload, Shield, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 const HIGHLIGHTS = [
   { icon: Upload,   color: '#a855f7', text: 'Assets con versionado automático' },
@@ -80,9 +80,28 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwErrors, setPwErrors] = useState([]);
+  const [confirmError, setConfirmError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const cardRef = useRef(null);
+
+  const validatePassword = (val) => {
+    const errors = [];
+    if (val.length > 0 && val.length < 8) errors.push('Mínimo 8 caracteres');
+    if (val.length > 0 && !/\d/.test(val)) errors.push('Debe incluir al menos un número');
+    setPwErrors(errors);
+    if (confirmPassword && val !== confirmPassword) setConfirmError('Las contraseñas no coinciden');
+    else if (confirmPassword) setConfirmError('');
+  };
+
+  const validateConfirm = (val) => {
+    if (val && val !== password) setConfirmError('Las contraseñas no coinciden');
+    else setConfirmError('');
+  };
 
   const shake = () => {
     const el = cardRef.current;
@@ -95,8 +114,18 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.');
+      shake();
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setError('La contraseña debe incluir al menos un número.');
+      shake();
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
       shake();
       return;
     }
@@ -204,13 +233,42 @@ export default function RegisterPage() {
               <label className="text-xs font-medium text-surface-400 mb-1.5 block">Contraseña</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
-                <input id="register-password" type="password" placeholder="Mínimo 6 caracteres" value={password}
-                  onChange={(e) => setPassword(e.target.value)} required
-                  className="input-field pl-10"
+                <input id="register-password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres" value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => validatePassword(password)}
+                  required
+                  className="input-field pl-10 pr-10"
                   style={{ fontSize: '16px' }} />
+                <button type="button" onClick={() => setShowPassword(p => !p)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-surface-400 hover:text-white transition-colors">
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
+              {pwErrors.length > 0 && (
+                <div className="mt-1.5 space-y-0.5">
+                  {pwErrors.map(e => <p key={e} className="text-xs text-red-400">{e}</p>)}
+                </div>
+              )}
             </div>
-            <button id="register-submit" type="submit" disabled={loading}
+            <div>
+              <label className="text-xs font-medium text-surface-400 mb-1.5 block">Confirmar contraseña</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
+                <input id="register-confirm" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repite tu contraseña" value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onBlur={() => validateConfirm(confirmPassword)}
+                  required
+                  className="input-field pl-10 pr-10"
+                  style={{ fontSize: '16px' }} />
+                <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-surface-400 hover:text-white transition-colors">
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {confirmError && <p className="text-xs text-red-400 mt-1.5">{confirmError}</p>}
+            </div>
+            <button id="register-submit" type="submit"
+              disabled={loading || !name || !email || !password || !confirmPassword || password.length < 8 || !/\d/.test(password) || password !== confirmPassword}
               className="btn-primary w-full mt-2 disabled:opacity-50 disabled:cursor-not-allowed">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
