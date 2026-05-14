@@ -66,7 +66,9 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { project_id, content, mention_ids } = req.body;
-    if (!project_id || !content?.trim()) return res.status(400).json({ error: 'Datos incompletos.' });
+    if (!project_id) return res.status(400).json({ error: 'Datos incompletos.' });
+    if (!content?.trim()) return res.status(400).json({ error: 'El mensaje no puede estar vacío.' });
+    if (content.length > 500) return res.status(400).json({ error: 'El mensaje no puede superar los 500 caracteres.' });
 
     const member = await query(
       `SELECT 1 FROM project_members WHERE project_id=$1 AND user_id=$2 AND status='active'`,

@@ -10,6 +10,7 @@ import UserAvatar, { nameColor } from '../../components/common/UserAvatar';
 
 const EMOJI_SET = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎮', '✅'];
 const ENGINE_ACCENT = { unity: '#4CAF50', unreal: '#2196F3', godot: '#5C6BC0', roblox: '#F59E0B', custom: '#7C3AED' };
+const MAX_CHARS = 500;
 
 // ── helpers ──────────────────────────────────────────────────────────
 function groupReactions(raw = []) {
@@ -651,6 +652,7 @@ export default function ChatPage() {
               placeholder="Escribe un mensaje… (@ para mencionar)"
               rows={1}
               className="input-field w-full resize-none py-2.5 leading-relaxed"
+              maxLength={MAX_CHARS}
               style={{ maxHeight: '120px', overflowY: 'auto', fontSize: isMobile ? '16px' : undefined }}
             />
             {/* Mention dropdown */}
@@ -675,14 +677,19 @@ export default function ChatPage() {
               )}
             </AnimatePresence>
           </div>
-          <button type="submit" disabled={!text.trim() || sending}
+          <button type="submit" disabled={!text.trim() || sending || text.length > MAX_CHARS}
             className="btn-primary px-3 py-2.5 min-h-[44px] min-w-[44px] shrink-0 disabled:opacity-40 flex items-center justify-center">
             {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>
         </form>
-        <p className="hidden md:block text-[10px] text-surface-500 mt-1.5">
-          Enter para enviar · Shift+Enter para nueva línea · @ para mencionar
-        </p>
+        <div className="flex items-center justify-between mt-1.5">
+          <p className="hidden md:block text-[10px] text-surface-500">
+            Enter para enviar · Shift+Enter para nueva línea · @ para mencionar
+          </p>
+          <span className={`text-xs ml-auto ${
+            text.length >= MAX_CHARS ? 'text-red-400' : text.length > 450 ? 'text-yellow-400' : 'text-surface-500'
+          }`}>{text.length}/{MAX_CHARS}</span>
+        </div>
       </div>
     </div>
   );
