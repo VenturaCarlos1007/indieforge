@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../../components/layout/ProjectLayout';
@@ -8,9 +8,11 @@ import Modal from '../../components/common/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import {
-  UserPlus, Shield, ShieldCheck, Eye, Crown, Trash2, Mail, AlertTriangle
+  UserPlus, Shield, ShieldCheck, Eye, Crown, Trash2, Mail, AlertTriangle,
+  CheckCircle, XCircle, Clock,
 } from 'lucide-react';
 import UserAvatar from '../../components/common/UserAvatar';
+import { timeAgo } from '../../utils/helpers';
 
 const ROLE_CONFIG = {
   owner:  { label: 'Propietario', icon: Crown,      badge: 'bg-amber-500/15 text-amber-400' },
@@ -36,6 +38,36 @@ export default function MembersPage() {
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  // Join requests
+  const [joinRequests, setJoinRequests]     = useState([]);
+  const [processingIds, setProcessingIds]   = useState(new Set());
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.get(`/projects/${projectId}/join-requests`)
+      .then(res => setJoinRequests(res.data.requests))
+      .catch(() => {});
+  }, [projectId, isAdmin]);
+
+  const handleJoinRequest = async (requestId, status) => {
+    setProcessingIds(prev => new Set([...prev, requestId]));
+    try {
+      const { data } = await api.patch(`/projects/${projectId}/join-requests/${requestId}`, { status });
+      setJoinRequests(prev => prev.filter(r => r.id !== requestId));
+      if (status === 'aceptado' && data.member) {
+        setMembers(prev => [...prev, data.member]);
+      }
+      addToast({
+        message: status === 'aceptado' ? 'Solicitud aceptada' : 'Solicitud rechazada',
+        type: status === 'aceptado' ? 'success' : 'info',
+      });
+    } catch (err) {
+      addToast({ message: err.response?.data?.error || 'Error al procesar la solicitud.', type: 'error' });
+    } finally {
+      setProcessingIds(prev => { const s = new Set(prev); s.delete(requestId); return s; });
+    }
+  };
 
   // Delete project modal state
   const [showDeleteProject, setShowDeleteProject] = useState(false);
@@ -117,6 +149,75 @@ export default function MembersPage() {
           {roleError}
         </div>
       )}
+
+      {/* Solicitudes de unión — solo owner/admin, solo si hay pendientes */}
+      <AnimatePresence>
+        {isAdmin && joinRequests.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <Clock size={15} className="text-emerald-400" />
+              <h2 className="text-sm font-semibold text-emerald-300">
+                Solicitudes de unión
+                <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400">
+                  {joinRequests.length}
+                </span>
+              </h2>
+            </div>
+
+            <div className="space-y-2">
+              <AnimatePresence>
+                {joinRequests.map(req => {
+                  const busy = processingIds.has(req.id);
+                  return (
+                    <motion.div
+                      key={req.id}
+                      className="glass-sm p-3.5 flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
+                    >
+                      <UserAvatar name={req.user.name} avatarUrl={req.user.avatar_url} size={36} />
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{req.user.name}</p>
+                        <p className="text-xs text-surface-400 truncate">{req.user.email}</p>
+                        {req.message && (
+                          <p className="text-xs text-surface-300 mt-0.5 italic line-clamp-1">
+                            "{req.message}"
+                          </p>
+                        )}
+                        <p className="text-[10px] text-surface-500 mt-0.5">{timeAgo(req.created_at)}</p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => handleJoinRequest(req.id, 'aceptado')}
+                          disabled={busy}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 disabled:opacity-40 transition-all"
+                        >
+                          <CheckCircle size={12} /> Aceptar
+                        </button>
+                        <button
+                          onClick={() => handleJoinRequest(req.id, 'rechazado')}
+                          disabled={busy}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 disabled:opacity-40 transition-all"
+                        >
+                          <XCircle size={12} /> Rechazar
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Members list */}
       <div className="space-y-2">

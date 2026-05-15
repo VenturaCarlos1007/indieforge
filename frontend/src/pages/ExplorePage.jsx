@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Compass, Users, Calendar, X, Lock } from 'lucide-react';
+import { Search, Compass, Users, Calendar, X, UserPlus, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import { EngineImg } from '../components/common/EngineIcons';
 
@@ -16,25 +17,41 @@ const ENGINE_META = {
 
 const FILTER_ENGINES = ['all', 'unity', 'unreal', 'godot', 'roblox', 'custom'];
 
-const stagger = { show: { transition: { staggerChildren: 0.05 } } };
-const cardVariant = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
+const stagger      = { show: { transition: { staggerChildren: 0.05 } } };
+const cardVariant  = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
 
 export default function ExplorePage() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { user }      = useAuth();
+  const { addToast }  = useToast();
+  const navigate      = useNavigate();
 
-  const [projects, setProjects]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState('');
-  const [engineFilter, setEngineFilter] = useState('all');
-  const [userProjectIds, setUserProjectIds] = useState(new Set());
-  const [modal, setModal]             = useState(null); // { project, type: 'login' | 'join' }
+  const [projects, setProjects]               = useState([]);
+  const [loading, setLoading]                 = useState(true);
+  const [search, setSearch]                   = useState('');
+  const [engineFilter, setEngineFilter]       = useState('all');
+  const [userProjectIds, setUserProjectIds]   = useState(new Set());
+  const [pendingProjectIds, setPendingProjectIds] = useState(new Set());
 
-  // Obtener proyectos del usuario para verificar membresía
+  // Modal de login (para usuarios no autenticados)
+  const [loginModal, setLoginModal]           = useState(null); // { project }
+  // Modal de solicitud de unión
+  const [requestModal, setRequestModal]       = useState(null); // { project }
+  const [requestMessage, setRequestMessage]   = useState('');
+  const [submitting, setSubmitting]           = useState(false);
+
+  // Proyectos del usuario (para verificar membresía)
   useEffect(() => {
     if (!user) return;
     api.get('/projects')
       .then(res => setUserProjectIds(new Set(res.data.projects.map(p => p.id))))
+      .catch(() => {});
+  }, [user]);
+
+  // Solicitudes pendientes del usuario
+  useEffect(() => {
+    if (!user) return;
+    api.get('/join-requests')
+      .then(res => setPendingProjectIds(new Set(res.data.projectIds)))
       .catch(() => {});
   }, [user]);
 
@@ -43,7 +60,7 @@ export default function ExplorePage() {
     setLoading(true);
     try {
       const params = {};
-      if (search)                          params.name   = search;
+      if (search)                              params.name   = search;
       if (engineFilter && engineFilter !== 'all') params.engine = engineFilter;
       const { data } = await api.get('/projects/explore', { params });
       setProjects(data.projects);
@@ -59,10 +76,28 @@ export default function ExplorePage() {
     return () => clearTimeout(t);
   }, [fetchProjects]);
 
-  const handleViewProject = (project) => {
-    if (!user)                            return setModal({ project, type: 'login' });
-    if (userProjectIds.has(project.id))   return navigate(`/project/${project.id}`);
-    setModal({ project, type: 'join' });
+  const openRequestModal = (project) => {
+    if (!user) return setLoginModal({ project });
+    setRequestModal({ project });
+    setRequestMessage('');
+  };
+
+  const handleSubmitRequest = async () => {
+    if (!requestModal || submitting) return;
+    setSubmitting(true);
+    try {
+      await api.post(`/projects/${requestModal.project.id}/join-requests`, {
+        message: requestMessage.trim() || undefined,
+      });
+      setPendingProjectIds(prev => new Set([...prev, requestModal.project.id]));
+      addToast({ message: 'Solicitud enviada correctamente', type: 'success' });
+      setRequestModal(null);
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Error al enviar la solicitud.';
+      addToast({ message: msg, type: 'error' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const hasFilters = search || engineFilter !== 'all';
@@ -102,7 +137,7 @@ export default function ExplorePage() {
 
         <div className="flex gap-2 flex-wrap">
           {FILTER_ENGINES.map(e => {
-            const meta = ENGINE_META[e];
+            const meta   = ENGINE_META[e];
             const active = engineFilter === e;
             const accent = e === 'all' ? '#10b981' : meta?.color;
             return (
@@ -164,8 +199,9 @@ export default function ExplorePage() {
           variants={stagger} initial="hidden" animate="show"
         >
           {projects.map(project => {
-            const eng = ENGINE_META[project.engine] || ENGINE_META.custom;
+            const eng      = ENGINE_META[project.engine] || ENGINE_META.custom;
             const isMember = userProjectIds.has(project.id);
+            const isPending = pendingProjectIds.has(project.id);
 
             return (
               <motion.div
@@ -217,38 +253,59 @@ export default function ExplorePage() {
                   por <span className="text-surface-300 font-medium">{project.owner_name}</span>
                 </p>
 
-                {/* Botón */}
-                <button
-                  onClick={() => handleViewProject(project)}
-                  className="w-full py-2 rounded-xl text-sm font-semibold transition-all"
-                  style={isMember ? {
-                    background: `${eng.color}20`,
-                    color: eng.color,
-                    border: `1px solid ${eng.color}40`,
-                  } : {
-                    background: 'rgba(255,255,255,0.06)',
-                    color: 'var(--body-color)',
-                    border: '1px solid rgba(255,255,255,0.10)',
-                  }}
-                >
-                  {isMember ? 'Ir al proyecto →' : 'Ver proyecto'}
-                </button>
+                {/* Botón según estado */}
+                {isMember ? (
+                  <button
+                    onClick={() => navigate(`/project/${project.id}`)}
+                    className="w-full py-2 rounded-xl text-sm font-semibold transition-all"
+                    style={{
+                      background: `${eng.color}20`,
+                      color: eng.color,
+                      border: `1px solid ${eng.color}40`,
+                    }}
+                  >
+                    Abrir proyecto →
+                  </button>
+                ) : isPending ? (
+                  <div
+                    className="w-full py-2 rounded-xl text-sm font-medium text-center flex items-center justify-center gap-1.5"
+                    style={{
+                      background: 'rgba(245,158,11,0.08)',
+                      color: '#fbbf24',
+                      border: '1px solid rgba(245,158,11,0.20)',
+                    }}
+                  >
+                    <Clock size={13} /> Solicitud pendiente
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => openRequestModal(project)}
+                    className="w-full py-2 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5"
+                    style={{
+                      background: 'rgba(16,185,129,0.08)',
+                      color: '#34d399',
+                      border: '1px solid rgba(16,185,129,0.20)',
+                    }}
+                  >
+                    <UserPlus size={14} /> Solicitar unirse
+                  </button>
+                )}
               </motion.div>
             );
           })}
         </motion.div>
       )}
 
-      {/* Modal */}
+      {/* Modal login */}
       <AnimatePresence>
-        {modal && (
+        {loginModal && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
             <div
               className="absolute inset-0 cursor-pointer"
-              onClick={() => setModal(null)}
+              onClick={() => setLoginModal(null)}
               style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
             />
             <motion.div
@@ -262,42 +319,89 @@ export default function ExplorePage() {
                 className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
                 style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.20)' }}
               >
-                {modal.type === 'login'
-                  ? <Compass size={22} className="text-emerald-400" />
-                  : <Lock size={22} className="text-emerald-400" />
-                }
+                <Compass size={22} className="text-emerald-400" />
+              </div>
+              <h3 className="text-base font-semibold text-white text-center mb-1">{loginModal.project.name}</h3>
+              <p className="text-sm text-surface-400 text-center mb-5">
+                Iniciá sesión para solicitar unirte a proyectos de la comunidad.
+              </p>
+              <div className="flex gap-3">
+                <Link
+                  to="/login"
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold text-center transition-all"
+                  style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                >
+                  Iniciar sesión
+                </Link>
+                <button onClick={() => setLoginModal(null)} className="btn-secondary flex-1">
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal solicitud de unión */}
+      <AnimatePresence>
+        {requestModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          >
+            <div
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => !submitting && setRequestModal(null)}
+              style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
+            />
+            <motion.div
+              className="relative w-full max-w-sm rounded-2xl p-7"
+              style={{ background: '#0f1117', border: '1px solid rgba(255,255,255,0.10)' }}
+              initial={{ scale: 0.92, y: 20 }}
+              animate={{ scale: 1, y: 0, transition: { type: 'spring', damping: 28, stiffness: 320 } }}
+              exit={{ scale: 0.92, y: 20, transition: { duration: 0.15 } }}
+            >
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.20)' }}
+              >
+                <UserPlus size={22} className="text-emerald-400" />
               </div>
 
-              <h3 className="text-base font-semibold text-white text-center mb-1">{modal.project.name}</h3>
+              <h3 className="text-base font-semibold text-white text-center mb-1">
+                {requestModal.project.name}
+              </h3>
+              <p className="text-xs text-surface-400 text-center mb-5">
+                Tu solicitud será enviada al owner para su aprobación.
+              </p>
 
-              {modal.type === 'login' ? (
-                <>
-                  <p className="text-sm text-surface-400 text-center mb-5">
-                    Iniciá sesión para ver los proyectos de la comunidad.
-                  </p>
-                  <div className="flex gap-3">
-                    <Link
-                      to="/login"
-                      className="flex-1 py-2 rounded-xl text-sm font-semibold text-center transition-all"
-                      style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
-                    >
-                      Iniciar sesión
-                    </Link>
-                    <button onClick={() => setModal(null)} className="btn-secondary flex-1">
-                      Cancelar
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-surface-400 text-center mb-5">
-                    Solicitá unirte o pedí una invitación al owner del proyecto.
-                  </p>
-                  <button onClick={() => setModal(null)} className="btn-secondary w-full">
-                    Entendido
-                  </button>
-                </>
-              )}
+              <textarea
+                value={requestMessage}
+                onChange={e => setRequestMessage(e.target.value)}
+                placeholder="Mensaje para el owner (opcional)"
+                rows={3}
+                maxLength={300}
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-surface-500 resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500/40 mb-4"
+              />
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSubmitRequest}
+                  disabled={submitting}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+                  style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                >
+                  <UserPlus size={14} />
+                  {submitting ? 'Enviando…' : 'Enviar solicitud'}
+                </button>
+                <button
+                  onClick={() => setRequestModal(null)}
+                  disabled={submitting}
+                  className="btn-secondary flex-1"
+                >
+                  Cancelar
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
