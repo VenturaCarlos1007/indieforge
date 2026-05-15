@@ -42,6 +42,21 @@ projectMilestonesRouter.post('/:projectId/milestones', async (req, res, next) =>
       return res.status(403).json({ error: 'No tienes permiso para crear hitos.' });
     }
 
+    const { rows: dup } = await query(
+      `SELECT id FROM milestones WHERE project_id = $1 AND LOWER(name) = LOWER($2)`,
+      [projectId, name.trim()]
+    );
+    if (dup.length) return res.status(400).json({ error: 'Ya existe un hito con ese nombre en este proyecto.' });
+
+    const { rows: projRow } = await query(`SELECT created_at FROM projects WHERE id = $1`, [projectId]);
+    if (projRow.length) {
+      const projDate = new Date(projRow[0].created_at);
+      projDate.setHours(0, 0, 0, 0);
+      if (new Date(due_date) < projDate) {
+        return res.status(400).json({ error: 'La fecha límite no puede ser anterior a la fecha de creación del proyecto.' });
+      }
+    }
+
     const { rows: posRow } = await query(
       `SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM milestones WHERE project_id = $1`,
       [projectId]
@@ -78,6 +93,34 @@ milestonesRouter.patch('/:id', async (req, res, next) => {
       return res.status(403).json({ error: 'No tienes permiso para editar hitos.' });
     }
 
+    if (name !== undefined) {
+      const { rows: dup } = await query(
+        `SELECT id FROM milestones WHERE project_id = $1 AND LOWER(name) = LOWER($2) AND id != $3`,
+        [ms[0].project_id, name.trim(), id]
+      );
+      if (dup.length) return res.status(400).json({ error: 'Ya existe un hito con ese nombre en este proyecto.' });
+    }
+
+    if (due_date !== undefined && due_date) {
+      const { rows: projRow } = await query(`SELECT created_at FROM projects WHERE id = $1`, [ms[0].project_id]);
+      if (projRow.length) {
+        const projDate = new Date(projRow[0].created_at);
+        projDate.setHours(0, 0, 0, 0);
+        if (new Date(due_date) < projDate) {
+          return res.status(400).json({ error: 'La fecha límite no puede ser anterior a la fecha de creación del proyecto.' });
+        }
+      }
+    }
+
+    let warning = null;
+    if (status === 'completado') {
+      const { rows: active } = await query(
+        `SELECT id FROM tasks WHERE project_id = $1 AND status != 'done' LIMIT 1`,
+        [ms[0].project_id]
+      );
+      if (active.length) warning = 'Aún hay tareas activas en el proyecto';
+    }
+
     const fields = [];
     const params = [];
     let idx = 1;
@@ -94,7 +137,7 @@ milestonesRouter.patch('/:id', async (req, res, next) => {
       `UPDATE milestones SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
       params
     );
-    res.json(rows[0]);
+    res.json(warning ? { ...rows[0], warning } : rows[0]);
   } catch (err) { next(err); }
 });
 
