@@ -18,12 +18,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Redirect to login on 401 (skip auth endpoints to allow error display on login/register)
+// Redirect to login on 401 only when a token was present (session expired, not anonymous access)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isAuthEndpoint = error.config?.url?.includes('/auth/');
-    if (error.response?.status === 401 && !isAuthEndpoint) {
+    const hadToken = !!localStorage.getItem('token');
+    if (error.response?.status === 401 && !isAuthEndpoint && hadToken) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

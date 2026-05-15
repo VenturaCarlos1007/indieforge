@@ -8,6 +8,39 @@ const { initProjectMilestones } = require('../utils/initProjectMilestones');
 
 const router = Router();
 
+// ── GET /api/projects/explore (público, sin autenticación) ───────
+router.get('/explore', async (req, res, next) => {
+  try {
+    const { name, engine } = req.query;
+    const params = [];
+    let conditions = 'WHERE p.is_public = true';
+
+    if (name) {
+      params.push(`%${name}%`);
+      conditions += ` AND p.name ILIKE $${params.length}`;
+    }
+    if (engine && engine !== 'all' && ['unity', 'unreal', 'godot', 'roblox', 'custom'].includes(engine)) {
+      params.push(engine);
+      conditions += ` AND p.engine = $${params.length}`;
+    }
+
+    const { rows } = await query(
+      `SELECT p.id, p.name, p.description, p.engine, p.created_at,
+        u.name AS owner_name,
+        (SELECT COUNT(*)::int FROM project_members WHERE project_id = p.id AND status = 'active') AS member_count
+       FROM projects p
+       JOIN users u ON u.id = p.owner_id
+       ${conditions}
+       ORDER BY p.created_at DESC
+       LIMIT 50`,
+      params
+    );
+    res.json({ projects: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // All project routes require authentication
 router.use(authenticate);
 
@@ -53,7 +86,7 @@ const ENGINE_BOARDS = {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { name, description, engine } = req.body;
+    const { name, description, engine, is_public } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'El nombre del proyecto es requerido.' });
@@ -65,10 +98,10 @@ router.post('/', async (req, res, next) => {
     const safeEngine = VALID_ENGINES.includes(engine) ? engine : 'custom';
 
     const { rows } = await query(
-      `INSERT INTO projects (name, description, owner_id, engine)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO projects (name, description, owner_id, engine, is_public)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [name, description || null, req.user.id, safeEngine]
+      [name, description || null, req.user.id, safeEngine, is_public === true]
     );
 
     const project = rows[0];
@@ -349,6 +382,8 @@ router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
+    const isPublic = typeof req.body.is_public === 'boolean' ? req.body.is_public : undefined;
+
     if (!name) return res.status(400).json({ error: 'El nombre es requerido.' });
 
     const mem = await query(
@@ -358,10 +393,13 @@ router.put('/:id', async (req, res, next) => {
     if (!mem.rows.length || !['owner', 'admin'].includes(mem.rows[0].role)) {
       return res.status(403).json({ error: 'Solo el propietario o admin puede editar el proyecto.' });
     }
+    if (isPublic !== undefined && mem.rows[0].role !== 'owner') {
+      return res.status(403).json({ error: 'Solo el propietario puede cambiar la visibilidad del proyecto.' });
+    }
 
     const { rows } = await query(
-      'UPDATE projects SET name = $1, description = $2 WHERE id = $3 RETURNING *',
-      [name, description ?? null, id]
+      'UPDATE projects SET name = $1, description = $2, is_public = COALESCE($3::boolean, is_public) WHERE id = $4 RETURNING *',
+      [name, description ?? null, isPublic ?? null, id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Proyecto no encontrado.' });
     res.json({ project: rows[0] });

@@ -192,6 +192,9 @@ async function runMigrations() {
       if (projectsMs.length) console.log(`✅ Milestones seeded for ${projectsMs.length} project(s)`);
     }
 
+    // ── Reply to message feature
+    await pool.query(`ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS reply_to_id INTEGER REFERENCES project_messages(id) ON DELETE SET NULL`);
+
     // ── Chat edit & reactions feature
     await pool.query(`ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT false`);
     await pool.query(`ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS edited_at TIMESTAMP`);
@@ -226,6 +229,9 @@ async function runMigrations() {
         END IF;
       END $$
     `);
+
+    // ── Proyectos públicos/privados
+    await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false`);
 
     console.log('✅ Migrations OK');
   } catch (err) {

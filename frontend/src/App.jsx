@@ -19,6 +19,7 @@ import ProjectStatsPage from './pages/project/ProjectStatsPage';
 import ChatPage from './pages/project/ChatPage';
 import MilestonesPage from './pages/project/MilestonesPage';
 import ProfilePage from './pages/ProfilePage';
+import ExplorePage from './pages/ExplorePage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -51,6 +52,11 @@ export default function App() {
         <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        {/* Explorar es público: visible con o sin sesión */}
+        <Route path="/" element={<Layout />}>
+          <Route path="explore" element={<ExplorePage />} />
+        </Route>
+
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />

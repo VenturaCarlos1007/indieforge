@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Lock, Globe } from 'lucide-react';
 import { EngineImg } from './EngineIcons';
 
 export const ENGINES = {
@@ -57,11 +57,12 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
   const [desc, setDesc] = useState('');
   const [engine, setEngine] = useState('custom');
   const [nameError, setNameError] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
 
   const eng = ENGINES[engine];
 
   useEffect(() => {
-    if (!open) { setName(''); setDesc(''); setEngine('custom'); setNameError(''); }
+    if (!open) { setName(''); setDesc(''); setEngine('custom'); setNameError(''); setIsPublic(false); }
   }, [open]);
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
       setNameError('Ya tienes un proyecto con ese nombre');
       return;
     }
-    onSubmit({ name: trimmed, description: desc, engine });
+    onSubmit({ name: trimmed, description: desc, engine, isPublic });
   };
 
   return (
@@ -274,6 +275,48 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
                       </span>
                     ))}
                   </motion.div>
+                </div>
+
+                {/* Visibilidad */}
+                <div
+                  className="flex items-center justify-between p-4 rounded-xl cursor-pointer"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onClick={() => setIsPublic((v) => !v)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{
+                        background: isPublic ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${isPublic ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                      }}
+                    >
+                      {isPublic
+                        ? <Globe size={14} style={{ color: '#4ade80' }} />
+                        : <Lock size={14} style={{ color: '#9ca3af' }} />
+                      }
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {isPublic ? 'Proyecto público' : 'Proyecto privado'}
+                      </p>
+                      <p className="text-[11px] text-surface-400">
+                        {isPublic
+                          ? 'Cualquiera puede ver este proyecto en el explorador'
+                          : 'Solo los miembros pueden ver este proyecto'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className="relative shrink-0 w-10 h-5 rounded-full transition-colors duration-200"
+                    style={{ background: isPublic ? '#22c55e' : 'rgba(255,255,255,0.15)' }}
+                  >
+                    <div
+                      className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 shadow"
+                      style={{ left: isPublic ? 'calc(100% - 18px)' : '2px' }}
+                    />
+                  </div>
                 </div>
 
                 {/* Actions */}

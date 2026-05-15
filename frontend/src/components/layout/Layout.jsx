@@ -7,10 +7,12 @@ import NotificationBell from './NotificationBell';
 import GlobalSearchModal from '../common/GlobalSearchModal';
 import Tooltip from '../common/Tooltip';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 const SECTION_MAP = {
   '/dashboard': 'Proyectos',
   '/profile':   'Mi Perfil',
+  '/explore':   'Explorar',
   '/kanban':    'Kanban',
   '/assets':    'Assets',
   '/members':   'Miembros',
@@ -31,6 +33,7 @@ export default function Layout() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { dark, toggle } = useTheme();
+  const { user } = useAuth();
 
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
@@ -95,7 +98,7 @@ export default function Layout() {
                 }
               </button>
             </Tooltip>
-            <NotificationBell />
+            {user && <NotificationBell />}
           </div>
         </header>
 

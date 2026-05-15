@@ -4,7 +4,7 @@ import { motion, AnimatePresence, animate } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { SkeletonCard } from '../components/common/Skeleton';
-import { Plus, Clock, Gamepad2, ArrowUpRight, CheckCircle2, FileUp, Activity, Rocket } from 'lucide-react';
+import { Plus, Clock, Gamepad2, ArrowUpRight, CheckCircle2, FileUp, Activity, Rocket, Lock, Globe } from 'lucide-react';
 import { EngineImg } from '../components/common/EngineIcons';
 import { EmptyState } from '../components/common/Skeleton';
 import { timeAgo } from '../utils/helpers';
@@ -157,9 +157,9 @@ export default function DashboardPage() {
     .finally(() => setLoading(false));
   }, []);
 
-  const handleModalSubmit = useCallback(({ name, description, engine }) => {
+  const handleModalSubmit = useCallback(({ name, description, engine, isPublic }) => {
     setShowNew(false);
-    const apiPromise = api.post('/projects', { name, description, engine });
+    const apiPromise = api.post('/projects', { name, description, engine, is_public: isPublic });
     setInitData({ engine, name, apiPromise });
   }, []);
 
@@ -303,7 +303,23 @@ export default function DashboardPage() {
                             style={{ background: `linear-gradient(135deg, ${accent}18, ${accent}08)`, border: `1px solid ${accent}25`, boxShadow: `0 0 20px ${accent}10` }}>
                             <EngineImg engine={p.engine} size={20} />
                           </div>
-                          <ArrowUpRight size={16} className="text-surface-500 group-hover:text-white transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                              style={p.is_public ? {
+                                background: 'rgba(34,197,94,0.10)',
+                                color: '#4ade80',
+                                border: '1px solid rgba(34,197,94,0.20)',
+                              } : {
+                                background: 'rgba(255,255,255,0.05)',
+                                color: '#6b7280',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                              }}
+                            >
+                              {p.is_public ? <><Globe size={9} /> Público</> : <><Lock size={9} /> Privado</>}
+                            </span>
+                            <ArrowUpRight size={16} className="text-surface-500 group-hover:text-white transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </div>
                         </div>
                         <h3 className="font-semibold text-white text-base mb-1">{p.name}</h3>
                         {p.description && <p className="text-xs text-surface-400 line-clamp-2 leading-relaxed">{p.description}</p>}

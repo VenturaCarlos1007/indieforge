@@ -3,11 +3,12 @@ import { createPortal } from 'react-dom';
 import { NavLink, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, LogOut, Gamepad2, Sparkles, Settings, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, Gamepad2, Sparkles, Settings, User, Compass } from 'lucide-react';
 
 const navItems = [
   { to: '/dashboard', label: 'Proyectos', icon: LayoutDashboard, accent: '#a855f7' },
-  { to: '/profile', label: 'Mi Perfil', icon: User, accent: '#06b6d4' },
+  { to: '/explore',   label: 'Explorar',  icon: Compass,         accent: '#10b981' },
+  { to: '/profile',  label: 'Mi Perfil',  icon: User,            accent: '#06b6d4' },
 ];
 
 export default function Sidebar({ open, onClose }) {
