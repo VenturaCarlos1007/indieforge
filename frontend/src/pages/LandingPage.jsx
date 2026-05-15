@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Gamepad2, Users, FolderKanban, Upload, Columns3,
-  MessageSquare, Zap, ArrowRight, Sparkles, Github,
+  MessageSquare, Zap, ArrowRight, Github,
   Check, Star, Twitter, Folder, Play, ChevronRight,
   Menu, X,
 } from 'lucide-react';
@@ -15,7 +15,7 @@ const fadeUp = {
 const stagger = { show: { transition: { staggerChildren: 0.1 } } };
 
 const FEATURES = [
-  { icon: FolderKanban, title: 'Gestión de Proyectos',   desc: 'Organiza tus juegos indie con dashboards inteligentes y seguimiento de progreso en tiempo real.', color: '#a855f7' },
+  { icon: FolderKanban, title: 'Gestión de Proyectos',   desc: 'Organiza tus juegos indie con dashboards inteligentes y seguimiento de progreso en tiempo real.', color: '#FF6B00' },
   { icon: Upload,       title: 'Assets con Versionado',  desc: 'Sube y gestiona arte, audio, modelos 3D con versionado automático y restauración instantánea.', color: '#22d3ee' },
   { icon: Columns3,     title: 'Kanban Visual',           desc: 'Tableros drag & drop con columnas personalizadas para tu pipeline de desarrollo.', color: '#fbbf24' },
   { icon: Users,        title: 'Colaboración en Equipo',  desc: 'Invita artistas, programadores y diseñadores. Asigna roles y permisos granulares.', color: '#34d399' },
@@ -24,7 +24,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { n: '01', icon: Folder, title: 'Crea tu proyecto',         desc: 'Configura tu espacio de trabajo en segundos e invita a tu equipo de inmediato.', color: '#a855f7' },
+  { n: '01', icon: Folder, title: 'Crea tu proyecto',         desc: 'Configura tu espacio de trabajo en segundos e invita a tu equipo de inmediato.', color: '#FF6B00' },
   { n: '02', icon: Users,  title: 'Colabora en tiempo real',  desc: 'Gestiona assets, tareas y feedback desde un solo lugar. Todo sincronizado al instante.', color: '#22d3ee' },
   { n: '03', icon: Play,   title: 'Lanza tu juego',           desc: 'Mantén el momentum con herramientas que se adaptan a tu ritmo de desarrollo.', color: '#34d399' },
 ];
@@ -40,7 +40,7 @@ const PLANS = [
   {
     name: 'Free', price: '$0', period: 'para siempre',
     desc: 'Perfecto para proyectos personales y equipos pequeños.',
-    color: '#a855f7', primary: false, cta: 'Empezar gratis',
+    color: '#FF6B00', primary: false, cta: 'Empezar gratis',
     features: ['3 proyectos activos', '5 miembros / proyecto', '1 GB de almacenamiento', 'Versionado de assets', 'Tablero Kanban', 'Soporte por comunidad'],
   },
   {
@@ -55,8 +55,8 @@ const TESTIMONIALS = [
   {
     name: 'María García',
     role: 'Lead Artist · Pixel Storm',
-    text: 'IndieForge cambió completamente cómo gestionamos assets. El versionado automático nos salvó de perder semanas de trabajo.',
-    color: '#a855f7', initial: 'M',
+    text: 'CipoteForge cambió completamente cómo gestionamos assets. El versionado automático nos salvó de perder semanas de trabajo.',
+    color: '#FF6B00', initial: 'M',
   },
   {
     name: 'Carlos Ruiz',
@@ -79,7 +79,7 @@ function AppMockup() {
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
       <div className="absolute inset-0 rounded-3xl blur-3xl opacity-20 pointer-events-none"
-        style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }} />
+        style={{ background: 'linear-gradient(135deg, #FF6B00, #06B6D4)' }} />
 
       <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 32px 64px rgba(0,0,0,0.5)' }}>
         {/* Browser chrome */}
@@ -88,7 +88,7 @@ function AppMockup() {
             {['#f87171','#fbbf24','#34d399'].map(c => <div key={c} className="w-3 h-3 rounded-full" style={{ background: c, opacity: 0.7 }} />)}
           </div>
           <div className="flex-1 mx-3 rounded-md py-1 px-3 text-[10px] text-surface-500 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
-            app.indieforge.io / project / zombie-rpg
+            app.cipoteforge.io / project / zombie-rpg
           </div>
         </div>
 
@@ -96,14 +96,14 @@ function AppMockup() {
         <div className="bg-[#07070E] p-4 space-y-3">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg" style={{ background: 'linear-gradient(135deg,#7C3AED,#06B6D4)' }} />
+              <div className="w-7 h-7 rounded-lg" style={{ background: 'linear-gradient(135deg,#FF6B00,#06B6D4)' }} />
               <div>
                 <div className="h-2.5 w-24 rounded" style={{ background: 'rgba(255,255,255,0.14)' }} />
                 <div className="h-1.5 w-14 rounded mt-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
               </div>
             </div>
             <div className="flex -space-x-2">
-              {['#a855f7','#22d3ee','#34d399'].map(c => (
+              {['#FF6B00','#22d3ee','#34d399'].map(c => (
                 <div key={c} className="w-6 h-6 rounded-full" style={{ background: `${c}25`, border: `2px solid ${c}50` }} />
               ))}
             </div>
@@ -111,7 +111,7 @@ function AppMockup() {
 
           {/* Stat cards */}
           <div className="grid grid-cols-3 gap-2">
-            {[['12','Assets','#a855f7'],['8','Tareas','#22d3ee'],['3','Devs','#34d399']].map(([n,l,c]) => (
+            {[['12','Assets','#FF6B00'],['8','Tareas','#22d3ee'],['3','Devs','#34d399']].map(([n,l,c]) => (
               <div key={l} className="rounded-xl p-2.5 text-center" style={{ background:`${c}08`, border:`1px solid ${c}18` }}>
                 <p className="text-sm font-black" style={{ color:c }}>{n}</p>
                 <p className="text-[9px] text-surface-500 mt-0.5">{l}</p>
@@ -121,7 +121,7 @@ function AppMockup() {
 
           {/* Mini kanban */}
           <div className="grid grid-cols-3 gap-2">
-            {[{label:'TODO',color:'#64748B',c:1},{label:'WIP',color:'#a855f7',c:2},{label:'DONE',color:'#34d399',c:1}].map(col => (
+            {[{label:'TODO',color:'#64748B',c:1},{label:'WIP',color:'#FF6B00',c:2},{label:'DONE',color:'#34d399',c:1}].map(col => (
               <div key={col.label}>
                 <div className="flex items-center gap-1 mb-1.5">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background:col.color }} />
@@ -142,7 +142,7 @@ function AppMockup() {
 
           {/* Activity */}
           <div className="rounded-xl p-2.5 space-y-2" style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.05)' }}>
-            {[['#a855f7',72],['#22d3ee',50],['#fbbf24',38]].map(([c,w],i) => (
+            {[['#FF6B00',72],['#22d3ee',50],['#fbbf24',38]].map(([c,w],i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full shrink-0" style={{ background:`${c}20` }} />
                 <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.04)' }}>
@@ -178,7 +178,7 @@ export default function LandingPage() {
       {/* Floating orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute top-[8%] left-[12%] w-[600px] h-[600px] rounded-full opacity-[0.07] float-orb"
-          style={{ background: 'radial-gradient(circle, #7C3AED, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, #FF6B00, transparent 70%)' }} />
         <div className="absolute top-[55%] right-[8%] w-[450px] h-[450px] rounded-full opacity-[0.05] float-orb-delay"
           style={{ background: 'radial-gradient(circle, #06B6D4, transparent 70%)' }} />
         <div className="absolute bottom-[12%] left-[38%] w-[350px] h-[350px] rounded-full opacity-[0.04] float-orb"
@@ -191,13 +191,17 @@ export default function LandingPage() {
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-              <Gamepad2 size={20} className="text-white" />
-            </div>
+            <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+              <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+              <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+              <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+              <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+              <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+            </svg>
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              IndieForge
+              CipoteForge
             </span>
           </div>
 
@@ -277,25 +281,21 @@ export default function LandingPage() {
           <div className="relative z-20 text-center lg:text-left">
             <motion.div variants={fadeUp}
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 md:mb-8"
-              style={{ background: 'rgba(124,58,237,0.10)', border: '1px solid rgba(124,58,237,0.25)', color: '#c084fc' }}>
-              <Sparkles size={12} /> Plataforma colaborativa para game dev
+              style={{ background: 'rgba(30,144,255,0.10)', border: '1px solid rgba(30,144,255,0.35)', color: '#1E90FF' }}>
+              🌋 Hecho en El Salvador
             </motion.div>
 
             <motion.h1 variants={fadeUp}
               className="text-[2.25rem] sm:text-5xl md:text-[3.75rem] font-black leading-[1.08] tracking-tight mb-5 md:mb-6">
-              Crea videojuegos{' '}
-              <span style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                indie
-              </span>
-              <br />en equipo,{' '}
-              <span style={{ background: 'linear-gradient(135deg, #22d3ee, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                sin fricción
+              Forjá tu juego.
+              <br />
+              <span style={{ color: '#1E90FF' }}>
+                Con tu crew.
               </span>
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-base md:text-lg text-surface-300 mb-8 md:mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              Todo lo que tu equipo necesita en un solo lugar: gestión de assets, tableros kanban,
-              versionado de archivos y colaboración en tiempo real.
+              CipoteForge es la plataforma colaborativa hecha en El Salvador para equipos de videojuegos indie. Gestioná tareas, assets y tu equipo en un solo lugar.
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-9 md:mb-12">
@@ -310,7 +310,7 @@ export default function LandingPage() {
             {/* Trust signals */}
             <motion.div variants={fadeUp} className="flex items-center gap-4 justify-center lg:justify-start">
               <div className="flex -space-x-2">
-                {['#a855f7','#22d3ee','#34d399','#f472b6'].map((c, i) => (
+                {['#FF6B00','#22d3ee','#34d399','#f472b6'].map((c, i) => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold"
                     style={{ background:`${c}20`, borderColor:`${c}50`, color:c }}>
                     {['A','B','C','D'][i]}
@@ -321,7 +321,7 @@ export default function LandingPage() {
                 <div className="flex items-center gap-0.5 mb-0.5">
                   {[...Array(5)].map((_, i) => <Star key={i} size={11} style={{ color:'#fbbf24', fill:'#fbbf24' }} />)}
                 </div>
-                <p className="text-xs text-surface-400">+500 equipos confían en IndieForge</p>
+                <p className="text-xs text-surface-400">+500 equipos confían en CipoteForge</p>
               </div>
             </motion.div>
           </div>
@@ -366,7 +366,7 @@ export default function LandingPage() {
 
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 relative">
           <div className="hidden md:block absolute top-14 left-[calc(33%+1rem)] right-[calc(33%+1rem)] h-px"
-            style={{ background: 'linear-gradient(90deg, #7C3AED30, #06B6D440, #7C3AED30)' }} />
+            style={{ background: 'linear-gradient(90deg, #FF6B0030, #06B6D440, #FF6B0030)' }} />
 
           {STEPS.map((step, i) => (
             <motion.div key={step.n}
@@ -427,7 +427,7 @@ export default function LandingPage() {
             Testimonios
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Lo que dicen los equipos</h2>
-          <p className="text-surface-400 max-w-md mx-auto">Más de 500 estudios indie ya confían en IndieForge para lanzar sus juegos.</p>
+          <p className="text-surface-400 max-w-md mx-auto">Más de 500 estudios indie ya confían en CipoteForge para lanzar sus juegos.</p>
         </motion.div>
 
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-4 md:gap-5">
@@ -479,7 +479,7 @@ export default function LandingPage() {
               whileHover={{ y: -4, transition: { duration: 0.2 } }}>
               {plan.badge && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap"
-                  style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)', color: 'white' }}>
+                  style={{ background: 'linear-gradient(135deg, #FF6B00, #06B6D4)', color: 'white' }}>
                   {plan.badge}
                 </div>
               )}
@@ -516,7 +516,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 dot-grid opacity-40" />
           <div className="relative z-10">
             <h2 className="text-2xl md:text-4xl font-bold mb-3">¿Listo para forjar tu próximo juego?</h2>
-            <p className="text-surface-300 mb-7 md:mb-8 max-w-md mx-auto text-sm md:text-base">Únete a IndieForge y empieza a crear con tu equipo hoy mismo. Sin tarjeta de crédito.</p>
+            <p className="text-surface-300 mb-7 md:mb-8 max-w-md mx-auto text-sm md:text-base">Únete a CipoteForge y empieza a crear con tu equipo hoy mismo. Sin tarjeta de crédito.</p>
             <button onClick={() => navigate('/register')} className="btn-primary-pulse flex items-center justify-center gap-2 mx-auto text-base w-full sm:w-auto">
               Crear cuenta gratis <ArrowRight size={18} />
             </button>
@@ -531,13 +531,17 @@ export default function LandingPage() {
             {/* Brand — always visible */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                  <Gamepad2 size={19} className="text-white" />
-                </div>
+                <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+                  <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+                  <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+                  <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+                  <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+                  <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+                </svg>
                 <span className="text-lg font-extrabold"
                   style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  IndieForge
+                  CipoteForge
                 </span>
               </div>
               <p className="text-sm text-surface-400 leading-relaxed mb-5">
@@ -572,11 +576,11 @@ export default function LandingPage() {
           </div>
 
           <div className="pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-surface-500">© 2026 IndieForge. Todos los derechos reservados.</p>
+            <p className="text-xs text-surface-500">© 2026 CipoteForge. Todos los derechos reservados.</p>
             <div className="flex items-center gap-5 text-xs text-surface-500">
               <a href="#" className="hover:text-white transition-colors">Privacidad</a>
               <a href="#" className="hover:text-white transition-colors">Términos</a>
-              <span>Hecho con 💜 para devs indie</span>
+              <span>Hecho con 🌋 en El Salvador</span>
             </div>
           </div>
         </div>
