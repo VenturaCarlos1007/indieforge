@@ -26,6 +26,7 @@ const dashboardRoutes = require('./src/routes/dashboard');
 const messageRoutes  = require('./src/routes/messages');
 const { projectMilestonesRouter, milestonesRouter } = require('./src/routes/milestones');
 const adminRoutes    = require('./src/routes/admin');
+const { projectRouter: joinRequestsProjectRouter, userRouter: joinRequestsUserRouter } = require('./src/routes/joinRequests');
 
 const app = express();
 const server = http.createServer(app);
@@ -56,7 +57,9 @@ app.get('/api/health', async (_req, res) => {
 
 // ── API Routes
 app.use('/api/auth',     authRoutes);
-app.use('/api/projects', projectRoutes);
+app.use('/api/join-requests', joinRequestsUserRouter);
+app.use('/api/projects',    joinRequestsProjectRouter);
+app.use('/api/projects',    projectRoutes);
 app.use('/api/assets',   assetRoutes);
 app.use('/api/tasks',    taskRoutes);
 app.use('/api/comments', commentRoutes);
@@ -240,6 +243,27 @@ async function runMigrations() {
     await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false`);
   } catch (err) {
     console.error('❌ is_public migration error:', err.message);
+  }
+
+  // ── Solicitudes de unión a proyectos
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS join_requests (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+        user_id    UUID REFERENCES users(id)    ON DELETE CASCADE,
+        status     VARCHAR(20) DEFAULT 'pendiente'
+                     CHECK (status IN ('pendiente', 'aceptado', 'rechazado')),
+        message    TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(project_id, user_id)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_join_requests_project ON join_requests(project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_join_requests_user    ON join_requests(user_id, status)`);
+  } catch (err) {
+    console.error('❌ join_requests migration error:', err.message);
   }
 }
 

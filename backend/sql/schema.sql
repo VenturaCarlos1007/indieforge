@@ -181,3 +181,21 @@ CREATE TABLE notifications (
 CREATE INDEX idx_notif_user ON notifications (user_id);
 CREATE INDEX idx_notif_read ON notifications (read);
 
+-- ──────────────────────────────────────────────
+-- 12. join_requests
+-- ──────────────────────────────────────────────
+CREATE TABLE join_requests (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID        REFERENCES projects(id) ON DELETE CASCADE,
+  user_id    UUID        REFERENCES users(id)    ON DELETE CASCADE,
+  status     VARCHAR(20) DEFAULT 'pendiente'
+               CHECK (status IN ('pendiente', 'aceptado', 'rechazado')),
+  message    TEXT,
+  created_at TIMESTAMP   DEFAULT NOW(),
+  updated_at TIMESTAMP   DEFAULT NOW(),
+  UNIQUE(project_id, user_id)
+);
+
+CREATE INDEX idx_join_requests_project ON join_requests(project_id);
+CREATE INDEX idx_join_requests_user    ON join_requests(user_id, status);
+
