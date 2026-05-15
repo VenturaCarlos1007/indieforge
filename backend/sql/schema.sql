@@ -28,6 +28,8 @@ CREATE TABLE projects (
   name        VARCHAR(150)  NOT NULL,
   description TEXT,
   owner_id    UUID          NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  engine      VARCHAR(20)   NOT NULL DEFAULT 'custom',
+  is_public   BOOLEAN       NOT NULL DEFAULT false,
   created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 

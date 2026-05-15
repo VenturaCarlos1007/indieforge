@@ -230,12 +230,16 @@ async function runMigrations() {
       END $$
     `);
 
-    // ── Proyectos públicos/privados
-    await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false`);
-
     console.log('✅ Migrations OK');
   } catch (err) {
     console.error('❌ Migration error:', err.message);
+  }
+
+  // ── Proyectos públicos/privados (bloque propio para que siempre corra)
+  try {
+    await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false`);
+  } catch (err) {
+    console.error('❌ is_public migration error:', err.message);
   }
 }
 
