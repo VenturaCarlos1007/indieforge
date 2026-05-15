@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Flag, Plus, Pencil, Trash2, Calendar, Check } from 'lucide-react';
+import { Flag, Plus, Pencil, Trash2, Calendar, Check, AlertTriangle } from 'lucide-react';
 import { useProject } from '../../components/layout/ProjectLayout';
 import api from '../../services/api';
 import Modal from '../../components/common/Modal';
+import { useToast } from '../../context/ToastContext';
 
 const ENGINES = {
   unity:  { color: '#4CAF50' },
@@ -50,9 +51,12 @@ const item    = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 export default function MilestonesPage() {
   const { projectId, project, role } = useProject();
+  const { addToast } = useToast();
   const accent     = (ENGINES[project?.engine] || ENGINES.custom).color;
   const canManage  = role === 'owner' || role === 'admin';
   const canEdit    = role !== 'viewer';
+
+  const projectMinDate = project?.created_at ? project.created_at.split('T')[0] : '';
 
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -63,6 +67,10 @@ export default function MilestonesPage() {
   const [saving, setSaving]         = useState(false);
   const [formError, setFormError]   = useState('');
   const [deleting, setDeleting]     = useState(null);
+
+  // Warning confirmation modal state: { milestoneData, prevStatus }
+  const [warnModal, setWarnModal]   = useState(null);
+  const [revertingWarn, setRevertingWarn] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -93,6 +101,12 @@ export default function MilestonesPage() {
     setShowModal(true);
   };
 
+  const applyMilestoneData = (data) => {
+    const { warning, ...ms } = data;
+    setMilestones(prev => prev.map(m => m.id === ms.id ? ms : m));
+    return warning;
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || saving) return;
@@ -109,14 +123,18 @@ export default function MilestonesPage() {
       };
       if (editing) {
         const { data } = await api.patch(`/milestones/${editing.id}`, body);
-        setMilestones(prev => prev.map(m => m.id === data.id ? data : m));
+        const warning = applyMilestoneData(data);
+        setShowModal(false);
+        if (warning) setWarnModal({ milestoneData: data, prevStatus: editing.status });
       } else {
         const { data } = await api.post(`/projects/${projectId}/milestones`, body);
         setMilestones(prev => [...prev, data]);
+        setShowModal(false);
       }
-      setShowModal(false);
     } catch (err) {
-      setFormError(err.response?.data?.error || 'Error al guardar.');
+      const msg = err.response?.data?.error || 'Error al guardar.';
+      addToast({ message: msg, type: 'error' });
+      setFormError(msg);
     } finally { setSaving(false); }
   };
 
@@ -125,8 +143,29 @@ export default function MilestonesPage() {
     const next = STATUS_NEXT[ms.status];
     try {
       const { data } = await api.patch(`/milestones/${ms.id}`, { status: next });
-      setMilestones(prev => prev.map(m => m.id === data.id ? data : m));
-    } catch (err) { console.error(err); }
+      const warning = applyMilestoneData(data);
+      if (warning) setWarnModal({ milestoneData: data, prevStatus: ms.status });
+    } catch (err) {
+      addToast({ message: err.response?.data?.error || 'Error al cambiar estado.', type: 'error' });
+    }
+  };
+
+  const confirmWarn = () => {
+    setWarnModal(null);
+  };
+
+  const cancelWarn = async () => {
+    if (!warnModal) return;
+    setRevertingWarn(true);
+    try {
+      const { data } = await api.patch(`/milestones/${warnModal.milestoneData.id}`, { status: warnModal.prevStatus });
+      applyMilestoneData(data);
+    } catch (err) {
+      addToast({ message: 'No se pudo revertir el estado.', type: 'error' });
+    } finally {
+      setRevertingWarn(false);
+      setWarnModal(null);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -134,8 +173,9 @@ export default function MilestonesPage() {
     try {
       await api.delete(`/milestones/${id}`);
       setMilestones(prev => prev.filter(m => m.id !== id));
-    } catch (err) { console.error(err); }
-    finally { setDeleting(null); }
+    } catch (err) {
+      addToast({ message: err.response?.data?.error || 'Error al eliminar.', type: 'error' });
+    } finally { setDeleting(null); }
   };
 
   return (
@@ -314,7 +354,7 @@ export default function MilestonesPage() {
               type="date"
               value={form.due_date}
               onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))}
-              min={new Date().toISOString().split('T')[0]}
+              min={projectMinDate}
               className="input-field"
               required
             />
@@ -351,6 +391,37 @@ export default function MilestonesPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Warning confirmation modal */}
+      <Modal open={!!warnModal} onClose={cancelWarn} title="Tareas activas">
+        <div className="space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)' }}>
+              <AlertTriangle size={18} style={{ color: '#fbbf24' }} />
+            </div>
+            <p className="text-sm text-surface-300 leading-relaxed pt-1">
+              Aún hay tareas activas en el proyecto. ¿Seguro que querés marcar este hito como completado?
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={cancelWarn}
+              disabled={revertingWarn}
+              className="btn-secondary disabled:opacity-50">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={confirmWarn}
+              className="btn-primary">
+              Completar de todas formas
+            </button>
+          </div>
+        </div>
+      </Modal>
+
     </motion.div>
   );
 }
