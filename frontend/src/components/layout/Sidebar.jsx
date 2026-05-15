@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, LogOut, Gamepad2, Sparkles, Settings, User, Compass } from 'lucide-react';
@@ -13,7 +13,13 @@ const navItems = [
 
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <>
@@ -166,7 +172,7 @@ export default function Sidebar({ open, onClose }) {
               {/* Botones: apilados en móvil, lado a lado en sm+ */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => { setConfirmOpen(false); logout(); }}
+                  onClick={() => { setConfirmOpen(false); handleLogout(); }}
                   className="flex-1 min-h-[44px] text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
                   style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.22)'}
