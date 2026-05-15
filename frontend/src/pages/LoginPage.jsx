@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, Mail, Lock, AlertCircle, Github, Star } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Github, Star } from 'lucide-react';
 
 function AuthMockup() {
   return (
@@ -10,7 +10,7 @@ function AuthMockup() {
       initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.45, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
       <div className="absolute inset-0 rounded-2xl blur-3xl opacity-[0.12] pointer-events-none"
-        style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }} />
+        style={{ background: 'linear-gradient(135deg, #FF6B00, #06B6D4)' }} />
       <div className="relative rounded-2xl overflow-hidden"
         style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(7,7,14,0.75)', backdropFilter: 'blur(20px)', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}>
         {/* Browser chrome */}
@@ -21,25 +21,25 @@ function AuthMockup() {
               <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c, opacity: 0.6 }} />
             ))}
           </div>
-          <span className="text-[9px] text-surface-500 mx-auto">app.indieforge.io</span>
+          <span className="text-[9px] text-surface-500 mx-auto">app.cipoteforge.io</span>
         </div>
         {/* Content */}
         <div className="p-3.5 space-y-2.5">
           {/* Project row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(135deg,#7C3AED,#06B6D4)' }} />
+              <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(135deg,#FF6B00,#06B6D4)' }} />
               <div className="h-2 w-16 rounded" style={{ background: 'rgba(255,255,255,0.10)' }} />
             </div>
             <div className="flex -space-x-1.5">
-              {['#a855f7','#22d3ee','#34d399'].map(c => (
+              {['#FF6B00','#22d3ee','#34d399'].map(c => (
                 <div key={c} className="w-4 h-4 rounded-full" style={{ background: `${c}20`, border: `1.5px solid ${c}45` }} />
               ))}
             </div>
           </div>
           {/* Stat chips */}
           <div className="grid grid-cols-3 gap-1.5">
-            {[['12','Assets','#a855f7'],['8','Tareas','#22d3ee'],['3','Devs','#34d399']].map(([n,l,c]) => (
+            {[['12','Assets','#FF6B00'],['8','Tareas','#22d3ee'],['3','Devs','#34d399']].map(([n,l,c]) => (
               <div key={l} className="rounded-lg p-2 text-center" style={{ background:`${c}08`, border:`1px solid ${c}14` }}>
                 <p className="text-xs font-black" style={{ color:c }}>{n}</p>
                 <p className="text-[8px] text-surface-500">{l}</p>
@@ -48,7 +48,7 @@ function AuthMockup() {
           </div>
           {/* Mini kanban */}
           <div className="grid grid-cols-3 gap-1.5">
-            {[{l:'TODO',c:'#64748B',n:1},{l:'WIP',c:'#a855f7',n:2},{l:'DONE',c:'#34d399',n:1}].map(col => (
+            {[{l:'TODO',c:'#64748B',n:1},{l:'WIP',c:'#FF6B00',n:2},{l:'DONE',c:'#34d399',n:1}].map(col => (
               <div key={col.l}>
                 <div className="flex items-center gap-1 mb-1">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background:col.c }} />
@@ -67,7 +67,7 @@ function AuthMockup() {
           </div>
           {/* Activity */}
           <div className="rounded-lg p-2 space-y-1.5" style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.04)' }}>
-            {[['#a855f7',70],['#22d3ee',50],['#fbbf24',35]].map(([c,w],i) => (
+            {[['#FF6B00',70],['#22d3ee',50],['#fbbf24',35]].map(([c,w],i) => (
               <div key={i} className="flex items-center gap-1.5">
                 <div className="w-4 h-4 rounded-full shrink-0" style={{ background:`${c}18` }} />
                 <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.04)' }}>
@@ -122,7 +122,7 @@ export default function LoginPage() {
       {/* Orbs */}
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] rounded-full opacity-[0.06] float-orb"
-          style={{ background: 'radial-gradient(circle, #7C3AED, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, #FF6B00, transparent 70%)' }} />
         <div className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] rounded-full opacity-[0.04] float-orb-delay"
           style={{ background: 'radial-gradient(circle, #06B6D4, transparent 70%)' }} />
       </div>
@@ -130,13 +130,17 @@ export default function LoginPage() {
       {/* Left — Branding + Mockup (desktop only) */}
       <div className="hidden lg:flex flex-col justify-between flex-1 relative z-10 p-12">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-            <Gamepad2 size={22} className="text-white" />
-          </div>
+          <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+            <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+            <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+            <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+            <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+            <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+          </svg>
           <span className="text-xl font-extrabold"
             style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            IndieForge
+            CipoteForge
           </span>
         </Link>
 
@@ -144,7 +148,7 @@ export default function LoginPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <h2 className="text-3xl font-bold leading-tight mb-3">
               Tu próximo gran{' '}
-              <span style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span style={{ background: 'linear-gradient(135deg, #FF6B00, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 juego indie
               </span>
               <br />empieza aquí.
@@ -158,7 +162,7 @@ export default function LoginPage() {
 
         <div className="flex items-center gap-2">
           {[...Array(5)].map((_,i) => <Star key={i} size={11} style={{ color:'#fbbf24', fill:'#fbbf24' }} />)}
-          <span className="text-xs text-surface-500 ml-1">+500 equipos confían en IndieForge</span>
+          <span className="text-xs text-surface-500 ml-1">+500 equipos confían en CipoteForge</span>
         </div>
       </div>
 
@@ -174,19 +178,23 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-7">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                <Gamepad2 size={22} className="text-white" />
-              </div>
+              <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+                <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+                <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+                <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+                <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+                <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+              </svg>
               <span className="text-xl font-extrabold"
                 style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                IndieForge
+                CipoteForge
               </span>
             </Link>
           </div>
 
           <div className="text-center mb-7">
-            <h1 className="text-2xl font-bold mb-1">Bienvenido de vuelta</h1>
+            <h1 className="text-2xl font-bold mb-1">Bienvenido de vuelta a CipoteForge</h1>
             <p className="text-surface-400 text-sm">Inicia sesión para continuar</p>
           </div>
 
@@ -257,9 +265,9 @@ export default function LoginPage() {
           <p className="text-center text-sm text-surface-400 mt-6">
             ¿No tienes cuenta?{' '}
             <Link to="/register" className="font-semibold transition-colors"
-              style={{ color: '#a855f7' }}
+              style={{ color: '#FF6B00' }}
               onMouseEnter={(e) => e.target.style.color = '#c084fc'}
-              onMouseLeave={(e) => e.target.style.color = '#a855f7'}>
+              onMouseLeave={(e) => e.target.style.color = '#FF6B00'}>
               Regístrate gratis
             </Link>
           </p>

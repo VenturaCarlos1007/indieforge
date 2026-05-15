@@ -2,10 +2,10 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, User, Mail, Lock, AlertCircle, Github, Upload, Shield, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, Github, Upload, Shield, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 const HIGHLIGHTS = [
-  { icon: Upload,   color: '#a855f7', text: 'Assets con versionado automático' },
+  { icon: Upload,   color: '#FF6B00', text: 'Assets con versionado automático' },
   { icon: Shield,   color: '#22d3ee', text: 'Roles y permisos por proyecto' },
   { icon: Sparkles, color: '#34d399', text: 'Feed de actividad en tiempo real' },
 ];
@@ -16,7 +16,7 @@ function AuthPanel() {
       initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.45, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
       <div className="absolute inset-0 rounded-2xl blur-3xl opacity-[0.10] pointer-events-none"
-        style={{ background: 'linear-gradient(135deg, #06B6D4, #7C3AED)' }} />
+        style={{ background: 'linear-gradient(135deg, #06B6D4, #FF6B00)' }} />
       <div className="relative rounded-2xl overflow-hidden"
         style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(7,7,14,0.75)', backdropFilter: 'blur(20px)', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}>
         {/* Header */}
@@ -27,13 +27,13 @@ function AuthPanel() {
               <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: c, opacity: 0.6 }} />
             ))}
           </div>
-          <span className="text-[9px] text-surface-500 mx-auto">IndieForge · Assets</span>
+          <span className="text-[9px] text-surface-500 mx-auto">CipoteForge · Assets</span>
         </div>
         {/* Asset list */}
         <div className="p-3.5 space-y-2">
           <div className="text-[9px] font-semibold text-surface-500 uppercase tracking-wider mb-2">Zombie RPG / Arte</div>
           {[
-            { name: 'hero_sprite_v3.png', size: '2.4 MB', color: '#a855f7', tag: 'v3' },
+            { name: 'hero_sprite_v3.png', size: '2.4 MB', color: '#FF6B00', tag: 'v3' },
             { name: 'background_city.psd', size: '18 MB', color: '#22d3ee', tag: 'v2' },
             { name: 'sfx_sword_hit.wav', size: '312 KB', color: '#fbbf24', tag: 'v1' },
           ].map((f, i) => (
@@ -63,7 +63,7 @@ function AuthPanel() {
           {/* Members row */}
           <div className="flex items-center justify-between pt-1">
             <div className="flex -space-x-1.5">
-              {['#a855f7','#22d3ee','#34d399','#fbbf24'].map(c => (
+              {['#FF6B00','#22d3ee','#34d399','#fbbf24'].map(c => (
                 <div key={c} className="w-5 h-5 rounded-full" style={{ background: `${c}20`, border: `1.5px solid ${c}50` }} />
               ))}
             </div>
@@ -146,7 +146,7 @@ export default function RegisterPage() {
         <div className="absolute top-[30%] right-[15%] w-[500px] h-[500px] rounded-full opacity-[0.06] float-orb"
           style={{ background: 'radial-gradient(circle, #06B6D4, transparent 70%)' }} />
         <div className="absolute bottom-[15%] left-[15%] w-[400px] h-[400px] rounded-full opacity-[0.05] float-orb-delay"
-          style={{ background: 'radial-gradient(circle, #7C3AED, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, #FF6B00, transparent 70%)' }} />
       </div>
 
       {/* Left — Form */}
@@ -161,19 +161,23 @@ export default function RegisterPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-7">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-                <Gamepad2 size={22} className="text-white" />
-              </div>
+              <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+                <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+                <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+                <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+                <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+                <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+              </svg>
               <span className="text-xl font-extrabold"
                 style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                IndieForge
+                CipoteForge
               </span>
             </Link>
           </div>
 
           <div className="text-center mb-7">
-            <h1 className="text-2xl font-bold mb-1">Crea tu cuenta</h1>
+            <h1 className="text-2xl font-bold mb-1">Creá tu cuenta en CipoteForge</h1>
             <p className="text-surface-400 text-sm">Únete a la comunidad indie</p>
           </div>
 
@@ -296,13 +300,17 @@ export default function RegisterPage() {
       <div className="hidden lg:flex flex-col justify-between flex-1 relative z-10 p-12">
         <div className="flex justify-end">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-              <Gamepad2 size={22} className="text-white" />
-            </div>
+            <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+              <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+              <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+              <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+              <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+              <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+            </svg>
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              IndieForge
+              CipoteForge
             </span>
           </Link>
         </div>
@@ -311,7 +319,7 @@ export default function RegisterPage() {
           <motion.div className="text-right" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <h2 className="text-3xl font-bold leading-tight mb-3">
               Construye, colabora,{' '}
-              <span style={{ background: 'linear-gradient(135deg, #22d3ee, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span style={{ background: 'linear-gradient(135deg, #22d3ee, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 publica.
               </span>
             </h2>
