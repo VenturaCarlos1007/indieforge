@@ -158,6 +158,17 @@ function AppMockup() {
   );
 }
 
+const HERO_PARTICLES = [
+  { x: '12%', y: '25%', color: '#1E90FF', delay: 0 },
+  { x: '28%', y: '65%', color: '#FF6B00', delay: 0.7 },
+  { x: '42%', y: '15%', color: '#1E90FF', delay: 1.4 },
+  { x: '58%', y: '75%', color: '#FF6B00', delay: 0.3 },
+  { x: '72%', y: '30%', color: '#1E90FF', delay: 1.1 },
+  { x: '85%', y: '55%', color: '#FF6B00', delay: 0.5 },
+  { x: '18%', y: '80%', color: '#FF6B00', delay: 1.8 },
+  { x: '90%', y: '20%', color: '#1E90FF', delay: 0.9 },
+];
+
 /* ── Landing Page ────────────────────────────────── */
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -191,7 +202,14 @@ export default function LandingPage() {
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
+            <svg width="40" height="40" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+              <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+              <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+              <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+              <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+              <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+            </svg>
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge
@@ -265,6 +283,34 @@ export default function LandingPage() {
           )}
         </AnimatePresence>
       </header>
+
+      {/* ── Hero Banner ── */}
+      <div className="relative w-full overflow-hidden flex items-center justify-center"
+        style={{ height: 'clamp(280px, 35vw, 420px)', background: '#060B17' }}>
+        <div className="absolute inset-y-0 left-0 w-48 pointer-events-none"
+          style={{ background: 'linear-gradient(to right, #1E90FF10, transparent)' }} />
+        <div className="absolute inset-y-0 right-0 w-48 pointer-events-none"
+          style={{ background: 'linear-gradient(to left, #1E90FF10, transparent)' }} />
+        <div className="absolute pointer-events-none"
+          style={{ width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle, #FF6B0020, transparent 65%)' }} />
+        {HERO_PARTICLES.map((p, i) => (
+          <motion.div key={i}
+            className="absolute rounded-full pointer-events-none"
+            style={{ width: 4, height: 4, left: p.x, top: p.y, background: p.color, boxShadow: `0 0 6px ${p.color}` }}
+            animate={{ y: [0, -12, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: p.delay }}
+          />
+        ))}
+        <motion.img
+          src="/logo.png"
+          alt="CipoteForge"
+          style={{ width: 200, height: 200, objectFit: 'contain', position: 'relative', zIndex: 1 }}
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <div className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+          style={{ background: 'linear-gradient(to right, transparent, #1E90FF40, transparent)' }} />
+      </div>
 
       {/* ── Hero ── */}
       <motion.section className="relative z-10 pt-24 md:pt-36 pb-14 md:pb-24 px-4 sm:px-6"
