@@ -38,49 +38,16 @@ const STATS = [
 
 const PLANS = [
   {
-    name: 'Cipote', price: '$0', period: '/mes', badge: 'GRATIS',
-    desc: 'Para el cipote que está empezando',
-    color: '#1E90FF', primary: false, cta: 'Empezar gratis',
-    features: [
-      { label: 'Hasta 2 proyectos',        included: true  },
-      { label: '3 miembros por proyecto',   included: true  },
-      { label: '1GB de assets',             included: true  },
-      { label: 'Kanban básico',             included: true  },
-      { label: 'Chat del proyecto',         included: true  },
-      { label: 'Boards por engine',         included: false },
-      { label: 'Milestones',                included: false },
-      { label: 'Proyectos públicos',        included: false },
-    ],
+    name: 'Free', price: '$0', period: 'para siempre',
+    desc: 'Perfecto para proyectos personales y equipos pequeños.',
+    color: '#FF6B00', primary: false, cta: 'Empezar gratis',
+    features: ['3 proyectos activos', '5 miembros / proyecto', '1 GB de almacenamiento', 'Versionado de assets', 'Tablero Kanban', 'Soporte por comunidad'],
   },
   {
-    name: 'Chero', price: '$9.99', period: '/mes', badge: 'MÁS POPULAR 🔥',
-    desc: 'Para vos y tu crew',
-    color: '#FF6B00', primary: true, cta: 'Elegir Chero',
-    features: [
-      { label: 'Proyectos ilimitados',      included: true  },
-      { label: '10 miembros por proyecto',  included: true  },
-      { label: '10GB de assets',            included: true  },
-      { label: 'Boards por engine',         included: true  },
-      { label: 'Milestones y etiquetas',    included: true  },
-      { label: 'Chat del proyecto',         included: true  },
-      { label: 'Proyectos públicos',        included: true  },
-      { label: 'Miembros ilimitados',       included: false },
-      { label: 'Soporte prioritario',       included: false },
-    ],
-  },
-  {
-    name: 'Cabal', price: '$24.99', period: '/mes', badge: 'ESTUDIO',
-    desc: 'Para el estudio establecido',
-    color: '#1E90FF', primary: false, cta: 'Elegir Cabal',
-    features: [
-      { label: 'Todo lo del plan Chero',                    included: true },
-      { label: 'Miembros ilimitados',                       included: true },
-      { label: '100GB de assets',                           included: true },
-      { label: 'Proyectos públicos ilimitados',             included: true },
-      { label: 'Soporte prioritario',                       included: true },
-      { label: 'Acceso anticipado a nuevas funciones',      included: true },
-      { label: 'Panel de administración del estudio',       included: true },
-    ],
+    name: 'Pro', price: '$12', period: '/mes por equipo',
+    desc: 'Para estudios indie serios que necesitan más potencia.',
+    color: '#22d3ee', primary: true, cta: 'Comenzar prueba', badge: 'Más popular',
+    features: ['Proyectos ilimitados', 'Miembros ilimitados', '50 GB de almacenamiento', 'Analytics avanzados', 'Exportación de datos', 'Soporte prioritario'],
   },
 ];
 
@@ -533,55 +500,46 @@ export default function LandingPage() {
       <section id="pricing" className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
         <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">Elegí tu plan</h2>
-          <p className="max-w-md mx-auto text-sm md:text-base" style={{ color: '#94A3B8' }}>Sin contratos. Cancelá cuando quieras.</p>
+          <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
+            style={{ background: 'rgba(251,191,36,0.10)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.22)' }}>
+            Precios
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple y transparente</h2>
+          <p className="text-surface-400 max-w-md mx-auto">Sin cargos ocultos. Empieza gratis y escala cuando lo necesites.</p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 md:gap-8 items-start">
+        <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-5 md:gap-6 items-start">
           {PLANS.map((plan, i) => (
             <motion.div key={plan.name}
-              className="relative rounded-2xl p-7"
-              style={{
-                background: '#0D1526',
-                border: `1px solid ${plan.primary ? plan.color : '#1E3A8A'}`,
-                boxShadow: plan.primary ? `0 0 0 1px ${plan.color}30, 0 16px 48px rgba(0,0,0,0.45)` : undefined,
-              }}
+              className="glass p-7 md:p-8 relative"
+              style={plan.primary ? { boxShadow: `0 0 0 1px ${plan.color}30, 0 8px 32px rgba(0,0,0,0.3)` } : {}}
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: i * 0.12 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.15 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap"
-                style={{
-                  background: plan.primary ? plan.color : 'rgba(30,144,255,0.12)',
-                  color: plan.primary ? 'white' : plan.color,
-                  border: plan.primary ? 'none' : `1px solid rgba(30,144,255,0.3)`,
-                }}>
-                {plan.badge}
-              </div>
-
-              <h3 className="text-xl font-bold mt-2 mb-1">{plan.name}</h3>
-              <p className="text-sm italic mb-5" style={{ color: '#94A3B8' }}>{plan.desc}</p>
-
-              <div className="flex items-end gap-1.5 mb-6">
+              {plan.badge && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap"
+                  style={{ background: 'linear-gradient(135deg, #FF6B00, #06B6D4)', color: 'white' }}>
+                  {plan.badge}
+                </div>
+              )}
+              <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+              <div className="flex items-end gap-1.5 mb-2">
                 <span className="text-4xl font-black" style={{ color: plan.color }}>{plan.price}</span>
-                <span className="text-sm pb-1" style={{ color: '#94A3B8' }}>{plan.period}</span>
+                <span className="text-surface-400 text-sm pb-1">{plan.period}</span>
               </div>
+              <p className="text-sm text-surface-400 mb-6">{plan.desc}</p>
 
-              <ul className="space-y-2.5 mb-8">
+              <ul className="space-y-3 mb-8">
                 {plan.features.map(feat => (
-                  <li key={feat.label} className="flex items-center gap-2.5 text-sm">
-                    {feat.included
-                      ? <Check size={14} style={{ color: '#1E90FF', flexShrink: 0 }} />
-                      : <X size={14} style={{ color: '#94A3B8', opacity: 0.5, flexShrink: 0 }} />
-                    }
-                    <span style={{ color: feat.included ? '#CBD5E1' : 'rgba(148,163,184,0.5)' }}>{feat.label}</span>
+                  <li key={feat} className="flex items-center gap-3 text-sm">
+                    <Check size={14} style={{ color: plan.color, flexShrink: 0 }} />
+                    <span className="text-surface-300">{feat}</span>
                   </li>
                 ))}
               </ul>
 
               <button onClick={() => navigate('/register')}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
-                style={{ background: plan.color, color: 'white' }}>
+                className={`w-full flex items-center justify-center gap-2 ${plan.primary ? 'btn-primary' : 'btn-secondary py-2.5'}`}>
                 {plan.cta} <ArrowRight size={15} />
               </button>
             </motion.div>
