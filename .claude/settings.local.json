@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(xargs grep -l \"drag\\\\|drop\\\\|upload\\\\|Drop\")",
+      "Bash(xargs grep -l \"ondrop\\\\|ondragover\\\\|handleDrop\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Projects\\\\indieforge-project\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Projects\\\\indieforge-project\\\\frontend\\\\src\\\\components\" -Recurse -File | Where-Object { $_.Name -match 'toast|notification' } | Select-Object FullName)",
+      "Bash(npx concurrently *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Projects\\\\indieforge-project\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Format-Table FullName)",
+      "Bash(xargs grep -l \"project_messages\")",
+      "Bash(xargs grep -l \"sticker\")",
+      "Bash(xargs grep -l \"messages\")",
+      "Bash(xargs grep -l \"messages\\\\|project_messages\")",
+      "Bash(xargs grep -l \"postgres\\\\|pg\\\\|database\")"
+    ]
+  }
+}
