@@ -161,7 +161,7 @@ export default function RegisterPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-7">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="CipoteForge" width="40" height="40" style={{ objectFit: 'contain' }} />
+              <img src="/logo.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
               <span className="text-xl font-extrabold"
                 style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 CipoteForge
@@ -293,7 +293,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex flex-col justify-between flex-1 relative z-10 p-12">
         <div className="flex justify-end">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="CipoteForge" width="40" height="40" style={{ objectFit: 'contain' }} />
+            <img src="/logo.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge
