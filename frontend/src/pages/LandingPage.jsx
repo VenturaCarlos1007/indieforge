@@ -38,16 +38,28 @@ const STATS = [
 
 const PLANS = [
   {
-    name: 'Free', price: '$0', period: 'para siempre',
-    desc: 'Perfecto para proyectos personales y equipos pequeños.',
-    color: '#FF6B00', primary: false, cta: 'Empezar gratis',
-    features: ['3 proyectos activos', '5 miembros / proyecto', '1 GB de almacenamiento', 'Versionado de assets', 'Tablero Kanban', 'Soporte por comunidad'],
+    name: 'Cipote', price: '$0', period: 'para siempre',
+    desc: 'Para el cipote que está empezando',
+    color: '#1E90FF', primary: false, cta: 'Empezar gratis',
+    btnClass: 'btn-secondary py-2.5',
+    btnStyle: { borderColor: '#1E90FF50', color: '#1E90FF' },
+    features: ['Hasta 2 proyectos', '3 miembros por proyecto', '1GB de assets', 'Kanban básico', 'Chat del proyecto'],
   },
   {
-    name: 'Pro', price: '$12', period: '/mes por equipo',
-    desc: 'Para estudios indie serios que necesitan más potencia.',
-    color: '#22d3ee', primary: true, cta: 'Comenzar prueba', badge: 'Más popular',
-    features: ['Proyectos ilimitados', 'Miembros ilimitados', '50 GB de almacenamiento', 'Analytics avanzados', 'Exportación de datos', 'Soporte prioritario'],
+    name: 'Chero', price: '$9.99', period: '/mes',
+    desc: 'Para vos y tu crew',
+    color: '#FF6B00', primary: true, cta: 'Comenzar prueba', badge: 'MÁS POPULAR',
+    btnClass: 'btn-primary',
+    btnStyle: {},
+    features: ['Proyectos ilimitados', '10 miembros por proyecto', '10GB de assets', 'Boards por engine', 'Milestones y etiquetas', 'Proyectos públicos'],
+  },
+  {
+    name: 'Cabal', price: '$24.99', period: '/mes',
+    desc: 'Para el estudio establecido',
+    color: '#1E90FF', primary: false, cta: 'Comenzar prueba', badge: 'ESTUDIO',
+    btnClass: 'btn-secondary py-2.5',
+    btnStyle: { borderColor: '#1E90FF50', color: '#1E90FF' },
+    features: ['Todo lo del plan Chero', 'Miembros ilimitados', '100GB de assets', 'Proyectos públicos ilimitados', 'Soporte prioritario', 'Acceso anticipado a nuevas funciones'],
   },
 ];
 
@@ -508,7 +520,7 @@ export default function LandingPage() {
           <p className="text-surface-400 max-w-md mx-auto">Sin cargos ocultos. Empieza gratis y escala cuando lo necesites.</p>
         </motion.div>
 
-        <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-5 md:gap-6 items-start">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 md:gap-6 items-start">
           {PLANS.map((plan, i) => (
             <motion.div key={plan.name}
               className="glass p-7 md:p-8 relative"
@@ -539,7 +551,8 @@ export default function LandingPage() {
               </ul>
 
               <button onClick={() => navigate('/register')}
-                className={`w-full flex items-center justify-center gap-2 ${plan.primary ? 'btn-primary' : 'btn-secondary py-2.5'}`}>
+                className={`w-full flex items-center justify-center gap-2 ${plan.btnClass}`}
+                style={plan.btnStyle}>
                 {plan.cta} <ArrowRight size={15} />
               </button>
             </motion.div>
