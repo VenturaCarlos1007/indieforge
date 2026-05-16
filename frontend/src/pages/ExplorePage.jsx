@@ -12,7 +12,7 @@ const ENGINE_META = {
   unreal: { color: '#2196F3', label: 'Unreal' },
   godot:  { color: '#5C6BC0', label: 'Godot' },
   roblox: { color: '#F59E0B', label: 'Roblox' },
-  custom: { color: '#7C3AED', label: 'Custom' },
+  custom: { color: '#FF6B00', label: 'Custom' },
 };
 
 const FILTER_ENGINES = ['all', 'unity', 'unreal', 'godot', 'roblox', 'custom'];
@@ -107,7 +107,7 @@ export default function ExplorePage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
-          <Compass size={26} className="text-emerald-400" />
+          <Compass size={26} className="text-blue-500" />
           <h1 className="text-3xl font-bold text-white">Explorar proyectos</h1>
         </div>
         <p className="text-surface-400 text-sm ml-10">
@@ -139,7 +139,7 @@ export default function ExplorePage() {
           {FILTER_ENGINES.map(e => {
             const meta   = ENGINE_META[e];
             const active = engineFilter === e;
-            const accent = e === 'all' ? '#10b981' : meta?.color;
+            const accent = e === 'all' ? '#1E90FF' : meta?.color;
             return (
               <button
                 key={e}
@@ -187,7 +187,7 @@ export default function ExplorePage() {
           {hasFilters && (
             <button
               onClick={() => { setSearch(''); setEngineFilter('all'); }}
-              className="text-sm text-emerald-400 hover:text-emerald-300 mt-2 transition-colors"
+              className="text-sm text-blue-500 hover:text-emerald-300 mt-2 transition-colors"
             >
               Limpiar filtros
             </button>
@@ -282,9 +282,9 @@ export default function ExplorePage() {
                     onClick={() => openRequestModal(project)}
                     className="w-full py-2 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5"
                     style={{
-                      background: 'rgba(16,185,129,0.08)',
-                      color: '#34d399',
-                      border: '1px solid rgba(16,185,129,0.20)',
+                      background: 'rgba(30,144,255,0.08)',
+                      color: '#1E90FF',
+                      border: '1px solid rgba(30,144,255,0.20)',
                     }}
                   >
                     <UserPlus size={14} /> Solicitar unirse
@@ -317,9 +317,9 @@ export default function ExplorePage() {
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.20)' }}
+                style={{ background: 'rgba(30,144,255,0.10)', border: '1px solid rgba(30,144,255,0.20)' }}
               >
-                <Compass size={22} className="text-emerald-400" />
+                <Compass size={22} className="text-blue-500" />
               </div>
               <h3 className="text-base font-semibold text-white text-center mb-1">{loginModal.project.name}</h3>
               <p className="text-sm text-surface-400 text-center mb-5">
@@ -329,7 +329,7 @@ export default function ExplorePage() {
                 <Link
                   to="/login"
                   className="flex-1 py-2 rounded-xl text-sm font-semibold text-center transition-all"
-                  style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                  style={{ background: 'rgba(30,144,255,0.15)', color: '#1E90FF', border: '1px solid rgba(30,144,255,0.25)' }}
                 >
                   Iniciar sesión
                 </Link>
@@ -363,9 +363,9 @@ export default function ExplorePage() {
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.20)' }}
+                style={{ background: 'rgba(30,144,255,0.10)', border: '1px solid rgba(30,144,255,0.20)' }}
               >
-                <UserPlus size={22} className="text-emerald-400" />
+                <UserPlus size={22} className="text-blue-500" />
               </div>
 
               <h3 className="text-base font-semibold text-white text-center mb-1">
@@ -381,7 +381,7 @@ export default function ExplorePage() {
                 placeholder="Mensaje para el owner (opcional)"
                 rows={3}
                 maxLength={300}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-surface-500 resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500/40 mb-4"
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-surface-500 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500/40 mb-4"
               />
 
               <div className="flex gap-3">
@@ -389,7 +389,7 @@ export default function ExplorePage() {
                   onClick={handleSubmitRequest}
                   disabled={submitting}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-                  style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                  style={{ background: 'rgba(30,144,255,0.15)', color: '#1E90FF', border: '1px solid rgba(30,144,255,0.25)' }}
                 >
                   <UserPlus size={14} />
                   {submitting ? 'Enviando…' : 'Enviar solicitud'}
