@@ -34,8 +34,8 @@ export const ENGINES = {
   },
   custom: {
     label: 'Personalizado',
-    color: '#7C3AED',
-    text: '#A78BFA',
+    color: '#FF6B00',
+    text: '#FFA060',
     stack: ['Cualquier motor o framework'],
     boards: [],
   },
@@ -287,12 +287,12 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                       style={{
-                        background: isPublic ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)',
-                        border: `1px solid ${isPublic ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                        background: isPublic ? 'rgba(30,144,255,0.12)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${isPublic ? 'rgba(30,144,255,0.25)' : 'rgba(255,255,255,0.08)'}`,
                       }}
                     >
                       {isPublic
-                        ? <Globe size={14} style={{ color: '#4ade80' }} />
+                        ? <Globe size={14} style={{ color: '#1E90FF' }} />
                         : <Lock size={14} style={{ color: '#9ca3af' }} />
                       }
                     </div>
@@ -310,7 +310,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, existingNa
                   </div>
                   <div
                     className="relative shrink-0 w-10 h-5 rounded-full transition-colors duration-200"
-                    style={{ background: isPublic ? '#22c55e' : 'rgba(255,255,255,0.15)' }}
+                    style={{ background: isPublic ? '#1E90FF' : 'rgba(255,255,255,0.15)' }}
                   >
                     <div
                       className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 shadow"

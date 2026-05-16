@@ -8,7 +8,7 @@ const ENGINES = {
   unreal: { label: 'Unreal',        color: '#2196F3', stack: 'BLUEPRINTS · C++ · NANITE · LUMEN' },
   godot:  { label: 'Godot',         color: '#5C6BC0', stack: 'GDSCRIPT · SCENES · NODES · SIGNALS' },
   roblox: { label: 'Roblox',        color: '#F59E0B', stack: 'LUA · DATASTORES · LIVE OPS' },
-  custom: { label: 'Personalizado', color: '#7C3AED', stack: 'CUALQUIER MOTOR O FRAMEWORK' },
+  custom: { label: 'Personalizado', color: '#FF6B00', stack: 'CUALQUIER MOTOR O FRAMEWORK' },
 };
 
 const STEPS = [
