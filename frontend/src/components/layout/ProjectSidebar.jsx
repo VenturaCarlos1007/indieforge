@@ -101,8 +101,8 @@ export default function ProjectSidebar({ project }) {
                     layoutId="project-nav-active"
                     className="absolute inset-0 rounded-xl"
                     style={{
-                      background: `linear-gradient(135deg, ${accent}12, transparent)`,
-                      border: `1px solid ${accent}25`,
+                      background: 'linear-gradient(135deg, #1E90FF12, transparent)',
+                      border: '1px solid #1E90FF25',
                     }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
@@ -112,7 +112,7 @@ export default function ProjectSidebar({ project }) {
                   <motion.div
                     layoutId="project-nav-bar"
                     className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full"
-                    style={{ background: accent, boxShadow: `0 0 8px ${accent}60` }}
+                    style={{ background: '#1E90FF', boxShadow: '0 0 8px #1E90FF60' }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -120,15 +120,14 @@ export default function ProjectSidebar({ project }) {
                   isActive ? '' : 'group-hover:scale-110'
                 }`}
                   style={{
-                    background: isActive ? `${accent}18` : 'rgba(255,255,255,0.03)',
-                    boxShadow: isActive ? `0 0 12px ${accent}15` : 'none',
+                    background: isActive ? '#1E90FF18' : 'rgba(255,255,255,0.03)',
+                    boxShadow: isActive ? '0 0 12px #1E90FF15' : 'none',
                   }}>
-                  <Icon size={15} style={{ color: isActive ? accent : '#64748B' }}
+                  <Icon size={15} style={{ color: isActive ? '#1E90FF' : '#64748B' }}
                     className="transition-colors duration-200 group-hover:brightness-150" />
                 </div>
-                <span className={`relative z-10 transition-colors duration-200 ${
-                  isActive ? 'text-white' : 'text-surface-300 group-hover:text-white'
-                }`}>
+                <span className="relative z-10 transition-colors duration-200 text-surface-300 group-hover:text-white"
+                  style={isActive ? { color: '#1E90FF' } : undefined}>
                   {label}
                 </span>
               </>
