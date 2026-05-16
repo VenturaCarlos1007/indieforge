@@ -18,7 +18,7 @@ export default function SplashScreen() {
         <img src="/logo2.0.png" alt="CipoteForge" style={{ width: 100, height: 100, objectFit: 'contain' }} />
 
         {/* Wordmark */}
-        <span style={{ color: 'white', fontWeight: 'bold', fontSize: '28px' }}>CipoteForge</span>
+        <span style={{ background: 'linear-gradient(to right, #1E90FF, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: 'bold', fontSize: '28px' }}>CipoteForge</span>
 
         {/* Tagline */}
         <span style={{ color: '#1E90FF', fontSize: '14px' }}>Game Dev · El Salvador 🌋</span>

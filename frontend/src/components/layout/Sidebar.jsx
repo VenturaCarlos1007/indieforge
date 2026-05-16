@@ -38,7 +38,7 @@ export default function Sidebar({ open, onClose }) {
       <Link to="/dashboard" onClick={onClose} className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"
         style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
-        <span className="text-lg font-bold text-white tracking-tight">CipoteForge</span>
+        <span className="text-lg font-bold tracking-tight" style={{ background: 'linear-gradient(to right, #1E90FF, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>CipoteForge</span>
       </Link>
 
       {/* Nav */}

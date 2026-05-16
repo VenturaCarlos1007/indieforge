@@ -132,7 +132,7 @@ export default function LoginPage() {
         <Link to="/" className="flex items-center gap-3">
           <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
           <span className="text-xl font-extrabold"
-            style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            style={{ background: 'linear-gradient(to right, #1E90FF, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             CipoteForge
           </span>
         </Link>
@@ -173,7 +173,7 @@ export default function LoginPage() {
             <Link to="/" className="flex items-center gap-2">
               <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
               <span className="text-xl font-extrabold"
-                style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                style={{ background: 'linear-gradient(to right, #1E90FF, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 CipoteForge
               </span>
             </Link>
