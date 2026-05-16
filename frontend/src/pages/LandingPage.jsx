@@ -170,16 +170,6 @@ function AppMockup() {
   );
 }
 
-const HERO_PARTICLES = [
-  { x: '12%', y: '25%', color: '#1E90FF', delay: 0 },
-  { x: '28%', y: '65%', color: '#FF6B00', delay: 0.7 },
-  { x: '42%', y: '15%', color: '#1E90FF', delay: 1.4 },
-  { x: '58%', y: '75%', color: '#FF6B00', delay: 0.3 },
-  { x: '72%', y: '30%', color: '#1E90FF', delay: 1.1 },
-  { x: '85%', y: '55%', color: '#FF6B00', delay: 0.5 },
-  { x: '18%', y: '80%', color: '#FF6B00', delay: 1.8 },
-  { x: '90%', y: '20%', color: '#1E90FF', delay: 0.9 },
-];
 
 /* ── Landing Page ────────────────────────────────── */
 export default function LandingPage() {
@@ -289,37 +279,16 @@ export default function LandingPage() {
         </AnimatePresence>
       </header>
 
-      {/* ── Hero Banner ── */}
-      <div className="relative w-full overflow-hidden flex items-center justify-center"
-        style={{ height: 'clamp(280px, 35vw, 420px)', background: '#060B17' }}>
-        <div className="absolute inset-y-0 left-0 w-48 pointer-events-none"
-          style={{ background: 'linear-gradient(to right, #1E90FF10, transparent)' }} />
-        <div className="absolute inset-y-0 right-0 w-48 pointer-events-none"
-          style={{ background: 'linear-gradient(to left, #1E90FF10, transparent)' }} />
-        <div className="absolute pointer-events-none"
-          style={{ width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle, #FF6B0020, transparent 65%)' }} />
-        {HERO_PARTICLES.map((p, i) => (
-          <motion.div key={i}
-            className="absolute rounded-full pointer-events-none"
-            style={{ width: 4, height: 4, left: p.x, top: p.y, background: p.color, boxShadow: `0 0 6px ${p.color}` }}
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: p.delay }}
-          />
-        ))}
-        <motion.img
-          src="/logo.png"
-          alt="CipoteForge"
-          style={{ width: 200, height: 200, objectFit: 'contain', position: 'relative', zIndex: 1 }}
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
-          style={{ background: 'linear-gradient(to right, transparent, #1E90FF40, transparent)' }} />
-      </div>
-
       {/* ── Hero ── */}
       <motion.section className="relative z-10 pt-24 md:pt-36 pb-14 md:pb-24 px-4 sm:px-6"
         variants={stagger} initial="hidden" animate="show">
+        <motion.img
+          src="/logo2.0.png"
+          alt="CipoteForge"
+          className="block mx-auto mt-8 w-28 h-28 object-contain"
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Left — text */}
           <div className="relative z-20 text-center lg:text-left">
