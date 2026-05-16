@@ -302,7 +302,7 @@ export default function AssetsPage() {
         className={`relative min-h-[350px] rounded-2xl transition-all duration-400 ${dragging ? 'dash-border-animated' : ''}`}
         style={{
           border: dragging ? undefined : '2px dashed transparent',
-          background: dragging ? 'rgba(124,58,237,0.03)' : 'transparent',
+          background: dragging ? 'rgba(255,107,0,0.03)' : 'transparent',
         }}
         onDragOver={isViewer ? undefined : (e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={isViewer ? undefined : () => setDragging(false)}
@@ -313,9 +313,9 @@ export default function AssetsPage() {
           {dragging && (
             <motion.div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none rounded-2xl"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ background: 'rgba(124,58,237,0.06)', backdropFilter: 'blur(4px)' }}>
+              style={{ background: 'rgba(255,107,0,0.06)', backdropFilter: 'blur(4px)' }}>
               <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}>
-                <CloudUpload size={48} style={{ color: '#7C3AED' }} />
+                <CloudUpload size={48} style={{ color: '#FF6B00' }} />
               </motion.div>
               <p className="text-brand-400 font-semibold mt-3">Suelta los archivos aquí</p>
               <p className="text-xs text-surface-400 mt-1">Máximo 50 MB por archivo</p>
@@ -409,7 +409,7 @@ export default function AssetsPage() {
                       <p className="text-sm font-medium truncate">{a.name}</p>
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                          style={{ background: 'rgba(124,58,237,0.1)', color: '#c084fc' }}>v{a.current_version}</span>
+                          style={{ background: 'rgba(255,107,0,0.1)', color: '#FF6B00' }}>v{a.current_version}</span>
                         <span className="text-[10px] text-surface-500 truncate">{a.uploader_name}</span>
                       </div>
                     </motion.div>

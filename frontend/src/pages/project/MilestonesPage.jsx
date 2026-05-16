@@ -11,7 +11,7 @@ const ENGINES = {
   unreal: { color: '#2196F3' },
   godot:  { color: '#5C6BC0' },
   roblox: { color: '#F59E0B' },
-  custom: { color: '#7C3AED' },
+  custom: { color: '#FF6B00' },
 };
 
 const STATUS_LABELS = {

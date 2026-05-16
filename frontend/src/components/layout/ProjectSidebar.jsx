@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, Gamepad2, BarChart2, MessageSquare, Flag } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, BarChart2, MessageSquare, Flag } from 'lucide-react';
 import { useProject } from './ProjectLayout';
 import { getSocket } from '../../services/socket';
 import UserAvatar from '../common/UserAvatar';
 
 const navItems = [
-  { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#a855f7', end: true },
+  { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#FF6B00', end: true },
   { path: 'assets',  label: 'Assets',     icon: FolderOpen,      accent: '#22d3ee' },
   { path: 'kanban',      label: 'Kanban',     icon: Columns3,  accent: '#fbbf24' },
   { path: 'milestones', label: 'Hitos',     icon: Flag,      accent: '#f97316' },
   { path: 'members',    label: 'Miembros',  icon: Users,     accent: '#34d399' },
   { path: 'stats',   label: 'Estadísticas',icon: BarChart2,      accent: '#f43f5e' },
-  { path: 'chat',   label: 'Chat',         icon: MessageSquare,  accent: '#a855f7' },
+  { path: 'chat',   label: 'Chat',         icon: MessageSquare,  accent: '#FF6B00' },
 ];
 
 export default function ProjectSidebar({ project }) {
@@ -34,7 +34,7 @@ export default function ProjectSidebar({ project }) {
     <aside className="hidden lg:flex flex-col w-56 glass-sidebar-project shrink-0 relative">
       {/* Gradient accent line */}
       <div className="absolute top-0 left-0 right-0 h-[2px]"
-        style={{ background: 'linear-gradient(90deg, #a855f7, #22d3ee, #34d399)' }} />
+        style={{ background: 'linear-gradient(90deg, #FF6B00, #22d3ee, #34d399)' }} />
 
       {/* Back + Project name */}
       <div className="px-4 py-4 border-b border-white/[0.05]">
@@ -44,10 +44,14 @@ export default function ProjectSidebar({ project }) {
           <span>Todos los proyectos</span>
         </NavLink>
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #7C3AED20, #06B6D420)', border: '1px solid rgba(124,58,237,0.15)' }}>
-            <Gamepad2 size={14} className="text-brand-400" />
-          </div>
+          <svg width="32" height="32" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+            <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+            <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+            <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+            <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+            <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+          </svg>
           <h2 className="font-semibold text-sm truncate">{project.name}</h2>
         </div>
       </div>
@@ -67,7 +71,7 @@ export default function ProjectSidebar({ project }) {
                     size={28}
                     className={isOnline ? 'opacity-100' : 'opacity-40'}
                   />
-                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-green-400 online-dot-pulse' : 'bg-surface-500'}`} />
+                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${isOnline ? 'bg-blue-500 online-dot-pulse' : 'bg-surface-500'}`} />
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-0.5 rounded-lg text-[10px] text-white whitespace-nowrap pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity z-50"
                     style={{ background: 'rgba(15,15,20,0.95)', border: '1px solid rgba(255,255,255,0.08)' }}>

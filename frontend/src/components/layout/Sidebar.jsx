@@ -6,8 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, LogOut, Settings, User, Compass } from 'lucide-react';
 
 const navItems = [
-  { to: '/dashboard', label: 'Proyectos', icon: LayoutDashboard, accent: '#a855f7' },
-  { to: '/explore',   label: 'Explorar',  icon: Compass,         accent: '#10b981' },
+  { to: '/dashboard', label: 'Proyectos', icon: LayoutDashboard, accent: '#FF6B00' },
+  { to: '/explore',   label: 'Explorar',  icon: Compass,         accent: '#1E90FF' },
   { to: '/profile',  label: 'Mi Perfil',  icon: User,            accent: '#06b6d4' },
 ];
 
@@ -32,7 +32,7 @@ export default function Sidebar({ open, onClose }) {
     ].join(' ')}>
       {/* Gradient top line */}
       <div className="absolute top-0 left-0 right-0 h-[2px] z-10"
-        style={{ background: 'linear-gradient(90deg, #7C3AED, #06B6D4, #7C3AED)' }} />
+        style={{ background: 'linear-gradient(90deg, #FF6B00, #06B6D4, #FF6B00)' }} />
 
       {/* Logo */}
       <Link to="/dashboard" onClick={onClose} className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"

@@ -9,7 +9,7 @@ import { SkeletonStats } from '../../components/common/Skeleton';
 const stagger = { show: { transition: { staggerChildren: 0.1 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
-const COLORS = ['#06b6d4', '#f59e0b', '#10b981', '#a855f7', '#f43f5e'];
+const COLORS = ['#06b6d4', '#f59e0b', '#1E90FF', '#FF6B00', '#f43f5e'];
 
 export default function ProjectStatsPage() {
   const { projectId, project } = useProject();
@@ -44,9 +44,9 @@ export default function ProjectStatsPage() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         <motion.div variants={item} className="glass p-5 rounded-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent" />
           <div className="relative z-10 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
               <Activity size={20} />
             </div>
             <div>
@@ -123,13 +123,13 @@ export default function ProjectStatsPage() {
                 <Tooltip 
                   cursor={{ fill: '#ffffff05' }}
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: '#ffffff20', borderRadius: '12px' }}
-                  itemStyle={{ color: '#a855f7' }}
+                  itemStyle={{ color: '#FF6B00' }}
                 />
                 <Bar dataKey="Completadas" fill="url(#colorPurple)" radius={[4, 4, 0, 0]} />
                 <defs>
                   <linearGradient id="colorPurple" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#FF6B00" stopOpacity={0.2}/>
                   </linearGradient>
                 </defs>
               </BarChart>

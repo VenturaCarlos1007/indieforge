@@ -20,17 +20,17 @@ const ENGINES = {
   unreal: { label: 'Unreal Engine', color: '#2196F3' },
   godot:  { label: 'Godot Engine',  color: '#5C6BC0' },
   roblox: { label: 'Roblox Studio', color: '#F59E0B' },
-  custom: { label: 'Personalizado', color: '#7C3AED' },
+  custom: { label: 'Personalizado', color: '#FF6B00' },
 };
 
 const ROLE_LABELS = { owner: 'Propietario', admin: 'Admin', member: 'Miembro' };
-const ROLE_COLORS = { owner: '#a855f7',     admin: '#22d3ee', member: '#64748b' };
+const ROLE_COLORS = { owner: '#FF6B00',     admin: '#22d3ee', member: '#64748b' };
 
 const STATUS_LABELS = { pending: 'Pendiente', in_progress: 'En progreso', done: 'Completada' };
 const STATUS_COLORS = { pending: '#64748b',  in_progress: '#22d3ee',     done: '#34d399' };
 
 const ACTION_ICONS = {
-  created:      { icon: PlusCircle,    color: '#a855f7' },
+  created:      { icon: PlusCircle,    color: '#FF6B00' },
   uploaded:     { icon: Upload,        color: '#22d3ee' },
   commented:    { icon: MessageSquare, color: '#fbbf24' },
   updated:      { icon: Pencil,        color: '#60a5fa' },
@@ -203,7 +203,7 @@ export default function ProjectDashboard() {
                   {onlineMembers.slice(0, 6).map(m => (
                     <div key={m.user_id} className="relative" title={m.name}>
                       <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={24} />
-                      <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-green-400 border border-gray-900" />
+                      <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-blue-500 border border-gray-900" />
                     </div>
                   ))}
                 </div>
@@ -325,8 +325,8 @@ export default function ProjectDashboard() {
         {/* Activity feed (3 cols) */}
         <motion.div className="lg:col-span-3 glass p-6" variants={item}>
           <div className="flex items-center gap-2.5 mb-5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#7C3AED18' }}>
-              <Activity size={15} style={{ color: '#a855f7' }} />
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#FF6B0018' }}>
+              <Activity size={15} style={{ color: '#FF6B00' }} />
             </div>
             <h3 className="font-semibold">Actividad reciente</h3>
           </div>
@@ -335,7 +335,7 @@ export default function ProjectDashboard() {
           ) : (
             <div className="relative">
               <div className="absolute left-[15px] top-2 bottom-2 w-px"
-                style={{ background: 'linear-gradient(180deg, #7C3AED30, transparent)' }} />
+                style={{ background: 'linear-gradient(180deg, #FF6B0030, transparent)' }} />
               <div className="space-y-0.5">
                 {recentActivity.slice(0, 5).map((a, i) => (
                   <motion.div key={a.id || i}
@@ -358,7 +358,7 @@ export default function ProjectDashboard() {
               {recentActivity.length > 5 && (
                 <div className="mt-3 pt-3 border-t border-white/[0.05]">
                   <NavLink to={`/project/${projectId}/stats`}
-                    className="flex items-center gap-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors">
+                    className="flex items-center gap-1.5 text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors">
                     Ver toda la actividad <ArrowRight size={13} />
                   </NavLink>
                 </div>
@@ -453,7 +453,7 @@ export default function ProjectDashboard() {
                 <div className="relative shrink-0">
                   <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={32} />
                   <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-gray-900 ${
-                    isOnline ? 'bg-green-400 online-dot-pulse' : 'bg-surface-600'
+                    isOnline ? 'bg-blue-500 online-dot-pulse' : 'bg-surface-600'
                   }`} />
                 </div>
                 <div className="min-w-0">

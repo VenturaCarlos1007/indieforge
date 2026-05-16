@@ -6,11 +6,11 @@ import { getSocket } from '../../services/socket';
 import ProjectSidebar from './ProjectSidebar';
 
 const MOBILE_NAV = [
-  { path: '',        label: 'Dashboard',    icon: LayoutDashboard, accent: '#a855f7', end: true },
+  { path: '',        label: 'Dashboard',    icon: LayoutDashboard, accent: '#FF6B00', end: true },
   { path: 'assets',  label: 'Assets',       icon: FolderOpen,      accent: '#22d3ee' },
   { path: 'kanban',  label: 'Kanban',       icon: Columns3,        accent: '#fbbf24' },
   { path: 'members', label: 'Miembros',     icon: Users,           accent: '#34d399' },
-  { path: 'stats',   label: 'Stats',        icon: BarChart2,       accent: '#f43f5e' },
+  { path: 'stats',   label: 'Estadísticas', icon: BarChart2,       accent: '#f43f5e' },
   { path: 'chat',    label: 'Chat',         icon: MessageSquare,   accent: '#a855f7' },
 ];
 

@@ -40,11 +40,11 @@ const COLUMNS = [
 const PRIORITIES = {
   high:   { label: 'Alta',  color: 'text-red-400',    bg: 'bg-red-400/10',    border: 'border-red-400/20',    icon: AlertCircle    },
   medium: { label: 'Media', color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', icon: AlertTriangle  },
-  low:    { label: 'Baja',  color: 'text-green-400',  bg: 'bg-green-400/10',  border: 'border-green-400/20',  icon: ArrowDownCircle },
+  low:    { label: 'Baja',  color: 'text-blue-500',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20',   icon: ArrowDownCircle },
 };
 
 const ENGINE_ACCENT = {
-  unity: '#4CAF50', unreal: '#2196F3', godot: '#5C6BC0', roblox: '#F59E0B', custom: '#7C3AED',
+  unity: '#4CAF50', unreal: '#2196F3', godot: '#5C6BC0', roblox: '#F59E0B', custom: '#FF6B00',
 };
 const ENGINE_LABEL = {
   unity: 'Unity', unreal: 'Unreal', godot: 'Godot', roblox: 'Roblox', custom: 'Motor',
@@ -151,7 +151,7 @@ export default function KanbanPage() {
     setActiveColIdx(idx);
   }, []);
 
-  const accent      = ENGINE_ACCENT[project?.engine] || '#7C3AED';
+  const accent      = ENGINE_ACCENT[project?.engine] || '#FF6B00';
   const engineLabel = ENGINE_LABEL[project?.engine]  || 'Motor';
   const baseBoards   = boards.filter(b => !b.engine_specific);
   const engineBoards = boards.filter(b => b.engine_specific);
@@ -455,7 +455,7 @@ export default function KanbanPage() {
               { key: 'all',    label: 'Todas', active: 'bg-white/10 text-white',          hover: 'hover:text-white hover:bg-white/5'         },
               { key: 'high',   label: 'Alta',  active: 'bg-red-400/20 text-red-400',       hover: 'hover:text-red-400 hover:bg-white/5'        },
               { key: 'medium', label: 'Media', active: 'bg-yellow-400/20 text-yellow-400', hover: 'hover:text-yellow-400 hover:bg-white/5'     },
-              { key: 'low',    label: 'Baja',  active: 'bg-green-400/20 text-green-400',   hover: 'hover:text-green-400 hover:bg-white/5'      },
+              { key: 'low',    label: 'Baja',  active: 'bg-blue-500/20 text-blue-500',     hover: 'hover:text-blue-500 hover:bg-white/5'       },
             ].map(f => (
               <button key={f.key}
                 onClick={() => setPriorityFilter(f.key)}
@@ -537,7 +537,7 @@ export default function KanbanPage() {
                         const diffDays = Math.ceil((new Date(task.due_date) - new Date()) / 86400000);
                         if (diffDays < 0)       { dueColor = 'text-red-400 border-red-400/30 bg-red-400/10';       dueLabel = 'Vencida'; }
                         else if (diffDays <= 3) { dueColor = 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'; dueLabel = `En ${diffDays} día${diffDays !== 1 ? 's' : ''}`; }
-                        else                    { dueColor = 'text-green-400 border-green-400/30 bg-green-400/10';  dueLabel = `En ${diffDays} días`; }
+                        else                    { dueColor = 'text-blue-500 border-blue-500/30 bg-blue-500/10';    dueLabel = `En ${diffDays} días`; }
                       }
 
                       const maxAvatars = isMobile ? 2 : 4;
@@ -762,7 +762,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
         <div>
           <label className="text-xs font-medium text-surface-300 mb-2 block">Prioridad</label>
           <select value={priority} onChange={(e) => setPriority(e.target.value)}
-            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm"
             style={{ fontSize: isMobile ? '16px' : undefined }}>
             <option value="high"   className="bg-gray-900">Alta</option>
             <option value="medium" className="bg-gray-900">Media</option>
@@ -773,7 +773,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
           <label className="text-xs font-medium text-surface-300 mb-2 flex items-center gap-1"><Calendar size={13} /> Fecha límite</label>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
             min={today}
-            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm [color-scheme:dark]"
+            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm [color-scheme:dark]"
             style={{ fontSize: isMobile ? '16px' : undefined }} />
         </div>
       </div>
@@ -782,7 +782,7 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
         <div>
           <label className="text-xs font-medium text-surface-300 mb-2 flex items-center gap-1"><Layers size={13} /> Tablero</label>
           <select value={boardId || ''} onChange={(e) => setBoardId(e.target.value || null)}
-            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm"
             style={{ fontSize: isMobile ? '16px' : undefined }}>
             <option value="" className="bg-gray-900">Sin tablero</option>
             {boards.map(b => (
@@ -800,8 +800,8 @@ function TaskFormModal({ open, onClose, onSubmit, members, task, title: modalTit
               disabled={isCompleted}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
-                background: assignees.includes(m.user_id) ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${assignees.includes(m.user_id) ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.06)'}`,
+                background: assignees.includes(m.user_id) ? 'rgba(255,107,0,0.15)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${assignees.includes(m.user_id) ? 'rgba(255,107,0,0.3)' : 'rgba(255,255,255,0.06)'}`,
                 color: assignees.includes(m.user_id) ? '#c084fc' : '#94A3B8',
                 cursor: isCompleted ? 'not-allowed' : 'pointer',
                 minHeight: isMobile ? '40px' : undefined,

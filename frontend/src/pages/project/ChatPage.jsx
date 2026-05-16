@@ -9,7 +9,7 @@ import { timeAgo } from '../../utils/helpers';
 import UserAvatar, { nameColor } from '../../components/common/UserAvatar';
 
 const EMOJI_SET = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎮', '✅'];
-const ENGINE_ACCENT = { unity: '#4CAF50', unreal: '#2196F3', godot: '#5C6BC0', roblox: '#F59E0B', custom: '#7C3AED' };
+const ENGINE_ACCENT = { unity: '#4CAF50', unreal: '#2196F3', godot: '#5C6BC0', roblox: '#F59E0B', custom: '#FF6B00' };
 const MAX_CHARS = 500;
 
 // ── helpers ──────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ function MentionText({ text, members }) {
   if (!members?.length) {
     const parts = text.split(/(@\S+)/g);
     return parts.map((p, i) =>
-      p.startsWith('@') ? <span key={i} className="font-semibold" style={{ color: '#a855f7' }}>{p}</span> : p
+      p.startsWith('@') ? <span key={i} className="font-semibold" style={{ color: '#FF6B00' }}>{p}</span> : p
     );
   }
   const sorted = [...members].sort((a, b) => b.name.length - a.name.length);
@@ -37,7 +37,7 @@ function MentionText({ text, members }) {
   const parts = text.split(pattern).filter(Boolean);
   return parts.map((p, i) =>
     p.startsWith('@')
-      ? <span key={i} className="font-semibold" style={{ color: '#a855f7' }}>{p}</span>
+      ? <span key={i} className="font-semibold" style={{ color: '#FF6B00' }}>{p}</span>
       : p
   );
 }
@@ -276,7 +276,7 @@ function Message({ msg, currentUserId, userRole, members, accent, avatarSize, sh
                 <div
                   className={`px-3 py-2 rounded-2xl text-sm leading-relaxed break-words ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} ${confirmDelete ? 'opacity-40' : ''}`}
                   style={isMe
-                    ? { background: 'linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.15))', border: '1px solid rgba(124,58,237,0.2)' }
+                    ? { background: 'linear-gradient(135deg, rgba(255,107,0,0.25), rgba(6,182,212,0.15))', border: '1px solid rgba(255,107,0,0.2)' }
                     : { background: 'var(--glass-sm-bg)', border: '1px solid var(--glass-sm-border)' }
                   }
                 >
@@ -374,7 +374,7 @@ function MessageList({ messages, currentUserId, userRole, members, accent, avata
 export default function ChatPage() {
   const { projectId, members, project, role } = useProject();
   const { user } = useAuth();
-  const accent = ENGINE_ACCENT[project?.engine] || '#7C3AED';
+  const accent = ENGINE_ACCENT[project?.engine] || '#FF6B00';
 
   const [messages,      setMessages]      = useState([]);
   const [text,          setText]          = useState('');
@@ -578,8 +578,8 @@ export default function ChatPage() {
       <div className="flex items-center gap-3 px-4 md:px-6 py-4 border-b shrink-0"
         style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-          style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.2)' }}>
-          <MessageSquare size={16} style={{ color: '#a855f7' }} />
+          style={{ background: 'rgba(255,107,0,0.12)', border: '1px solid rgba(255,107,0,0.2)' }}>
+          <MessageSquare size={16} style={{ color: '#FF6B00' }} />
         </div>
         <div>
           <h2 className="font-semibold text-sm">Chat del proyecto</h2>
@@ -596,8 +596,8 @@ export default function ChatPage() {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-              style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}>
-              <MessageSquare size={24} style={{ color: '#a855f7' }} />
+              style={{ background: 'rgba(255,107,0,0.08)', border: '1px solid rgba(255,107,0,0.15)' }}>
+              <MessageSquare size={24} style={{ color: '#FF6B00' }} />
             </div>
             <p className="text-sm font-semibold text-surface-300 mb-1">Todavía no hay mensajes</p>
             <p className="text-xs text-surface-500">Sé el primero en escribir algo</p>
@@ -666,7 +666,7 @@ export default function ChatPage() {
                     <button key={m.user_id} type="button"
                       onMouseDown={(e) => { e.preventDefault(); insertMention(m); }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${
-                        i === mentionIndex ? 'bg-purple-500/15' : 'hover:bg-white/5'
+                        i === mentionIndex ? 'bg-orange-500/15' : 'hover:bg-white/5'
                       }`}>
                       <UserAvatar name={m.name} avatarUrl={m.avatar_url} size={24} />
                       <span className="font-medium">{m.name}</span>
