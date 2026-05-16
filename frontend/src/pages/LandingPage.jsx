@@ -213,13 +213,16 @@ export default function LandingPage() {
         scrolled ? 'py-3 border-b border-white/[0.06]' : 'py-4 md:py-5'
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
-          <Link to="/" className="flex items-center gap-3 no-underline">
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-3 bg-transparent border-0 p-0 cursor-pointer"
+          >
             <img src="/logo2.0.png" alt="CipoteForge" width="65" height="65" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
-              style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              style={{ background: 'linear-gradient(to right, #1E90FF, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge
             </span>
-          </Link>
+          </button>
 
           <div className="hidden md:flex items-center gap-7 text-sm text-surface-300">
             <a href="#how" className="hover:text-white transition-colors">Cómo funciona</a>
@@ -309,7 +312,7 @@ export default function LandingPage() {
           src="/logo.png"
           alt="CipoteForge"
           className="block mx-auto mt-8 mb-8 object-contain relative z-10"
-          style={{ width: 180, height: 180 }}
+          style={{ width: 250, height: 250 }}
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -568,13 +571,13 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-10 mb-8 md:mb-12">
             {/* Brand — always visible */}
             <div className="md:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
+              <Link to="/" className="flex items-center gap-3 mb-4 no-underline">
                 <img src="/logo2.0.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
                 <span className="text-lg font-extrabold"
                   style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   CipoteForge
                 </span>
-              </div>
+              </Link>
               <p className="text-sm text-surface-400 leading-relaxed mb-5">
                 La plataforma todo-en-uno para equipos de desarrollo de videojuegos independientes.
               </p>
