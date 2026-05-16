@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Gamepad2, Users, FolderKanban, Upload, Columns3,
@@ -213,13 +213,13 @@ export default function LandingPage() {
         scrolled ? 'py-3 border-b border-white/[0.06]' : 'py-4 md:py-5'
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 no-underline">
             <img src="/logo2.0.png" alt="CipoteForge" width="65" height="65" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge
             </span>
-          </div>
+          </Link>
 
           <div className="hidden md:flex items-center gap-7 text-sm text-surface-300">
             <a href="#how" className="hover:text-white transition-colors">Cómo funciona</a>
@@ -235,7 +235,7 @@ export default function LandingPage() {
             <button onClick={() => navigate('/login')} className="btn-ghost text-sm hidden md:block">
               Iniciar sesión
             </button>
-            <button onClick={() => navigate('/register')} className="btn-primary text-sm py-2 px-4 md:px-5 hidden sm:flex">
+            <button onClick={() => navigate('/register')} className="btn-primary text-sm py-2 px-4 md:px-5 hidden sm:flex items-center justify-center">
               Empezar gratis
             </button>
             {/* Hamburger — mobile only */}
