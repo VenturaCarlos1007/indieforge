@@ -17,7 +17,7 @@ const stagger = { show: { transition: { staggerChildren: 0.06 } } };
 const initial = (name) => name?.[0]?.toUpperCase() || '?';
 
 const CARD_GRADIENTS = [
-  { from: '#7C3AED', to: '#a855f7' },
+  { from: '#FF6B00', to: '#FB923C' },
   { from: '#06B6D4', to: '#22d3ee' },
   { from: '#10B981', to: '#34d399' },
   { from: '#F59E0B', to: '#fbbf24' },
@@ -28,7 +28,7 @@ const ENGINE_ACCENT = {
   unreal: '#2196F3',
   godot:  '#5C6BC0',
   roblox: '#F59E0B',
-  custom: '#7C3AED',
+  custom: '#FF6B00',
 };
 
 function AnimatedCounter({ value }) {
@@ -49,9 +49,9 @@ const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 function activityColor(count, isFuture) {
   if (isFuture) return 'transparent';
   if (count === 0) return 'rgba(255,255,255,0.07)';
-  if (count < 3)  return 'rgba(168,85,247,0.35)';
-  if (count < 6)  return 'rgba(168,85,247,0.68)';
-  return 'rgb(168,85,247)';
+  if (count < 3)  return 'rgba(255,107,0,0.35)';
+  if (count < 6)  return 'rgba(255,107,0,0.68)';
+  return 'rgb(255,107,0)';
 }
 
 function GithubActivityGrid({ data }) {
@@ -177,16 +177,16 @@ export default function DashboardPage() {
   return (
     <div className="relative">
       <div className="pointer-events-none fixed inset-0 z-0"
-        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 60%)' }} />
+        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,107,0,0.06) 0%, transparent 60%)' }} />
 
       <motion.div className="max-w-6xl mx-auto relative z-10" variants={stagger} initial="hidden" animate="show">
         {/* Header */}
         <motion.div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 pt-2" variants={item}>
           <div>
             <h1 className="text-3xl font-bold mb-1">
-              Hola, <span style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Bienvenido a CipoteForge, <span style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {user?.name}
-              </span> 👋
+              </span> 👾
             </h1>
             <p className="text-surface-400 text-sm">Aquí está el resumen de tu trabajo</p>
           </div>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
             {/* Animated Counters */}
             <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8" variants={item}>
               <div className="glass p-5 rounded-2xl flex items-center gap-4 group">
-                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-400 group-hover:scale-110 transition-transform">
                   <Gamepad2 size={24} />
                 </div>
                 <div>
@@ -275,9 +275,9 @@ export default function DashboardPage() {
             <div className="glass-strong rounded-2xl">
               <EmptyState
                 icon={Rocket}
-                iconColor="#a855f7"
-                title="Aún no tienes proyectos"
-                subtitle="Crea tu primer proyecto y empieza a construir algo increíble"
+                iconColor="#FF6B00"
+                title="¡Comenzá a forjar tu primer juego!"
+                subtitle="Creá tu primer proyecto y empezá a construir con tu crew"
               />
             </div>
           ) : (
@@ -307,9 +307,9 @@ export default function DashboardPage() {
                             <span
                               className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full"
                               style={p.is_public ? {
-                                background: 'rgba(34,197,94,0.10)',
-                                color: '#4ade80',
-                                border: '1px solid rgba(34,197,94,0.20)',
+                                background: 'rgba(30,144,255,0.10)',
+                                color: '#1E90FF',
+                                border: '1px solid rgba(30,144,255,0.20)',
                               } : {
                                 background: 'rgba(255,255,255,0.05)',
                                 color: '#6b7280',
