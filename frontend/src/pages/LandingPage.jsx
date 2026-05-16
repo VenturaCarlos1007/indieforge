@@ -214,7 +214,7 @@ export default function LandingPage() {
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
           <div className="flex items-center gap-3">
-            <img src="/logo2.0.png" alt="CipoteForge" width="48" height="48" style={{ objectFit: 'contain' }} />
+            <img src="/logo2.0.png" alt="CipoteForge" width="65" height="65" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge
@@ -569,7 +569,7 @@ export default function LandingPage() {
             {/* Brand — always visible */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <img src="/logo.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
+                <img src="/logo2.0.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
                 <span className="text-lg font-extrabold"
                   style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   CipoteForge
