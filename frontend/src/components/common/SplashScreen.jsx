@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Gamepad2 } from 'lucide-react';
 
 export default function SplashScreen() {
   return (
@@ -16,27 +15,20 @@ export default function SplashScreen() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
 
         {/* Logo */}
-        <div className="relative">
-          <div className="w-20 h-20 rounded-3xl flex items-center justify-center relative z-10"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-            <Gamepad2 size={38} className="text-white" />
-          </div>
-          <div className="absolute inset-0 rounded-3xl blur-2xl opacity-40"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }} />
-        </div>
+        <img src="/logo.png" width="120" height="120" style={{ objectFit: 'contain' }} alt="CipoteForge" />
 
         {/* Wordmark */}
-        <span className="text-2xl font-extrabold tracking-tight"
-          style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          IndieForge
-        </span>
+        <span style={{ color: 'white', fontWeight: 'bold', fontSize: '28px' }}>CipoteForge</span>
+
+        {/* Tagline */}
+        <span style={{ color: '#1E90FF', fontSize: '14px' }}>Game Dev · El Salvador 🌋</span>
 
         {/* Dots */}
         <div className="flex gap-1.5 mt-1">
           {[0, 1, 2].map(i => (
             <motion.div key={i}
               className="w-1.5 h-1.5 rounded-full"
-              style={{ background: '#7C3AED' }}
+              style={{ background: '#FF6B00' }}
               animate={{ opacity: [0.25, 1, 0.25] }}
               transition={{ duration: 1, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }} />
           ))}

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, LogOut, Gamepad2, Sparkles, Settings, User, Compass } from 'lucide-react';
+import { LayoutDashboard, LogOut, Settings, User, Compass } from 'lucide-react';
 
 const navItems = [
   { to: '/dashboard', label: 'Proyectos', icon: LayoutDashboard, accent: '#a855f7' },
@@ -37,23 +37,15 @@ export default function Sidebar({ open, onClose }) {
       {/* Logo */}
       <Link to="/dashboard" onClick={onClose} className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"
         style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <div className="relative">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}>
-            <Gamepad2 size={22} className="text-white relative z-10" />
-          </div>
-          <div className="absolute inset-0 rounded-xl blur-xl opacity-40"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }} />
-        </div>
-        <div>
-          <span className="text-lg font-extrabold tracking-tight block"
-            style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            IndieForge
-          </span>
-          <span className="text-[10px] text-surface-400 dark:text-surface-500 font-medium tracking-widest uppercase flex items-center gap-1">
-            <Sparkles size={8} /> Game Studio
-          </span>
-        </div>
+        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
+          <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
+          <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
+          <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
+          <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
+          <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
+        </svg>
+        <span className="text-lg font-bold text-white tracking-tight">CipoteForge</span>
       </Link>
 
       {/* Nav */}
