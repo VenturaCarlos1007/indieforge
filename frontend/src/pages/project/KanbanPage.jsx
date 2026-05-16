@@ -12,7 +12,7 @@ import {
   Gamepad2, Bug, Palette, Music, Map, Rocket, Megaphone,
   Clapperboard, Package, Code, Settings,
   GitBranch, Zap, Mountain, Sparkles,
-  Plug, DollarSign, Radio, LayoutGrid,
+  Plug, DollarSign, Radio, LayoutGrid, LayoutList,
 } from 'lucide-react';
 import UserAvatar from '../../components/common/UserAvatar';
 
@@ -42,6 +42,8 @@ const PRIORITIES = {
   medium: { label: 'Media', color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', icon: AlertTriangle  },
   low:    { label: 'Baja',  color: 'text-blue-500',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20',   icon: ArrowDownCircle },
 };
+
+const PRIORITY_BAR = { high: '#f87171', medium: '#facc15', low: '#3b82f6' };
 
 const ENGINE_ACCENT = {
   unity: '#4CAF50', unreal: '#2196F3', godot: '#5C6BC0', roblox: '#F59E0B', custom: '#FF6B00',
@@ -134,6 +136,17 @@ export default function KanbanPage() {
   const [isMobile, setIsMobile]         = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [boardDropdownOpen, setBoardDropdownOpen] = useState(false);
   const [activeColIdx, setActiveColIdx] = useState(0);
+  const [compactView, setCompactView] = useState(() => {
+    try { return localStorage.getItem('kanban-compact-view') === 'true'; } catch { return false; }
+  });
+
+  const toggleCompact = () => {
+    setCompactView(v => {
+      const next = !v;
+      try { localStorage.setItem('kanban-compact-view', String(next)); } catch {}
+      return next;
+    });
+  };
   const dragItem   = useRef(null);
   const columnsRef = useRef(null);
 
@@ -449,22 +462,43 @@ export default function KanbanPage() {
             <span className="text-xs text-surface-400">{filteredTasks.length} tareas mostradas</span>
           </div>
 
-          {/* Priority filter */}
-          <div className="flex items-center gap-1 bg-surface-900 border border-white/5 rounded-xl p-1">
-            {[
-              { key: 'all',    label: 'Todas', active: 'bg-white/10 text-white',          hover: 'hover:text-white hover:bg-white/5'         },
-              { key: 'high',   label: 'Alta',  active: 'bg-red-400/20 text-red-400',       hover: 'hover:text-red-400 hover:bg-white/5'        },
-              { key: 'medium', label: 'Media', active: 'bg-yellow-400/20 text-yellow-400', hover: 'hover:text-yellow-400 hover:bg-white/5'     },
-              { key: 'low',    label: 'Baja',  active: 'bg-blue-500/20 text-blue-500',     hover: 'hover:text-blue-500 hover:bg-white/5'       },
-            ].map(f => (
-              <button key={f.key}
-                onClick={() => setPriorityFilter(f.key)}
-                className={`px-2.5 md:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
-                  priorityFilter === f.key ? f.active : `text-surface-400 ${f.hover}`
-                }`}>
-                {f.label}
+          <div className="flex items-center gap-2">
+            {/* Priority filter */}
+            <div className="flex items-center gap-1 bg-surface-900 border border-white/5 rounded-xl p-1">
+              {[
+                { key: 'all',    label: 'Todas', active: 'bg-white/10 text-white',          hover: 'hover:text-white hover:bg-white/5'         },
+                { key: 'high',   label: 'Alta',  active: 'bg-red-400/20 text-red-400',       hover: 'hover:text-red-400 hover:bg-white/5'        },
+                { key: 'medium', label: 'Media', active: 'bg-yellow-400/20 text-yellow-400', hover: 'hover:text-yellow-400 hover:bg-white/5'     },
+                { key: 'low',    label: 'Baja',  active: 'bg-blue-500/20 text-blue-500',     hover: 'hover:text-blue-500 hover:bg-white/5'       },
+              ].map(f => (
+                <button key={f.key}
+                  onClick={() => setPriorityFilter(f.key)}
+                  className={`px-2.5 md:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
+                    priorityFilter === f.key ? f.active : `text-surface-400 ${f.hover}`
+                  }`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Compact view toggle */}
+            <div className="relative group/compact">
+              <button
+                onClick={toggleCompact}
+                className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-150"
+                style={{
+                  background: compactView ? '#1E90FF15' : 'transparent',
+                  border: `1px solid ${compactView ? '#1E90FF' : 'rgba(255,255,255,0.08)'}`,
+                  color: compactView ? '#1E90FF' : '#6b7280',
+                }}
+              >
+                {compactView ? <LayoutGrid size={15} /> : <LayoutList size={15} />}
               </button>
-            ))}
+              <div className="absolute right-0 top-full mt-1.5 px-2 py-0.5 rounded-lg text-[10px] text-white whitespace-nowrap pointer-events-none opacity-0 group-hover/compact:opacity-100 transition-opacity z-50"
+                style={{ background: 'rgba(15,15,20,0.95)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {compactView ? 'Vista normal' : 'Vista compacta'}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -545,10 +579,14 @@ export default function KanbanPage() {
                       return (
                         <motion.div
                           key={task.id}
-                          className={`kanban-card group relative ${isMobile && !isViewer ? 'cursor-pointer active:scale-[0.98]' : ''}`}
-                          style={{ borderLeft: `3px solid ${col.accent}60` }}
+                          className={`kanban-card group relative ${isMobile && !isViewer ? 'cursor-pointer active:scale-[0.98]' : ''} ${compactView && !isViewer ? 'cursor-pointer' : ''}`}
+                          style={{
+                            borderLeft: `3px solid ${compactView ? PRIORITY_BAR[task.priority || 'medium'] : col.accent + '60'}`,
+                            ...(compactView ? { padding: '8px 12px' } : {}),
+                            transition: 'padding 0.15s, border-color 0.15s',
+                          }}
                           draggable={!isViewer && !isMobile}
-                          onClick={isMobile && !isViewer ? () => setEditTask(task) : undefined}
+                          onClick={!isViewer && (isMobile || compactView) ? () => setEditTask(task) : undefined}
                           onDragStart={!isViewer && !isMobile ? (e) => handleDragStart(e, task.id) : undefined}
                           onDragEnd={!isViewer && !isMobile ? handleDragEnd : undefined}
                           layout
@@ -557,50 +595,67 @@ export default function KanbanPage() {
                             ? { x: [0, -7, 7, -5, 5, 0], opacity: 1, y: 0, transition: { duration: 0.45 } }
                             : { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
                           exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.15 } }}
-                          whileHover={{ y: -2, boxShadow: `0 8px 30px ${col.accent}18, 0 0 0 1px ${col.accent}20` }}
+                          whileHover={compactView
+                            ? { backgroundColor: 'rgba(255,255,255,0.035)' }
+                            : { y: -2, boxShadow: `0 8px 30px ${col.accent}18, 0 0 0 1px ${col.accent}20` }}
                         >
-                          <div className="flex items-start gap-2">
-                            <GripVertical size={14} className="hidden md:block text-surface-400 mt-0.5 cursor-grab shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2 mb-1">
-                                <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${priorityData.bg} ${priorityData.border} ${priorityData.color}`}>
-                                  <PriorityIcon size={10} />
-                                  {priorityData.label}
+                          {compactView ? (
+                            <div className="flex items-center gap-2" style={{ transition: 'all 0.15s' }}>
+                              <p className="flex-1 min-w-0 text-[13px] font-medium truncate leading-none">{task.title}</p>
+                              {task.assignees?.[0] && (
+                                <UserAvatar name={task.assignees[0].name} avatarUrl={task.assignees[0].avatar_url} size={20} className="ring-1 ring-surface-800 shrink-0" />
+                              )}
+                              <div className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border shrink-0 ${priorityData.bg} ${priorityData.border} ${priorityData.color}`}>
+                                <PriorityIcon size={9} />
+                                <span>{priorityData.label}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-start gap-2">
+                                <GripVertical size={14} className="hidden md:block text-surface-400 mt-0.5 cursor-grab shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2 mb-1">
+                                    <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${priorityData.bg} ${priorityData.border} ${priorityData.color}`}>
+                                      <PriorityIcon size={10} />
+                                      {priorityData.label}
+                                    </div>
+                                    {task.due_date && task.status !== 'done' && (
+                                      <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${dueColor}`}>
+                                        <Calendar size={10} />
+                                        {dueLabel}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <p className="text-sm font-medium leading-tight">{task.title}</p>
+                                  {task.description && (
+                                    <p className="text-xs text-surface-400 mt-1.5 line-clamp-2 leading-relaxed">{task.description}</p>
+                                  )}
+                                  {!selectedBoard && taskBoard && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-surface-500 mt-1.5">
+                                      <span>{taskBoard.icon}</span>
+                                      <span className="truncate max-w-[90px]">{taskBoard.name}</span>
+                                    </span>
+                                  )}
                                 </div>
-                                {task.due_date && task.status !== 'done' && (
-                                  <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${dueColor}`}>
-                                    <Calendar size={10} />
-                                    {dueLabel}
+                                {!isViewer && (
+                                  <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => { e.stopPropagation(); setEditTask(task); }} className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-all"><Pencil size={12} /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }} className="p-1.5 rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-all"><Trash2 size={12} /></button>
                                   </div>
                                 )}
                               </div>
-                              <p className="text-sm font-medium leading-tight">{task.title}</p>
-                              {task.description && (
-                                <p className="text-xs text-surface-400 mt-1.5 line-clamp-2 leading-relaxed">{task.description}</p>
+                              {task.assignees && task.assignees.length > 0 && (
+                                <div className="flex items-center gap-0.5 mt-3 pt-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                                  {task.assignees.slice(0, maxAvatars).map((a) => (
+                                    <UserAvatar key={a.id} name={a.name} avatarUrl={a.avatar_url} size={24} className="ring-1 ring-surface-800" title={a.name} />
+                                  ))}
+                                  {task.assignees.length > maxAvatars && (
+                                    <span className="text-[10px] text-surface-400 ml-1">+{task.assignees.length - maxAvatars}</span>
+                                  )}
+                                </div>
                               )}
-                              {!selectedBoard && taskBoard && (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-surface-500 mt-1.5">
-                                  <span>{taskBoard.icon}</span>
-                                  <span className="truncate max-w-[90px]">{taskBoard.name}</span>
-                                </span>
-                              )}
-                            </div>
-                            {!isViewer && (
-                              <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={(e) => { e.stopPropagation(); setEditTask(task); }} className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-all"><Pencil size={12} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }} className="p-1.5 rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-all"><Trash2 size={12} /></button>
-                              </div>
-                            )}
-                          </div>
-                          {task.assignees && task.assignees.length > 0 && (
-                            <div className="flex items-center gap-0.5 mt-3 pt-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                              {task.assignees.slice(0, maxAvatars).map((a) => (
-                                <UserAvatar key={a.id} name={a.name} avatarUrl={a.avatar_url} size={24} className="ring-1 ring-surface-800" title={a.name} />
-                              ))}
-                              {task.assignees.length > maxAvatars && (
-                                <span className="text-[10px] text-surface-400 ml-1">+{task.assignees.length - maxAvatars}</span>
-                              )}
-                            </div>
+                            </>
                           )}
                         </motion.div>
                       );
