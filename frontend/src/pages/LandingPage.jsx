@@ -411,7 +411,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.15 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-black"
+              <div className="inline-block px-3 py-0.5 rounded-full text-xs font-black mb-4"
                 style={{ background:`${step.color}18`, border:`1px solid ${step.color}35`, color:step.color }}>
                 {step.n}
               </div>
