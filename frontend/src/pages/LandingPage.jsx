@@ -214,7 +214,7 @@ export default function LandingPage() {
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
           <div className="flex items-center gap-3">
-            <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
+            <img src="/logo2.0.png" alt="CipoteForge" width="48" height="48" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge
@@ -308,7 +308,8 @@ export default function LandingPage() {
         <motion.img
           src="/logo.png"
           alt="CipoteForge"
-          className="block mx-auto mt-8 w-28 h-28 object-contain relative z-10"
+          className="block mx-auto mt-8 mb-8 object-contain relative z-10"
+          style={{ width: 180, height: 180 }}
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
