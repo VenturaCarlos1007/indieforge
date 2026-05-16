@@ -170,6 +170,16 @@ function AppMockup() {
   );
 }
 
+const HERO_PARTICLES = [
+  { x: '12%', y: '25%', color: '#1E90FF', delay: 0 },
+  { x: '28%', y: '65%', color: '#FF6B00', delay: 0.7 },
+  { x: '42%', y: '15%', color: '#1E90FF', delay: 1.4 },
+  { x: '58%', y: '75%', color: '#FF6B00', delay: 0.3 },
+  { x: '72%', y: '30%', color: '#1E90FF', delay: 1.1 },
+  { x: '85%', y: '55%', color: '#FF6B00', delay: 0.5 },
+  { x: '18%', y: '80%', color: '#FF6B00', delay: 1.8 },
+  { x: '90%', y: '20%', color: '#1E90FF', delay: 0.9 },
+];
 
 /* ── Landing Page ────────────────────────────────── */
 export default function LandingPage() {
@@ -282,10 +292,23 @@ export default function LandingPage() {
       {/* ── Hero ── */}
       <motion.section className="relative z-10 pt-24 md:pt-36 pb-14 md:pb-24 px-4 sm:px-6"
         variants={stagger} initial="hidden" animate="show">
+        {/* Hero background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{ width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle, #FF6B0020, transparent 65%)' }} />
+          {HERO_PARTICLES.map((p, i) => (
+            <motion.div key={i}
+              className="absolute rounded-full"
+              style={{ width: 4, height: 4, left: p.x, top: p.y, background: p.color, boxShadow: `0 0 6px ${p.color}` }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: p.delay }}
+            />
+          ))}
+        </div>
         <motion.img
-          src="/logo2.0.png"
+          src="/logo.png"
           alt="CipoteForge"
-          className="block mx-auto mt-8 w-28 h-28 object-contain"
+          className="block mx-auto mt-8 w-28 h-28 object-contain relative z-10"
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
