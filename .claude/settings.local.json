@@ -17,7 +17,8 @@
       "Bash(xargs grep -l \"sticker\")",
       "Bash(xargs grep -l \"messages\")",
       "Bash(xargs grep -l \"messages\\\\|project_messages\")",
-      "Bash(xargs grep -l \"postgres\\\\|pg\\\\|database\")"
+      "Bash(xargs grep -l \"postgres\\\\|pg\\\\|database\")",
+      "Bash(git push)"
     ]
   }
 }
