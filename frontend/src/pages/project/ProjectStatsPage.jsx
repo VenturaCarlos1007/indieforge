@@ -57,9 +57,9 @@ export default function ProjectStatsPage() {
         </motion.div>
 
         <motion.div variants={item} className="glass p-5 rounded-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent" />
           <div className="relative z-10 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
               <CheckCircle size={20} />
             </div>
             <div>
