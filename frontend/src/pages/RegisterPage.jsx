@@ -161,14 +161,7 @@ export default function RegisterPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-7">
             <Link to="/" className="flex items-center gap-2">
-              <svg width="40" height="40" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
-                <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
-                <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
-                <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
-                <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
-                <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
-              </svg>
+              <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
               <span className="text-xl font-extrabold"
                 style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 CipoteForge
@@ -300,14 +293,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex flex-col justify-between flex-1 relative z-10 p-12">
         <div className="flex justify-end">
           <Link to="/" className="flex items-center gap-3">
-            <svg width="40" height="40" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-              <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
-              <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
-              <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
-              <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
-              <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
-              <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
-            </svg>
+            <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge

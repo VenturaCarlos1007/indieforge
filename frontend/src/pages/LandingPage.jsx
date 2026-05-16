@@ -214,14 +214,7 @@ export default function LandingPage() {
       }`} style={{ background: scrolled ? 'rgba(7,7,14,0.90)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none' }}>
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-10">
           <div className="flex items-center gap-3">
-            <svg width="40" height="40" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-              <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
-              <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
-              <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
-              <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
-              <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
-              <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
-            </svg>
+            <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
             <span className="text-xl font-extrabold"
               style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               CipoteForge

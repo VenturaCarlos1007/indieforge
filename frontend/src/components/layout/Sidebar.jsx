@@ -37,14 +37,7 @@ export default function Sidebar({ open, onClose }) {
       {/* Logo */}
       <Link to="/dashboard" onClick={onClose} className="flex items-center gap-3 px-5 py-5 hover:opacity-80 transition-opacity"
         style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="18,6 8,28 28,28" fill="#1E3A8A"/>
-          <polygon points="18,6 14,18 18,15" fill="#FF6B00"/>
-          <polygon points="18,6 22,18 18,15" fill="#FF4500"/>
-          <ellipse cx="18" cy="5" rx="3" ry="4" fill="#FF6B00"/>
-          <ellipse cx="18" cy="3" rx="1.5" ry="2.5" fill="#FFA500"/>
-          <rect x="6" y="28" width="24" height="3" rx="1.5" fill="#1E4494"/>
-        </svg>
+        <img src="/logo2.0.png" alt="CipoteForge" width="38" height="38" style={{ objectFit: 'contain' }} />
         <span className="text-lg font-bold text-white tracking-tight">CipoteForge</span>
       </Link>
 
