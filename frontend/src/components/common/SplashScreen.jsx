@@ -15,7 +15,7 @@ export default function SplashScreen() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
 
         {/* Logo */}
-        <img src="/logo.png" width="120" height="120" style={{ objectFit: 'contain' }} alt="CipoteForge" />
+        <img src="/logo2.0.png" alt="CipoteForge" style={{ width: 100, height: 100, objectFit: 'contain' }} />
 
         {/* Wordmark */}
         <span style={{ color: 'white', fontWeight: 'bold', fontSize: '28px' }}>CipoteForge</span>
