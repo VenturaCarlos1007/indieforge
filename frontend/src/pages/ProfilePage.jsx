@@ -16,7 +16,7 @@ const ENGINES = {
   unreal: { label: 'Unreal Engine', color: '#2196F3' },
   godot:  { label: 'Godot Engine',  color: '#5C6BC0' },
   roblox: { label: 'Roblox Studio', color: '#F59E0B' },
-  custom: { label: 'Personalizado', color: '#7C3AED' },
+  custom: { label: 'Personalizado', color: '#FF6B00' },
 };
 
 const ENGINE_OPTIONS = [
@@ -25,11 +25,11 @@ const ENGINE_OPTIONS = [
   { value: 'unreal', label: 'Unreal Engine', color: '#2196F3' },
   { value: 'godot',  label: 'Godot Engine',  color: '#5C6BC0' },
   { value: 'roblox', label: 'Roblox Studio', color: '#F59E0B' },
-  { value: 'custom', label: 'Personalizado', color: '#7C3AED' },
+  { value: 'custom', label: 'Personalizado', color: '#FF6B00' },
 ];
 
 const ROLE_LABELS = { owner: 'Propietario', admin: 'Admin', member: 'Miembro', viewer: 'Observador' };
-const ROLE_COLORS = { owner: '#a855f7', admin: '#22d3ee', member: '#64748b', viewer: '#94a3b8' };
+const ROLE_COLORS = { owner: '#FF6B00', admin: '#22d3ee', member: '#64748b', viewer: '#94a3b8' };
 
 function memberSince(d) {
   if (!d) return '';
@@ -177,7 +177,7 @@ export default function ProfilePage() {
     </div>
   );
 
-  const accent     = ENGINES[user?.favorite_engine]?.color || '#7C3AED';
+  const accent     = ENGINES[user?.favorite_engine]?.color || '#FF6B00';
   const engLabel   = ENGINES[user?.favorite_engine]?.label;
   const hasWebsite = normalizeUrl(user?.website);
 
@@ -281,14 +281,14 @@ export default function ProfilePage() {
         {/* Stats */}
         <div className="flex flex-row gap-4 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
           <motion.div variants={item} className="glass p-5 flex items-center gap-4 min-w-[150px] flex-1 lg:min-w-0"
-            style={{ borderColor: '#a855f720' }}>
+            style={{ borderColor: '#FF6B0020' }}>
             <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: '#a855f718', boxShadow: '0 0 16px #a855f715' }}>
-              <Briefcase size={18} style={{ color: '#a855f7' }} />
+              style={{ background: '#FF6B0018', boxShadow: '0 0 16px #FF6B0015' }}>
+              <Briefcase size={18} style={{ color: '#FF6B00' }} />
             </div>
             <div>
               <p className="text-xs text-surface-400 font-medium">Proyectos</p>
-              <p className="text-3xl font-extrabold" style={{ color: '#a855f7' }}>{stats.projectsCount}</p>
+              <p className="text-3xl font-extrabold" style={{ color: '#FF6B00' }}>{stats.projectsCount}</p>
             </div>
           </motion.div>
 
@@ -309,8 +309,8 @@ export default function ProfilePage() {
       {/* ── Mis Proyectos ─────────────────────────────────────────────── */}
       <motion.div variants={item} className="glass p-6">
         <div className="flex items-center gap-2.5 mb-5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#a855f718' }}>
-            <Briefcase size={14} style={{ color: '#a855f7' }} />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#FF6B0018' }}>
+            <Briefcase size={14} style={{ color: '#FF6B00' }} />
           </div>
           <h2 className="font-semibold">Mis Proyectos</h2>
           <span className="text-xs text-surface-500 ml-1">· {projects.length}</span>
@@ -348,8 +348,8 @@ export default function ProfilePage() {
       {/* ── Cambiar contraseña ───────────────────────────────────────── */}
       <motion.div variants={item} className="glass p-6">
         <div className="flex items-center gap-2 mb-5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#7C3AED18' }}>
-            <Lock size={14} style={{ color: '#a855f7' }} />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#FF6B0018' }}>
+            <Lock size={14} style={{ color: '#FF6B00' }} />
           </div>
           <h2 className="font-semibold">Cambiar contraseña</h2>
         </div>
