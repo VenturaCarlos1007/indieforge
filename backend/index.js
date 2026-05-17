@@ -103,19 +103,254 @@ const { initProjectMilestones } = require('./src/utils/initProjectMilestones');
 
 // ── Migrations (idempotent, run at startup)
 async function runMigrations() {
+  // ── Base schema (safe on fresh DB and on upgrades)
+  try {
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name          VARCHAR(100)  NOT NULL,
+        email         VARCHAR(255)  NOT NULL UNIQUE,
+        password_hash VARCHAR(255)  NOT NULL,
+        avatar_url    TEXT,
+        bio           TEXT,
+        favorite_engine VARCHAR(20),
+        location      VARCHAR(100),
+        website       VARCHAR(200),
+        created_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name        VARCHAR(150)  NOT NULL,
+        description TEXT,
+        owner_id    UUID          NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        engine      VARCHAR(20)   NOT NULL DEFAULT 'custom',
+        is_public   BOOLEAN       NOT NULL DEFAULT false,
+        created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects (owner_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS project_members (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID        NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+        user_id    UUID        NOT NULL REFERENCES users (id)    ON DELETE CASCADE,
+        role       VARCHAR(50) NOT NULL DEFAULT 'member',
+        status     VARCHAR(20) NOT NULL DEFAULT 'active',
+        joined_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (project_id, user_id)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_pm_project ON project_members (project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_pm_user    ON project_members (user_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS folders (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID         NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+        parent_id  UUID                  REFERENCES folders  (id) ON DELETE CASCADE,
+        name       VARCHAR(255) NOT NULL
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_folders_project ON folders (project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_folders_parent  ON folders (parent_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS assets (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id      UUID         NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+        folder_id       UUID                  REFERENCES folders  (id) ON DELETE SET NULL,
+        uploaded_by     UUID         NOT NULL REFERENCES users    (id) ON DELETE SET NULL,
+        name            VARCHAR(255) NOT NULL,
+        type            VARCHAR(50)  NOT NULL,
+        current_version INT          NOT NULL DEFAULT 1,
+        created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_assets_project ON assets (project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_assets_folder  ON assets (folder_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS asset_versions (
+        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        asset_id       UUID         NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+        uploaded_by    UUID         NOT NULL REFERENCES users  (id) ON DELETE SET NULL,
+        version_number INT          NOT NULL,
+        storage_url    TEXT         NOT NULL,
+        size_bytes     BIGINT       DEFAULT 0,
+        is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
+        created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+        UNIQUE (asset_id, version_number)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_av_asset ON asset_versions (asset_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS boards (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id      UUID REFERENCES projects(id) ON DELETE CASCADE,
+        name            VARCHAR(100) NOT NULL,
+        icon            VARCHAR(10) DEFAULT '📋',
+        engine_specific BOOLEAN DEFAULT false,
+        position        INTEGER DEFAULT 0,
+        created_at      TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_boards_project ON boards(project_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id  UUID         NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+        board_id    UUID                  REFERENCES boards   (id) ON DELETE SET NULL,
+        title       VARCHAR(255) NOT NULL,
+        description TEXT,
+        status      VARCHAR(30)  NOT NULL DEFAULT 'pending',
+        priority    VARCHAR(10)  DEFAULT 'medium',
+        due_date    TIMESTAMPTZ,
+        created_by  UUID         NOT NULL REFERENCES users    (id) ON DELETE SET NULL,
+        created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks (project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_tasks_status  ON tasks (status)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS task_assignments (
+        id      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        task_id UUID NOT NULL REFERENCES tasks (id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        UNIQUE (task_id, user_id)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_ta_task ON task_assignments (task_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_ta_user ON task_assignments (user_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comments (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        asset_id   UUID        NOT NULL REFERENCES assets   (id) ON DELETE CASCADE,
+        user_id    UUID        NOT NULL REFERENCES users    (id) ON DELETE CASCADE,
+        parent_id  UUID                 REFERENCES comments (id) ON DELETE CASCADE,
+        content    TEXT        NOT NULL,
+        resolved   BOOLEAN     NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_comments_asset  ON comments (asset_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_feed (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id    UUID        NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+        user_id       UUID        NOT NULL REFERENCES users    (id) ON DELETE CASCADE,
+        action        VARCHAR(50) NOT NULL,
+        resource_type VARCHAR(50) NOT NULL,
+        resource_id   UUID        NOT NULL,
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_af_project    ON activity_feed (project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_af_created_at ON activity_feed (created_at DESC)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        project_id UUID        REFERENCES projects(id) ON DELETE CASCADE,
+        type       VARCHAR(50) NOT NULL,
+        title      VARCHAR(255) NOT NULL,
+        message    TEXT,
+        read       BOOLEAN     NOT NULL DEFAULT FALSE,
+        data       JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications (user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_notif_read ON notifications (read)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS project_messages (
+        id          SERIAL PRIMARY KEY,
+        project_id  UUID    NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        user_id     UUID    NOT NULL REFERENCES users(id)    ON DELETE CASCADE,
+        content     TEXT    NOT NULL,
+        reply_to_id INTEGER REFERENCES project_messages(id) ON DELETE SET NULL,
+        edited      BOOLEAN DEFAULT false,
+        edited_at   TIMESTAMP,
+        created_at  TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS milestones (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id  UUID REFERENCES projects(id) ON DELETE CASCADE,
+        name        VARCHAR(100) NOT NULL,
+        description TEXT,
+        due_date    DATE,
+        status      VARCHAR(20) DEFAULT 'pendiente'
+                      CHECK (status IN ('pendiente', 'en_progreso', 'completado')),
+        position    INTEGER DEFAULT 0,
+        created_by  UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_at  TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_milestones_project ON milestones(project_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS join_requests (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+        user_id    UUID REFERENCES users(id)    ON DELETE CASCADE,
+        status     VARCHAR(20) DEFAULT 'pendiente'
+                     CHECK (status IN ('pendiente', 'aceptado', 'rechazado')),
+        message    TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(project_id, user_id)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_join_requests_project ON join_requests(project_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_join_requests_user    ON join_requests(user_id, status)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS message_reactions (
+        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        message_id TEXT NOT NULL,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        emoji      VARCHAR(10) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(message_id, user_id)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_msg_reactions_msg ON message_reactions(message_id)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS migrations_log (
+        name         VARCHAR(100) PRIMARY KEY,
+        executed_at  TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    console.log('✅ Base schema OK');
+  } catch (err) {
+    console.error('❌ Base schema error:', err.message);
+    throw err;
+  }
+
+  // ── Incremental migrations (safe on existing DBs)
   try {
     await pool.query(`
       ALTER TABLE project_members
       ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active'
-    `);
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS project_messages (
-        id          SERIAL PRIMARY KEY,
-        project_id  INTEGER NOT NULL REFERENCES projects(id)  ON DELETE CASCADE,
-        user_id     INTEGER NOT NULL REFERENCES users(id)     ON DELETE CASCADE,
-        content     TEXT    NOT NULL,
-        created_at  TIMESTAMPTZ DEFAULT NOW()
-      )
     `);
     await pool.query(`
       ALTER TABLE projects
