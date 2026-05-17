@@ -9,7 +9,10 @@ const DEMO_EMAIL    = 'demo@cipoteforge.com';
 const DEMO_PASSWORD = 'Demo1234';
 
 async function seedDemo() {
+  console.log('🚀 Iniciando seed demo...');
+  console.log('📦 Conectando a la base de datos...');
   const client = await getClient();
+  console.log('✅ Conexión establecida.');
 
   try {
     // Idempotency check — abort if demo user already exists
@@ -21,6 +24,7 @@ async function seedDemo() {
       return;
     }
 
+    console.log('🔄 Iniciando transacción...');
     await client.query('BEGIN');
 
     const hash = await bcrypt.hash(DEMO_PASSWORD, 12);
@@ -37,6 +41,7 @@ async function seedDemo() {
     };
 
     // ── Users ────────────────────────────────────────────────────
+    console.log('👤 Creando usuarios demo...');
     const alexId   = uuidv4();
     const mariaId  = uuidv4();
     const carlosId = uuidv4();
@@ -63,6 +68,7 @@ async function seedDemo() {
     );
 
     // ── Project ──────────────────────────────────────────────────
+    console.log('🎮 Creando proyecto Eclipse Carmesí...');
     const projectId = uuidv4();
     await client.query(
       `INSERT INTO projects (id, name, description, owner_id, engine)
@@ -73,6 +79,7 @@ async function seedDemo() {
     );
 
     // ── Memberships ──────────────────────────────────────────────
+    console.log('👥 Asignando miembros al proyecto...');
     for (const [uid, role] of [
       [alexId,   'owner'],
       [mariaId,  'admin'],
@@ -87,6 +94,7 @@ async function seedDemo() {
     }
 
     // ── Boards ───────────────────────────────────────────────────
+    console.log('📋 Creando boards...');
     const bGameplay  = uuidv4();
     const bBugs      = uuidv4();
     const bArte      = uuidv4();
@@ -121,6 +129,7 @@ async function seedDemo() {
     }
 
     // ── Tasks ────────────────────────────────────────────────────
+    console.log('📝 Creando tareas y asignaciones...');
     const taskDefs = [
       // board, title, status, priority, assignee
       [bGameplay, 'Implementar sistema de dash del jugador',       'in_progress', 'high',   alexId],
@@ -156,6 +165,7 @@ async function seedDemo() {
     }
 
     // ── Milestones ───────────────────────────────────────────────
+    console.log('🏁 Creando milestones...');
     const milestoneIdAlpha = uuidv4();
     const milestoneDefs = [
       [uuidv4(),          'Prototipo',    'completado',  daysOffset(-60), 0],
@@ -174,6 +184,7 @@ async function seedDemo() {
     }
 
     // ── Demo assets (referenced by activity feed) ─────────────────
+    console.log('🖼️  Creando assets demo...');
     const assetDashId     = uuidv4();
     const assetSkeletonId = uuidv4();
     const assetTilesetId  = uuidv4();
@@ -196,6 +207,7 @@ async function seedDemo() {
     }
 
     // ── Activity feed ────────────────────────────────────────────
+    console.log('📰 Generando activity feed...');
     const bossTaskId  = taskIdMap['El boss del piso 2 se queda atascado'];
     const sofiaTaskId = taskIdMap['Animaciones de muerte del jugador'];
     const buildTaskId = taskIdMap['Configurar build para Windows'];
@@ -225,8 +237,9 @@ async function seedDemo() {
     await client.query('COMMIT');
     console.log('✅ Demo seed completado — usuario: demo@cipoteforge.com / pass: Demo1234');
   } catch (err) {
-    await client.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(() => {});
     console.error('❌ Error en demo seed:', err.message);
+    console.error(err.stack);
     throw err;
   } finally {
     client.release();
@@ -236,8 +249,15 @@ async function seedDemo() {
 // Run as standalone script: node src/utils/seedDemo.js
 if (require.main === module) {
   seedDemo()
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .then(() => {
+      console.log('🎉 Seed demo finalizado exitosamente.');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('💀 Seed demo falló. Abortando.');
+      console.error(err);
+      process.exit(1);
+    });
 }
 
 module.exports = { seedDemo };

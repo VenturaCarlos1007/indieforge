@@ -12,18 +12,18 @@ import Modal from '../components/common/Modal';
 import { EngineImg } from '../components/common/EngineIcons';
 
 const ENGINES = {
-  unity:  { label: 'Unity',         color: '#4CAF50' },
+  unity: { label: 'Unity', color: '#4CAF50' },
   unreal: { label: 'Unreal Engine', color: '#2196F3' },
-  godot:  { label: 'Godot Engine',  color: '#5C6BC0' },
+  godot: { label: 'Godot Engine', color: '#5C6BC0' },
   roblox: { label: 'Roblox Studio', color: '#F59E0B' },
   custom: { label: 'Personalizado', color: '#FF6B00' },
 };
 
 const ENGINE_OPTIONS = [
-  { value: null,     label: 'Ninguno',       color: '#6B7280' },
-  { value: 'unity',  label: 'Unity',         color: '#4CAF50' },
+  { value: null, label: 'Ninguno', color: '#6B7280' },
+  { value: 'unity', label: 'Unity', color: '#4CAF50' },
   { value: 'unreal', label: 'Unreal Engine', color: '#2196F3' },
-  { value: 'godot',  label: 'Godot Engine',  color: '#5C6BC0' },
+  { value: 'godot', label: 'Godot Engine', color: '#5C6BC0' },
   { value: 'roblox', label: 'Roblox Studio', color: '#F59E0B' },
   { value: 'custom', label: 'Personalizado', color: '#FF6B00' },
 ];
@@ -47,33 +47,33 @@ function displayUrl(url) {
 }
 
 const stagger = { show: { transition: { staggerChildren: 0.06 } } };
-const item    = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
+const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
 export default function ProfilePage() {
   const { updateUser } = useAuth();
   const navigate = useNavigate();
 
-  const [loading, setLoading]   = useState(true);
-  const [user, setUser]         = useState(null);
-  const [stats, setStats]       = useState({ projectsCount: 0, tasksAssignedCount: 0 });
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({ projectsCount: 0, tasksAssignedCount: 0 });
   const [projects, setProjects] = useState([]);
 
   // Edit modal
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm]           = useState({ name: '', bio: '', location: '', website: '', favorite_engine: null, avatar_url: '' });
-  const [saving, setSaving]       = useState(false);
+  const [form, setForm] = useState({ name: '', bio: '', location: '', website: '', favorite_engine: null, avatar_url: '' });
+  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [websiteError, setWebsiteError] = useState('');
-  const fileInputRef              = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Password change
-  const [pwCurrent, setPwCurrent]   = useState('');
-  const [pwNew, setPwNew]           = useState('');
-  const [pwConfirm, setPwConfirm]   = useState('');
-  const [pwSaving, setPwSaving]     = useState(false);
-  const [pwMsg, setPwMsg]           = useState({ text: '', ok: true });
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMsg, setPwMsg] = useState({ text: '', ok: true });
   const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew]         = useState(false);
+  const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => { fetchProfile(); }, []);
@@ -93,12 +93,12 @@ export default function ProfilePage() {
 
   const openEdit = () => {
     setForm({
-      name:            user.name || '',
-      bio:             user.bio || '',
-      location:        user.location || '',
-      website:         user.website || '',
+      name: user.name || '',
+      bio: user.bio || '',
+      location: user.location || '',
+      website: user.website || '',
       favorite_engine: user.favorite_engine || null,
-      avatar_url:      user.avatar_url || '',
+      avatar_url: user.avatar_url || '',
     });
     setSaveError('');
     setShowModal(true);
@@ -138,12 +138,12 @@ export default function ProfilePage() {
     setSaveError('');
     try {
       const { data } = await api.patch('/profile', {
-        name:            form.name.trim(),
-        bio:             form.bio || null,
+        name: form.name.trim(),
+        bio: form.bio || null,
         favorite_engine: form.favorite_engine,
-        location:        form.location || null,
-        website:         form.website || null,
-        avatar_url:      form.avatar_url || null,
+        location: form.location || null,
+        website: form.website || null,
+        avatar_url: form.avatar_url || null,
       });
       setUser(data.user);
       updateUser(data.user);
@@ -159,7 +159,7 @@ export default function ProfilePage() {
     e.preventDefault();
     setPwMsg({ text: '', ok: true });
     if (pwNew !== pwConfirm) { setPwMsg({ text: 'Las contraseñas no coinciden.', ok: false }); return; }
-    if (pwNew.length < 6)   { setPwMsg({ text: 'Mínimo 6 caracteres.', ok: false }); return; }
+    if (pwNew.length < 6) { setPwMsg({ text: 'Mínimo 6 caracteres.', ok: false }); return; }
     setPwSaving(true);
     try {
       await api.put('/profile/password', { current_password: pwCurrent, new_password: pwNew });
@@ -177,8 +177,8 @@ export default function ProfilePage() {
     </div>
   );
 
-  const accent     = ENGINES[user?.favorite_engine]?.color || '#FF6B00';
-  const engLabel   = ENGINES[user?.favorite_engine]?.label;
+  const accent = ENGINES[user?.favorite_engine]?.color || '#FF6B00';
+  const engLabel = ENGINES[user?.favorite_engine]?.label;
   const hasWebsite = normalizeUrl(user?.website);
 
   return (
@@ -267,9 +267,9 @@ export default function ProfilePage() {
               <p className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">Engine favorito</p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm font-medium"
                 style={{
-                  background:   `${accent}12`,
-                  borderColor:  `${accent}35`,
-                  color:        accent,
+                  background: `${accent}12`,
+                  borderColor: `${accent}35`,
+                  color: accent,
                 }}>
                 <EngineImg engine={user.favorite_engine} size={16} />
                 {engLabel}
@@ -321,8 +321,8 @@ export default function ProfilePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {projects.map(p => {
-              const eng      = ENGINES[p.engine] || ENGINES.custom;
-              const rColor   = ROLE_COLORS[p.role] || '#64748b';
+              const eng = ENGINES[p.engine] || ENGINES.custom;
+              const rColor = ROLE_COLORS[p.role] || '#64748b';
               return (
                 <button key={p.id}
                   onClick={() => navigate(`/project/${p.id}`)}
@@ -356,8 +356,8 @@ export default function ProfilePage() {
 
         <form onSubmit={handlePasswordChange} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Contraseña actual',          val: pwCurrent, set: setPwCurrent, show: showCurrent, setShow: setShowCurrent },
-            { label: 'Nueva contraseña',           val: pwNew,     set: setPwNew,     show: showNew,     setShow: setShowNew,     placeholder: 'Mín. 6 caracteres' },
+            { label: 'Contraseña actual', val: pwCurrent, set: setPwCurrent, show: showCurrent, setShow: setShowCurrent },
+            { label: 'Nueva contraseña', val: pwNew, set: setPwNew, show: showNew, setShow: setShowNew, placeholder: 'Mín. 6 caracteres' },
             { label: 'Confirmar nueva contraseña', val: pwConfirm, set: setPwConfirm, show: showConfirm, setShow: setShowConfirm, placeholder: 'Repetir contraseña' },
           ].map(({ label, val, set, show, setShow, placeholder }) => (
             <div key={label}>
@@ -469,9 +469,9 @@ export default function ProfilePage() {
                     onClick={() => setForm(f => ({ ...f, favorite_engine: value }))}
                     className="flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl border text-[11px] font-medium transition-all"
                     style={{
-                      background:   selected ? `${color}18` : 'transparent',
-                      borderColor:  selected ? `${color}40` : 'rgba(255,255,255,0.06)',
-                      color:        selected ? color : '#6B7280',
+                      background: selected ? `${color}18` : 'transparent',
+                      borderColor: selected ? `${color}40` : 'rgba(255,255,255,0.06)',
+                      color: selected ? color : '#6B7280',
                     }}>
                     {value ? (
                       <EngineImg engine={value} size={20} />

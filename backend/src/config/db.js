@@ -7,9 +7,11 @@ const { Pool } = require('pg');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const connectionConfig = process.env.DATABASE_URL
+const connectionString = (process.env.DATABASE_URL || '').trim();
+
+const connectionConfig = connectionString
   ? {
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
       ssl: isProduction ? { rejectUnauthorized: false } : false,
     }
   : {

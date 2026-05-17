@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -7,6 +7,32 @@ import {
   Check, Star, Twitter, Folder, Play, ChevronRight,
   Menu, X,
 } from 'lucide-react';
+
+function useReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { el.classList.add('visible'); obs.unobserve(el); } },
+      { threshold: 0.12 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+const ENGINES = [
+  { name: 'Unity',     color: '#22d3ee', bg: 'rgba(34,211,238,0.08)',  border: 'rgba(34,211,238,0.22)',  emoji: '🎮' },
+  { name: 'Unreal',    color: '#f472b6', bg: 'rgba(244,114,182,0.08)', border: 'rgba(244,114,182,0.22)', emoji: '⚡' },
+  { name: 'Godot',     color: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.22)',  emoji: '🤖' },
+  { name: 'GameMaker', color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.22)',  emoji: '🕹️' },
+  { name: 'Pygame',    color: '#fb923c', bg: 'rgba(251,146,60,0.08)',  border: 'rgba(251,146,60,0.22)',  emoji: '🐍' },
+  { name: 'RPG Maker', color: '#c084fc', bg: 'rgba(192,132,252,0.08)', border: 'rgba(192,132,252,0.22)', emoji: '🗡️' },
+  { name: 'Construct', color: '#1E90FF', bg: 'rgba(30,144,255,0.08)',  border: 'rgba(30,144,255,0.22)',  emoji: '🔧' },
+  { name: 'Custom',    color: '#FF6B00', bg: 'rgba(255,107,0,0.08)',   border: 'rgba(255,107,0,0.22)',   emoji: '✨' },
+];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -224,10 +250,10 @@ export default function LandingPage() {
             </span>
           </button>
 
-          <div className="hidden md:flex items-center gap-7 text-sm text-surface-300">
-            <a href="#how" className="hover:text-white transition-colors">Cómo funciona</a>
-            <a href="#features" className="hover:text-white transition-colors">Características</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Precios</a>
+          <div className="hidden md:flex items-center gap-1 text-sm">
+            {[['#how','Cómo funciona'],['#features','Características'],['#pricing','Precios']].map(([h,l]) => (
+              <a key={h} href={h} className="px-4 py-2 rounded-lg text-surface-300 hover:text-white hover:bg-white/[0.06] transition-all">{l}</a>
+            ))}
             <a href="https://github.com" target="_blank" rel="noopener noreferrer"
               className="hover:text-white transition-colors flex items-center gap-1.5">
               <Github size={14} /> GitHub
@@ -326,7 +352,7 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.h1 variants={fadeUp}
-              className="text-[2.25rem] sm:text-5xl md:text-[3.75rem] font-black leading-[1.08] tracking-tight mb-5 md:mb-6">
+              className="text-[2.5rem] sm:text-5xl md:text-[4.5rem] font-black leading-[1.04] tracking-tight mb-6 md:mb-8">
               Forjá tu juego.
               <br />
               <span style={{ color: '#1E90FF' }}>
@@ -396,12 +422,12 @@ export default function LandingPage() {
       <section id="how" className="relative z-10 px-4 sm:px-6 py-16 md:py-28">
         <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
-            style={{ background: 'rgba(124,58,237,0.10)', color: '#c084fc', border: '1px solid rgba(124,58,237,0.22)' }}>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] px-4 py-2 rounded-full inline-block mb-5"
+            style={{ background: 'rgba(124,58,237,0.12)', color: '#c084fc', border: '1px solid rgba(124,58,237,0.28)' }}>
             Cómo funciona
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">En tres pasos tienes todo listo</h2>
-          <p className="text-surface-400 max-w-md mx-auto">Sin configuraciones complicadas. Empieza a crear en minutos.</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-5 tracking-tight">En tres pasos tienes todo listo</h2>
+          <p className="text-surface-400 max-w-md mx-auto text-base leading-relaxed">Sin configuraciones complicadas. Empieza a crear en minutos.</p>
         </motion.div>
 
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 relative">
@@ -410,20 +436,22 @@ export default function LandingPage() {
 
           {STEPS.map((step, i) => (
             <motion.div key={step.n}
-              className="glass p-7 md:p-8 relative text-center"
+              className="glass p-8 md:p-10 relative text-center overflow-hidden"
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.15 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-              <div className="inline-block px-3 py-0.5 rounded-full text-xs font-black mb-4"
-                style={{ background:`${step.color}18`, border:`1px solid ${step.color}35`, color:step.color }}>
+              whileHover={{ y: -6, transition: { duration: 0.25 } }}>
+              <div className="absolute top-0 left-0 right-0 h-px"
+                style={{ background:`linear-gradient(90deg,transparent,${step.color}40,transparent)` }} />
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl text-sm font-black mb-6"
+                style={{ background:`${step.color}18`, border:`1.5px solid ${step.color}40`, color:step.color }}>
                 {step.n}
               </div>
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                style={{ background:`${step.color}10`, boxShadow:`0 0 30px ${step.color}12` }}>
-                <step.icon size={26} style={{ color: step.color }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+                style={{ background:`${step.color}12`, boxShadow:`0 0 40px ${step.color}20` }}>
+                <step.icon size={30} style={{ color: step.color }} />
               </div>
-              <h3 className="font-bold text-lg mb-3">{step.title}</h3>
-              <p className="text-sm text-surface-400 leading-relaxed">{step.desc}</p>
+              <h3 className="font-black text-xl mb-3">{step.title}</h3>
+              <p className="text-sm text-surface-400 leading-[1.75]">{step.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -433,63 +461,92 @@ export default function LandingPage() {
       <section id="features" className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
         <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
-            style={{ background: 'rgba(6,182,212,0.10)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.22)' }}>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] px-4 py-2 rounded-full inline-block mb-5"
+            style={{ background: 'rgba(6,182,212,0.12)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.28)' }}>
             Características
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Todo para tu pipeline de desarrollo</h2>
-          <p className="text-surface-400 max-w-lg mx-auto">Herramientas diseñadas específicamente para equipos indie que quieren crear juegos increíbles.</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-5 tracking-tight">Todo para tu pipeline de desarrollo</h2>
+          <p className="text-surface-400 max-w-lg mx-auto text-base leading-relaxed">Herramientas diseñadas específicamente para equipos indie que quieren crear juegos increíbles.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 max-w-5xl mx-auto">
           {FEATURES.map((f, i) => (
-            <motion.div key={f.title} className="glass-sm p-5 md:p-6 group"
+            <motion.div key={f.title} className="glass-sm p-7 md:p-8 group relative overflow-hidden"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-              <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"
-                style={{ background:`${f.color}10`, boxShadow:`0 0 20px ${f.color}08` }}>
-                <f.icon size={20} style={{ color: f.color }} />
+              whileHover={{ y: -5, transition: { duration: 0.25 } }}>
+              <div className="absolute top-0 left-0 right-0 h-px"
+                style={{ background:`linear-gradient(90deg,transparent,${f.color}35,transparent)` }} />
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                style={{ background:`${f.color}12`, boxShadow:`0 0 28px ${f.color}18` }}>
+                <f.icon size={22} style={{ color: f.color }} />
               </div>
-              <h3 className="font-semibold mb-2">{f.title}</h3>
-              <p className="text-sm text-surface-400 leading-relaxed">{f.desc}</p>
+              <h3 className="font-black text-base mb-3">{f.title}</h3>
+              <p className="text-sm text-surface-400 leading-[1.75]">{f.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
+      {/* ── Engines ── */}
+      <div className="section-divider" />
+      <section className="relative z-10 px-4 sm:px-6 py-16 md:py-24">
+        <motion.div className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] px-4 py-2 rounded-full inline-block mb-5"
+            style={{ background: 'rgba(255,107,0,0.10)', color: '#FF6B00', border: '1px solid rgba(255,107,0,0.28)' }}>
+            Compatible con tu engine
+          </span>
+          <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">Sin importar con qué construís</h2>
+          <p className="text-surface-400 max-w-lg mx-auto text-base">Boards especializados por engine para que tu equipo trabaje como siempre.</p>
+        </motion.div>
+        <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+          {ENGINES.map((e, i) => (
+            <motion.span key={e.name}
+              className="engine-pill"
+              style={{ background: e.bg, border: `1px solid ${e.border}`, color: e.color }}
+              initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.07 }}>
+              {e.emoji} {e.name}
+            </motion.span>
+          ))}
+        </div>
+      </section>
+      <div className="section-divider" />
+
       {/* ── Testimonials ── */}
-      <section className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
+      <section className="relative z-10 px-4 sm:px-6 py-16 md:py-28">
         <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
-            style={{ background: 'rgba(52,211,153,0.10)', color: '#34d399', border: '1px solid rgba(52,211,153,0.22)' }}>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] px-4 py-2 rounded-full inline-block mb-5"
+            style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.28)' }}>
             Testimonios
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Lo que dicen los equipos</h2>
-          <p className="text-surface-400 max-w-md mx-auto">Más de 500 estudios indie ya confían en CipoteForge para lanzar sus juegos.</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-5 tracking-tight">Lo que dicen los equipos</h2>
+          <p className="text-surface-400 max-w-md mx-auto text-base">Más de 500 estudios indie ya confían en CipoteForge para lanzar sus juegos.</p>
         </motion.div>
-
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-4 md:gap-5">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 md:gap-6">
           {TESTIMONIALS.map((t, i) => (
-            <motion.div key={t.name} className="glass-sm p-5 md:p-6 flex flex-col gap-4"
+            <motion.div key={t.name} className="glass p-7 md:p-8 flex flex-col gap-5 relative overflow-hidden"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.12 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-              <div className="flex items-center gap-0.5">
+              whileHover={{ y: -5, transition: { duration: 0.25 } }}>
+              <div className="absolute top-0 left-0 right-0 h-px"
+                style={{ background: `linear-gradient(90deg,transparent,${t.color}35,transparent)` }} />
+              <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, j) => (
-                  <Star key={j} size={12} style={{ color: '#fbbf24', fill: '#fbbf24' }} />
+                  <Star key={j} size={13} style={{ color: '#fbbf24', fill: '#fbbf24' }} />
                 ))}
               </div>
-              <p className="text-sm text-surface-300 leading-relaxed flex-1">"{t.text}"</p>
-              <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                  style={{ background: `${t.color}18`, color: t.color, border: `1px solid ${t.color}28` }}>
+              <p className="text-sm text-surface-300 leading-[1.8] flex-1">"{t.text}"</p>
+              <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black shrink-0"
+                  style={{ background: `${t.color}20`, color: t.color, border: `1.5px solid ${t.color}38` }}>
                   {t.initial}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">{t.name}</p>
-                  <p className="text-xs text-surface-500">{t.role}</p>
+                  <p className="text-sm font-bold">{t.name}</p>
+                  <p className="text-xs text-surface-500 mt-0.5">{t.role}</p>
                 </div>
               </div>
             </motion.div>
@@ -498,15 +555,16 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ── */}
-      <section id="pricing" className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28">
+      <div className="section-divider" />
+      <section id="pricing" className="relative z-10 px-4 sm:px-6 py-16 md:py-28">
         <motion.div className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block mb-4"
-            style={{ background: 'rgba(251,191,36,0.10)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.22)' }}>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] px-4 py-2 rounded-full inline-block mb-5"
+            style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.28)' }}>
             Precios
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple y transparente</h2>
-          <p className="text-surface-400 max-w-md mx-auto">Sin cargos ocultos. Empieza gratis y escala cuando lo necesites.</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-5 tracking-tight">Simple y transparente</h2>
+          <p className="text-surface-400 max-w-md mx-auto text-base">Sin cargos ocultos. Empieza gratis y escala cuando lo necesites.</p>
         </motion.div>
 
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5 md:gap-6 items-start">
@@ -550,14 +608,16 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA banner ── */}
-      <motion.section className="relative z-10 px-4 sm:px-6 pb-16 md:pb-28"
+      <div className="section-divider" />
+      <motion.section className="relative z-10 px-4 sm:px-6 py-16 md:py-24"
         initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-        <div className="max-w-3xl mx-auto text-center py-12 md:py-16 px-6 md:px-8 rounded-3xl relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(6,182,212,0.06))', border: '1px solid rgba(124,58,237,0.15)' }}>
-          <div className="absolute inset-0 dot-grid opacity-40" />
+        <div className="max-w-3xl mx-auto text-center py-14 md:py-20 px-6 md:px-12 rounded-3xl relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, rgba(30,144,255,0.07), rgba(255,107,0,0.06))', border: '1px solid rgba(30,144,255,0.20)' }}>
+          <div className="absolute inset-0 dot-grid opacity-30" />
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,107,0,0.10), transparent 65%)' }} />
           <div className="relative z-10">
-            <h2 className="text-2xl md:text-4xl font-bold mb-3">¿Listo para forjar tu próximo juego?</h2>
-            <p className="text-surface-300 mb-7 md:mb-8 max-w-md mx-auto text-sm md:text-base">Únete a CipoteForge y empieza a crear con tu equipo hoy mismo. Sin tarjeta de crédito.</p>
+            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">¿Listo para forjar tu próximo juego?</h2>
+            <p className="text-surface-300 mb-9 max-w-md mx-auto text-base leading-relaxed">Únete a CipoteForge y empieza a crear con tu equipo hoy mismo. Sin tarjeta de crédito.</p>
             <button onClick={() => navigate('/register')} className="btn-primary-pulse flex items-center justify-center gap-2 mx-auto text-base w-full sm:w-auto">
               Crear cuenta gratis <ArrowRight size={18} />
             </button>
@@ -566,41 +626,40 @@ export default function LandingPage() {
       </motion.section>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 border-t border-white/[0.05]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-10 mb-8 md:mb-12">
-            {/* Brand — always visible */}
+      <div className="section-divider" />
+      <footer className="relative z-10">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 md:py-20">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-14 mb-10 md:mb-14">
             <div className="md:col-span-1">
-              <Link to="/" className="flex items-center gap-3 mb-4 no-underline">
-                <img src="/logo2.0.png" alt="CipoteForge" width="52" height="52" style={{ objectFit: 'contain' }} />
+              <Link to="/" className="flex items-center gap-3 mb-5 no-underline">
+                <img src="/logo2.0.png" alt="CipoteForge" width="48" height="48" style={{ objectFit: 'contain' }} />
                 <span className="text-lg font-extrabold"
-                  style={{ background: 'linear-gradient(135deg, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  style={{ background: 'linear-gradient(135deg, #1E90FF, #FF6B00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   CipoteForge
                 </span>
               </Link>
-              <p className="text-sm text-surface-400 leading-relaxed mb-5">
+              <p className="text-sm text-surface-400 leading-[1.8] mb-6">
                 La plataforma todo-en-uno para equipos de desarrollo de videojuegos independientes.
               </p>
               <div className="flex items-center gap-2">
                 {[Github, Twitter].map((Icon, i) => (
                   <a key={i} href="#"
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-surface-400 hover:text-white transition-colors"
-                    style={{ background: 'rgba(255,255,255,0.04)' }}>
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-surface-400 hover:text-white transition-all hover:-translate-y-0.5 duration-200"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <Icon size={15} />
                   </a>
                 ))}
               </div>
             </div>
-
-            {/* Link columns — hidden on mobile */}
             {[
               { title: 'Producto',  links: ['Características', 'Precios', 'Changelog', 'Roadmap'] },
               { title: 'Empresa',   links: ['Acerca de', 'Blog', 'Carreras', 'Prensa'] },
               { title: 'Soporte',   links: ['Documentación', 'Discord', 'Status', 'Contacto'] },
             ].map(col => (
               <div key={col.title} className="hidden md:block">
-                <h4 className="text-sm font-semibold mb-4">{col.title}</h4>
-                <ul className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-[0.15em] mb-5"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}>{col.title}</h4>
+                <ul className="space-y-3.5">
                   {col.links.map(l => (
                     <li key={l}><a href="#" className="text-sm text-surface-400 hover:text-white transition-colors">{l}</a></li>
                   ))}
@@ -608,8 +667,8 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-
-          <div className="pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             <p className="text-xs text-surface-500">© 2026 CipoteForge. Todos los derechos reservados.</p>
             <div className="flex items-center gap-5 text-xs text-surface-500">
               <a href="#" className="hover:text-white transition-colors">Privacidad</a>
@@ -622,3 +681,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+

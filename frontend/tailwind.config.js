@@ -23,16 +23,16 @@ export default {
           600: '#0891B2',
         },
         surface: {
-          50:  '#E2E8F0',
-          100: '#CBD5E1',
-          200: '#94A3B8',
-          300: '#64748B',
-          400: '#475569',
-          500: '#1E1E2E',
-          600: '#181825',
-          700: '#13131F',
-          800: '#0F0F1A',
-          900: '#0A0A12',
+          50:  '#F8FAFC',
+          100: '#E8EDF5',
+          200: '#C8D3E0',
+          300: '#A0AFBF',
+          400: '#8090A4',   /* secondary text — visible on dark bg  */
+          500: '#60748A',   /* muted text     — was nearly invisible */
+          600: '#485A70',   /* very muted     — subtle labels        */
+          700: '#1E2A38',
+          800: '#111827',
+          900: '#0A0F18',
         },
       },
       fontFamily: {

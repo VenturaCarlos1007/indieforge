@@ -432,6 +432,65 @@ html:not(.dark) .btn-primary-pulse * { color: #ffffff !important; }
   pointer-events: none;
 }
 
+/* ── Landing page scroll reveal ──────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+}
+.reveal.visible {
+  animation: fadeInUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.reveal-delay-1 { animation-delay: 0.1s; }
+.reveal-delay-2 { animation-delay: 0.2s; }
+.reveal-delay-3 { animation-delay: 0.3s; }
+.reveal-delay-4 { animation-delay: 0.4s; }
+.reveal-delay-5 { animation-delay: 0.5s; }
+
+/* ── Section divider ─────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent);
+  margin: 0;
+}
+
+/* ── Engine pill card ────────────────────────── */
+.engine-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.25s ease;
+  cursor: default;
+}
+.engine-pill:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.15);
+}
+
+/* ── Glow card hover ─────────────────────────── */
+.glow-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.glow-hover:hover {
+  box-shadow: 0 0 0 1px rgba(255,107,0,0.2), 0 16px 48px rgba(0,0,0,0.4);
+}
+
+/* ── Gradient text utility ───────────────────── */
+.text-gradient-brand {
+  background: linear-gradient(135deg, #1E90FF, #FF6B00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* ── prefers-reduced-motion ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
