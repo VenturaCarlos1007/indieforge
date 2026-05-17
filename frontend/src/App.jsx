@@ -20,6 +20,7 @@ import ChatPage from './pages/project/ChatPage';
 import MilestonesPage from './pages/project/MilestonesPage';
 import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         {/* Explorar es público: visible con o sin sesión */}
         <Route path="/" element={<Layout />}>
           <Route path="explore" element={<ExplorePage />} />

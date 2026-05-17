@@ -44,13 +44,21 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const loginWithToken = async (token) => {
+    localStorage.setItem('token', token);
+    const { data } = await api.get('/auth/me');
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+    connectSocket(token);
+  };
+
   const updateUser = (updatedUser) => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, loginWithToken }}>
       {children}
     </AuthContext.Provider>
   );

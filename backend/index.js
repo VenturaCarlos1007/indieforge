@@ -11,7 +11,8 @@ const { initSocket } = require('./src/socket');
 const { initCronJobs } = require('./src/cron/tasks');
 
 // Route modules
-const authRoutes     = require('./src/routes/auth');
+const authRoutes       = require('./src/routes/auth');
+const authGithubRoutes = require('./src/routes/authGithub');
 const projectRoutes  = require('./src/routes/projects');
 const assetRoutes    = require('./src/routes/assets');
 const taskRoutes     = require('./src/routes/tasks');
@@ -67,6 +68,7 @@ app.get('/api/health', async (_req, res) => {
 
 // ── API Routes
 app.use('/api/auth',     authRoutes);
+app.use('/api/auth',     authGithubRoutes);
 app.use('/api/join-requests', joinRequestsUserRouter);
 app.use('/api/projects',    joinRequestsProjectRouter);
 app.use('/api/projects',    projectRoutes);
