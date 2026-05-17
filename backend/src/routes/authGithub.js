@@ -10,6 +10,9 @@ passport.use('github', new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
   callbackURL: 'https://indieforge-production.up.railway.app/api/auth/github/callback',
+  // Sin express-session en el servidor, el StateStore por defecto falla.
+  // state: false deshabilita la verificación OAuth state (no se necesita sesión).
+  state: false,
 }, async (_accessToken, _refreshToken, profile, done) => {
   try {
     const email = profile.emails?.[0]?.value;
@@ -39,11 +42,20 @@ passport.use('github', new GitHubStrategy({
 
 router.use(passport.initialize());
 
-router.get('/github', passport.authenticate('github', { session: false, scope: ['user:email'] }));
+router.get('/github', passport.authenticate('github', {
+  session: false,
+  scope: ['user:email'],
+  state: false,
+}));
 
 router.get('/github/callback',
+  (req, res, next) => {
+    console.log('🔵 GitHub callback recibido', req.query);
+    next();
+  },
   passport.authenticate('github', {
     session: false,
+    state: false,
     failureRedirect: `${process.env.FRONTEND_URL}/login?error=github`,
   }),
   (req, res) => {
