@@ -33,14 +33,24 @@ const server = http.createServer(app);
 
 // ── Middlewares
 app.use(cors({
-  origin: [
-    'https://indieforge-beryl.vercel.app',
-    'https://indieforge-production.up.railway.app',
-    'http://localhost:5173',
-    'http://localhost:5174',
-  ],
-  credentials: true
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://cipoteforge.vercel.app',
+      'https://indieforge-beryl.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:4000'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.options('*', cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
