@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const { getClient } = require('../config/db');
 
-const DEMO_EMAIL    = 'demo@indieforge.com';
+const DEMO_EMAIL    = 'demo@cipoteforge.com';
 const DEMO_PASSWORD = 'Demo1234';
 
 async function seedDemo() {
@@ -45,7 +45,7 @@ async function seedDemo() {
     await client.query(
       `INSERT INTO users (id, name, email, password_hash, bio, favorite_engine, location)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [alexId, 'Alex Studio', 'demo@indieforge.com', hash,
+      [alexId, 'Alex Studio', 'demo@cipoteforge.com', hash,
        'Desarrollador indie apasionado por los roguelikes y los juegos de plataformas.',
        'unity', 'San Salvador, El Salvador']
     );
@@ -67,8 +67,8 @@ async function seedDemo() {
     await client.query(
       `INSERT INTO projects (id, name, description, owner_id, engine)
        VALUES ($1,$2,$3,$4,$5)`,
-      [projectId, 'Crimson Dungeon',
-       'Un roguelite de mazmorras en pixel art con generación procedural de niveles y más de 50 enemigos únicos.',
+      [projectId, 'Eclipse Carmesí',
+       'Roguelite de mazmorras en pixel art con generación procedural, más de 50 enemigos únicos y jefes épicos. Seleccionado para demo en expo indie 2025.',
        alexId, 'unity']
     );
 
@@ -223,7 +223,7 @@ async function seedDemo() {
     }
 
     await client.query('COMMIT');
-    console.log('✅ Demo seed completado — usuario: demo@indieforge.com / pass: Demo1234');
+    console.log('✅ Demo seed completado — usuario: demo@cipoteforge.com / pass: Demo1234');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('❌ Error en demo seed:', err.message);
