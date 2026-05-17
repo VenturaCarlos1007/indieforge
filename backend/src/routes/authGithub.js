@@ -9,7 +9,7 @@ const router = Router();
 passport.use('github', new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: process.env.GITHUB_CALLBACK_URL,
+  callbackURL: 'https://indieforge-production.up.railway.app/api/auth/github/callback',
 }, async (_accessToken, _refreshToken, profile, done) => {
   try {
     const email = profile.emails?.[0]?.value;
