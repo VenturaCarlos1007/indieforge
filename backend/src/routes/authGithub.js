@@ -1,17 +1,27 @@
 const { Router } = require('express');
-const { Strategy: GitHubStrategy } = require('passport-github2');
-const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const { query } = require('../config/db');
 
 const router = Router();
 
+const CLIENT_ID     = process.env.GITHUB_CLIENT_ID;
+const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+const CALLBACK_URL  = 'https://indieforge-production.up.railway.app/api/auth/github/callback';
+const FRONTEND_URL  = process.env.FRONTEND_URL || 'https://cipoteforge.vercel.app';
+
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  console.warn('⚠️  GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET no configurados — OAuth GitHub deshabilitado');
+  module.exports = router;
+  return;
+}
+
+const { Strategy: GitHubStrategy } = require('passport-github2');
+const passport = require('passport');
+
 passport.use('github', new GitHubStrategy({
-  clientID: process.env.GITHUB_CLIENT_ID,
-  clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: 'https://indieforge-production.up.railway.app/api/auth/github/callback',
-  // Sin express-session en el servidor, el StateStore por defecto falla.
-  // state: false deshabilita la verificación OAuth state (no se necesita sesión).
+  clientID:     CLIENT_ID,
+  clientSecret: CLIENT_SECRET,
+  callbackURL:  CALLBACK_URL,
   state: false,
 }, async (_accessToken, _refreshToken, profile, done) => {
   try {
@@ -24,7 +34,7 @@ passport.use('github', new GitHubStrategy({
     );
     if (rows.length > 0) return done(null, rows[0]);
 
-    const name = profile.displayName || profile.username || email.split('@')[0];
+    const name      = profile.displayName || profile.username || email.split('@')[0];
     const avatarUrl = profile.photos?.[0]?.value || null;
 
     const { rows: created } = await query(
@@ -56,7 +66,7 @@ router.get('/github/callback',
   passport.authenticate('github', {
     session: false,
     state: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=github`,
+    failureRedirect: `${FRONTEND_URL}/login?error=github`,
   }),
   (req, res) => {
     const token = jwt.sign(
@@ -64,7 +74,7 @@ router.get('/github/callback',
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
 
