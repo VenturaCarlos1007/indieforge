@@ -437,6 +437,64 @@ router.put('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// PATCH /api/projects/:id — solo el owner puede cambiar visibilidad
+router.patch('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const isPublic = typeof req.body.is_public === 'boolean' ? req.body.is_public : undefined;
+
+    if (isPublic === undefined) {
+      return res.status(400).json({ error: 'El campo is_public es requerido.' });
+    }
+
+    const mem = await query(
+      `SELECT role FROM project_members WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
+      [id, req.user.id]
+    );
+    if (!mem.rows.length || mem.rows[0].role !== 'owner') {
+      return res.status(403).json({ error: 'Solo el propietario puede cambiar la visibilidad del proyecto.' });
+    }
+
+    if (isPublic === false) {
+      const currentRes = await query('SELECT is_public, name FROM projects WHERE id = $1', [id]);
+      if (currentRes.rows.length && currentRes.rows[0].is_public === true) {
+        const currentName = currentRes.rows[0].name;
+        const pendingRes = await query(
+          `SELECT id, user_id FROM join_requests WHERE project_id = $1 AND status = 'pendiente'`,
+          [id]
+        );
+        if (pendingRes.rows.length) {
+          await query(
+            `UPDATE join_requests SET status = 'rechazado', updated_at = NOW() WHERE project_id = $1 AND status = 'pendiente'`,
+            [id]
+          );
+          const io = req.app.get('io');
+          for (const r of pendingRes.rows) {
+            const notifRes = await query(
+              `INSERT INTO notifications (user_id, project_id, type, title, message, data)
+               VALUES ($1, $2, 'join_cancelled', $3, $4, $5) RETURNING *`,
+              [
+                r.user_id, id,
+                'Solicitud cancelada',
+                `Tu solicitud para unirte a "${currentName}" fue cancelada porque el proyecto se volvió privado`,
+                JSON.stringify({ projectId: id }),
+              ]
+            );
+            if (io) io.to(`user:${r.user_id}`).emit('notification', notifRes.rows[0]);
+          }
+        }
+      }
+    }
+
+    const { rows } = await query(
+      'UPDATE projects SET is_public = $1 WHERE id = $2 RETURNING *',
+      [isPublic, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Proyecto no encontrado.' });
+    res.json({ project: rows[0] });
+  } catch (err) { next(err); }
+});
+
 // DELETE /api/projects/:id — solo el owner puede eliminar
 router.delete('/:id', async (req, res, next) => {
   try {

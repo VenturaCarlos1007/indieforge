@@ -1,11 +1,11 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { Outlet, useParams, NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderOpen, Columns3, Users, BarChart2, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Columns3, Users, BarChart2, MessageSquare, Settings } from 'lucide-react';
 import api from '../../services/api';
 import { getSocket } from '../../services/socket';
 import ProjectSidebar from './ProjectSidebar';
 
-const MOBILE_NAV = [
+const BASE_MOBILE_NAV = [
   { path: '',        label: 'Dashboard',    icon: LayoutDashboard, accent: '#FF6B00', end: true },
   { path: 'assets',  label: 'Assets',       icon: FolderOpen,      accent: '#22d3ee' },
   { path: 'kanban',  label: 'Kanban',       icon: Columns3,        accent: '#fbbf24' },
@@ -13,6 +13,8 @@ const MOBILE_NAV = [
   { path: 'stats',   label: 'Estadísticas', icon: BarChart2,       accent: '#f43f5e' },
   { path: 'chat',    label: 'Chat',         icon: MessageSquare,   accent: '#a855f7' },
 ];
+
+const SETTINGS_NAV = { path: 'settings', label: 'Config.', icon: Settings, accent: '#FF6B00' };
 
 const ProjectContext = createContext(null);
 export const useProject = () => useContext(ProjectContext);
@@ -74,7 +76,7 @@ export default function ProjectLayout() {
           {/* Mobile horizontal tab nav */}
           <nav className="lg:hidden flex overflow-x-auto scrollbar-none shrink-0 border-b px-2"
             style={{ borderColor: 'var(--border-subtle)', background: 'var(--sidebar-bg)' }}>
-            {MOBILE_NAV.map(({ path, label, icon: Icon, accent, end }) => (
+            {[...BASE_MOBILE_NAV, ...(role === 'owner' ? [SETTINGS_NAV] : [])].map(({ path, label, icon: Icon, accent, end }) => (
               <NavLink
                 key={path}
                 to={`/project/${projectId}/${path}`}

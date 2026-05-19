@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, BarChart2, MessageSquare, Flag } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Columns3, Users, ArrowLeft, BarChart2, MessageSquare, Flag, Settings } from 'lucide-react';
 import { useProject } from './ProjectLayout';
 import { getSocket } from '../../services/socket';
 import UserAvatar from '../common/UserAvatar';
 
 const navItems = [
-  { path: '',        label: 'Dashboard',  icon: LayoutDashboard, accent: '#FF6B00', end: true },
-  { path: 'assets',  label: 'Assets',     icon: FolderOpen,      accent: '#22d3ee' },
-  { path: 'kanban',      label: 'Kanban',     icon: Columns3,  accent: '#fbbf24' },
-  { path: 'milestones', label: 'Hitos',     icon: Flag,      accent: '#f97316' },
-  { path: 'members',    label: 'Miembros',  icon: Users,     accent: '#34d399' },
-  { path: 'stats',   label: 'Estadísticas',icon: BarChart2,      accent: '#f43f5e' },
-  { path: 'chat',   label: 'Chat',         icon: MessageSquare,  accent: '#FF6B00' },
+  { path: '',        label: 'Dashboard',     icon: LayoutDashboard, accent: '#FF6B00', end: true },
+  { path: 'assets',  label: 'Assets',        icon: FolderOpen,      accent: '#22d3ee' },
+  { path: 'kanban',  label: 'Kanban',        icon: Columns3,        accent: '#fbbf24' },
+  { path: 'milestones', label: 'Hitos',      icon: Flag,            accent: '#f97316' },
+  { path: 'members', label: 'Miembros',      icon: Users,           accent: '#34d399' },
+  { path: 'stats',   label: 'Estadísticas',  icon: BarChart2,       accent: '#f43f5e' },
+  { path: 'chat',    label: 'Chat',          icon: MessageSquare,   accent: '#FF6B00' },
 ];
 
 export default function ProjectSidebar({ project }) {
   const { projectId } = useParams();
-  const { members } = useProject();
+  const { members, role } = useProject();
   const base = `/project/${projectId}`;
   const [onlineIds, setOnlineIds] = useState(new Set());
 
@@ -127,6 +127,62 @@ export default function ProjectSidebar({ project }) {
             )}
           </NavLink>
         ))}
+
+        {/* Settings — solo owner */}
+        {role === 'owner' && (
+          <>
+            <div className="mx-2 my-2 border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }} />
+            <NavLink
+              to={`${base}/settings`}
+              className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group"
+            >
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.div
+                      layoutId="project-nav-active"
+                      className="absolute inset-0 rounded-xl"
+                      style={{
+                        background: 'linear-gradient(135deg, #1E90FF12, transparent)',
+                        border: '1px solid #1E90FF25',
+                      }}
+                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  {isActive && (
+                    <motion.div
+                      layoutId="project-nav-bar"
+                      className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full"
+                      style={{ background: '#1E90FF', boxShadow: '0 0 8px #1E90FF60' }}
+                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 relative z-10 ${
+                      isActive ? '' : 'group-hover:scale-110'
+                    }`}
+                    style={{
+                      background: isActive ? '#1E90FF18' : 'rgba(255,255,255,0.03)',
+                      boxShadow: isActive ? '0 0 12px #1E90FF15' : 'none',
+                    }}
+                  >
+                    <Settings
+                      size={15}
+                      style={{ color: isActive ? '#1E90FF' : '#64748B' }}
+                      className="transition-colors duration-200 group-hover:brightness-150"
+                    />
+                  </div>
+                  <span
+                    className="relative z-10 transition-colors duration-200 text-surface-300 group-hover:text-white"
+                    style={isActive ? { color: '#1E90FF' } : undefined}
+                  >
+                    Configuración
+                  </span>
+                </>
+              )}
+            </NavLink>
+          </>
+        )}
       </nav>
     </aside>
   );

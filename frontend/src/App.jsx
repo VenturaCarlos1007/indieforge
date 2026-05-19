@@ -18,6 +18,7 @@ import MembersPage from './pages/project/MembersPage';
 import ProjectStatsPage from './pages/project/ProjectStatsPage';
 import ChatPage from './pages/project/ChatPage';
 import MilestonesPage from './pages/project/MilestonesPage';
+import ProjectSettingsPage from './pages/project/ProjectSettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="members" element={<MembersPage />} />
             <Route path="stats" element={<ProjectStatsPage />} />
             <Route path="chat" element={<ChatPage />} />
+            <Route path="settings" element={<ProjectSettingsPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
